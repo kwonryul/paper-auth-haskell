@@ -1,0 +1,96 @@
+cabal-version:      3.4
+name:               paper
+version:            0.1.0.0
+-- synopsis:
+-- description:
+license:            MIT
+license-file:       LICENSE
+author:             kwonryul
+maintainer:         pkr08205@gmail.com
+-- copyright:
+category:           Web
+build-type:         Simple
+data-files:
+    resources/static/*.html
+    resources/images/*.png
+    resources/*.cfg
+extra-doc-files:
+    README.md
+    CHANGELOG.md
+-- extra-source-files:
+
+source-repository head
+    type: git
+    location: https://github.com/kwonryul/paper
+
+common warnings
+    ghc-options: -Wall
+
+library
+    import:           warnings
+    exposed-modules:
+        Lib
+    other-modules:
+        Paths_paper
+      , Import
+      , Exception
+      , Configurator
+      , Context
+      , DB
+    -- other-extensions:
+    autogen-modules:
+        Paths_paper
+    build-depends:
+        base ^>=4.19.0.0
+      , template-haskell
+      , raw-strings-qq
+      , bytestring
+      , text
+      , transformers
+      , transformers-either
+      , monad-logger
+      , resourcet
+      , http-types
+      , configurator
+      , servant-server
+      , servant-static-th
+      , wai
+      , wai-cors
+      , warp
+      , http-types
+      , persistent
+      , persistent-template
+      , persistent-typed-db
+      , persistent-mysql
+    hs-source-dirs:   src
+    default-language: GHC2021
+
+executable paper
+    import:           warnings
+    main-is:          Main.hs
+    other-modules:
+        Paths_paper
+    -- other-extensions:
+    autogen-modules:
+        Paths_paper
+    build-depends:
+        base ^>=4.19.0.0,
+        paper
+
+    hs-source-dirs:   app
+    default-language: GHC2021
+
+test-suite paper-test
+    import:           warnings
+    default-language: GHC2021
+    other-modules:
+        Paths_paper
+    -- other-extensions:
+    autogen-modules:
+        Paths_paper
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Main.hs
+    build-depends:
+        base ^>=4.19.0.0,
+        paper
