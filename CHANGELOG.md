@@ -1,4 +1,4 @@
-# Revision history for paper
+# Revision history for paper-auth
 
 ## 0.1.0.0 -- YYYY-mm-dd
 

@@ -1,5 +1,5 @@
 cabal-version:      3.4
-name:               paper
+name:               paper-auth
 version:            0.1.0.0
 -- synopsis:
 -- description:
@@ -21,7 +21,7 @@ extra-doc-files:
 
 source-repository head
     type: git
-    location: https://github.com/kwonryul/paper
+    location: https://github.com/kwonryul/paper-auth
 
 common warnings
     ghc-options: -Wall
@@ -31,7 +31,7 @@ library
     exposed-modules:
         Lib
     other-modules:
-        Paths_paper
+        Paths_paper_auth
       , Import
       , Exception
       , Configurator
@@ -39,7 +39,7 @@ library
       , DB
     -- other-extensions:
     autogen-modules:
-        Paths_paper
+        Paths_paper_auth
     build-depends:
         base ^>=4.19.0.0
       , template-haskell
@@ -65,32 +65,32 @@ library
     hs-source-dirs:   src
     default-language: GHC2021
 
-executable paper
+executable paper-auth
     import:           warnings
     main-is:          Main.hs
     other-modules:
-        Paths_paper
+        Paths_paper_auth
     -- other-extensions:
     autogen-modules:
-        Paths_paper
+        Paths_paper_auth
     build-depends:
         base ^>=4.19.0.0,
-        paper
+        paper-auth
 
     hs-source-dirs:   app
     default-language: GHC2021
 
-test-suite paper-test
+test-suite paper-auth-test
     import:           warnings
     default-language: GHC2021
     other-modules:
-        Paths_paper
+        Paths_paper_auth
     -- other-extensions:
     autogen-modules:
-        Paths_paper
+        Paths_paper_auth
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test
     main-is:          Main.hs
     build-depends:
         base ^>=4.19.0.0,
-        paper
+        paper-auth

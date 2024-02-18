@@ -5,7 +5,7 @@ module Context(
 
 import Exception
 import DB
-import Paths_paper
+import Paths_paper_auth
 
 import Data.Configurator
 import Data.Configurator.Types

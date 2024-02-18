@@ -27,11 +27,11 @@ type PaperAuthPool = ConnectionPoolFor PaperAuthDB
 
 paperAuthConnInfo' :: Config -> PaperEitherT IO ConnectInfo
 paperAuthConnInfo' config = do
-    host <- lookupConfig config "db.paper_auth.host"
-    port <- lookupConfig config "db.paper_auth.port"
-    user <- lookupConfig config "db.paper_auth.user"
-    password <- lookupConfig config "db.paper_auth.password"
-    dbname <- lookupConfig config "db.paper_auth.dbname"
+    host <- lookupConfig config "db.paper-auth.host"
+    port <- lookupConfig config "db.paper-auth.port"
+    user <- lookupConfig config "db.paper-auth.user"
+    password <- lookupConfig config "db.paper-auth.password"
+    dbname <- lookupConfig config "db.paper-auth.dbname"
     return defaultConnectInfo {
         connectHost = host
       , connectPort = port

@@ -3,7 +3,7 @@
 module Lib (startApp) where
 
 import Context as C
-import Paths_paper
+import Paths_paper_auth
 
 import Servant
 import Servant.Static.TH.Internal.Mime
