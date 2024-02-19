@@ -3,11 +3,13 @@ module Configurator(
 ) where
 
 import Exception
+import CallStack
 
 import Data.Configurator as Cfg
 import Data.Configurator.Types
 
 import Data.Text
+import GHC.Stack
 
-lookupConfig :: Configured a => Config -> Name -> PaperEitherT IO a
-lookupConfig config name = toPaperEitherT' (Cfg.lookup config name) (ConfigMissing $ unpack name)
+lookupConfig :: (HasCallStack, Configured a) => Config -> Name -> PaperExceptT IO a
+lookupConfig config name = maybeToPaperExceptT' (Cfg.lookup config name) (ConfigMissing (unpack name) callStack')

@@ -16,16 +16,15 @@ import Database.Persist.Typed
 import Database.Persist.MySQL
 import Data.Configurator.Types
 
-import Control.Monad.Trans.Either
-import Control.Monad.Trans.Resource
 import Control.Monad.Logger
+import GHC.Stack
 
 data PaperAuthDB = PaperAuthDB deriving Show
 instance DB PaperAuthDB
 type PaperAuthConn = SqlFor PaperAuthDB
 type PaperAuthPool = ConnectionPoolFor PaperAuthDB
 
-paperAuthConnInfo' :: Config -> PaperEitherT IO ConnectInfo
+paperAuthConnInfo' :: HasCallStack => Config -> PaperExceptT IO ConnectInfo
 paperAuthConnInfo' config = do
     host <- lookupConfig config "db.paper-auth.host"
     port <- lookupConfig config "db.paper-auth.port"
@@ -40,7 +39,7 @@ paperAuthConnInfo' config = do
       , connectDatabase = dbname
     }
 
-getPaperAuthPool' :: (MonadUnliftIO m, MonadLoggerIO m) => Config -> PaperEitherT m PaperAuthPool
+getPaperAuthPool' :: HasCallStack => Config -> PaperExceptT IO PaperAuthPool
 getPaperAuthPool' config = do
-    paperAuthConnInfo <- liftIOEitherT $ paperAuthConnInfo' config
-    EitherT $ Right . specializePool <$> createMySQLPool paperAuthConnInfo 8
+    paperAuthConnInfo <- paperAuthConnInfo' config
+    paperIO $ specializePool <$> (runStderrLoggingT $ createMySQLPool paperAuthConnInfo 8)

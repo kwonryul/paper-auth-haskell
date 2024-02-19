@@ -1,5 +1,8 @@
 module Context(
-    Context
+    Context(
+        getConfig
+      , getPaperAuthPool
+    )
   , getContext'
 ) where
 
@@ -10,22 +13,21 @@ import Paths_paper_auth
 import Data.Configurator
 import Data.Configurator.Types
 import Control.Concurrent
-import Control.Monad.Trans.Resource
-import Control.Monad.Logger
+import GHC.Stack
 
 data Context = Context {
     getConfig :: Config
   , getPaperAuthPool :: PaperAuthPool
 }
 
-getConfig' :: IO (Config, ThreadId)
+getConfig' :: HasCallStack => PaperExceptT IO (Config, ThreadId)
 getConfig' = do
-    filePath <- getDataFileName "resources/application.cfg"
-    autoReload autoConfig [Required filePath]
+    filePath <- paperIO $ getDataFileName "resources/application.cfg"
+    paperIO $ autoReload autoConfig [Required filePath]
 
-getContext' :: (MonadUnliftIO m, MonadLoggerIO m) => PaperEitherT m Context
+getContext' :: HasCallStack => PaperExceptT IO Context
 getContext' = do
-    (config, _) <- liftIOEitherT' $ Right <$> getConfig'
+    (config, _) <- getConfig'
     paperAuthPool <- getPaperAuthPool' config
     return $ Context {
         getConfig = config

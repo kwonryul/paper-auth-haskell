@@ -3,6 +3,7 @@
 module Lib (startApp) where
 
 import Context as C
+import Exception
 import Paths_paper_auth
 
 import Servant
@@ -11,37 +12,30 @@ import Network.Wai.Handler.Warp
 
 import System.IO
 import Data.ByteString as BS
-import Control.Monad.Trans.Either
 import Control.Monad.IO.Class
-import Control.Monad.Logger
-import Control.Exception hiding (
-    Handler
-  , handle
-  )
+import GHC.Stack
 
 type API = "favicon.ico" :> Get '[ICO] ByteString
 
-server :: C.Context -> FilePath -> Server API
+server :: HasCallStack => C.Context -> FilePath -> Server API
 server context filePath = faviconServer
 
-faviconServer :: Handler ByteString
+faviconServer :: HasCallStack => Handler ByteString
 faviconServer = liftIO $ do
-    filePath <- getDataFileName "resources/images/favicon.ico"
-    handle <- openFile filePath ReadMode
-    contents <- BS.hGetContents handle
-    hClose handle
+    filePath <- paperIO' $ getDataFileName "resources/images/favicon.ico"
+    handle <- paperIO' $ openFile filePath ReadMode
+    contents <- paperIO' $ BS.hGetContents handle
+    paperIO' $ hClose handle
     return contents
 
 api :: Proxy API
 api = Proxy
 
-app :: C.Context -> FilePath -> Application
+app :: HasCallStack => C.Context -> FilePath -> Application
 app context filePath = serve api (server context filePath)
 
-startApp :: IO ()
+startApp :: HasCallStack => IO ()
 startApp = do
-    filePath <- getDataFileName "resources/static"
-    context' <- runStderrLoggingT $ runEitherT getContext'
-    case context' of
-        Right context -> run 8080 (app context filePath)
-        Left ex -> throwIO ex
+    filePath <- paperIO' $ getDataFileName "resources/static"
+    context <- runPaperExceptT getContext'
+    paperIO' $ run 8080 (app context filePath)

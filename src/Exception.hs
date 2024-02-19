@@ -1,56 +1,89 @@
 module Exception(
-    PaperEither
-  , PaperEitherT
-  , toPaperEither
-  , toPaperEitherT
-  , toPaperEitherT'
-  , liftIOEitherT
-  , liftIOEitherT'
+    PaperExcept
+  , PaperExceptT
+  , maybeToPaperExcept
+  , maybeToPaperExceptT
+  , maybeToPaperExceptT'
+  , liftIOExceptT
+  , liftIOExceptT'
   , PaperException(
-      ConfigMissing
+      IOException
+    , ConfigMissing
     , DatabaseInitializeException
   )
+  , paperIO
+  , paperIO'
+  , runPaperExcept
+  , runPaperExceptT
+  , runPaperExceptM
 ) where
 
 import Import
+import CallStack
 
 import Control.Exception
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Maybe
-import Control.Monad.Trans.Either
+import Control.Monad.Except
+import GHC.Stack
 
-type PaperEither = Either PaperException
-type PaperEitherT = EitherT PaperException
+type PaperExcept = Either PaperException
+type PaperExceptT = ExceptT PaperException
 
-toPaperEither :: Maybe a -> PaperException -> PaperEither a
-toPaperEither a' ex =
+maybeToPaperExcept :: Maybe a -> PaperException -> PaperExcept a
+maybeToPaperExcept a' ex =
     case a' of
         Just a -> Right a
         Nothing -> Left ex
 
-toPaperEitherT :: Monad m => MaybeT m a -> PaperException -> PaperEitherT m a
-toPaperEitherT mma = toPaperEitherT' $ runMaybeT mma
+maybeToPaperExceptT :: HasCallStack => MaybeT IO a -> PaperException -> PaperExceptT IO a
+maybeToPaperExceptT (MaybeT ima) = maybeToPaperExceptT' ima
 
-toPaperEitherT' :: Monad m => m (Maybe a) -> PaperException -> PaperEitherT m a
-toPaperEitherT' mma ex =
-    EitherT $ do
-        a' <- mma
+maybeToPaperExceptT' :: HasCallStack => IO (Maybe a) -> PaperException -> PaperExceptT IO a
+maybeToPaperExceptT' ima ex =
+    do
+        a' <- paperIO ima
         case a' of
-            Just a -> return $ Right a
-            Nothing -> return $ Left ex
+            Just a -> return a
+            Nothing -> ExceptT $ return $ Left ex
 
-liftIOEitherT :: MonadIO m => PaperEitherT IO a -> PaperEitherT m a
-liftIOEitherT pia = liftIOEitherT' $ runEitherT pia
+liftIOExceptT :: MonadIO m => PaperExceptT IO a -> PaperExceptT m a
+liftIOExceptT pia = liftIOExceptT' $ runExceptT pia
 
-liftIOEitherT' :: MonadIO m => IO (Either PaperException a) -> PaperEitherT m a
-liftIOEitherT' iea = EitherT $ liftIO iea
+liftIOExceptT' :: MonadIO m => IO (Either PaperException a) -> PaperExceptT m a
+liftIOExceptT' iea = ExceptT $ liftIO iea
 
 data PaperException where
-    ConfigMissing :: String -> PaperException
-    DatabaseInitializeException :: (Show db, DB db) => db -> PaperException
+    IOException :: Exception e => e -> CallStack -> PaperException
+    ConfigMissing :: String -> CallStack -> PaperException
+    DatabaseInitializeException :: (Show db, DB db) => db -> CallStack -> PaperException
 
 instance Show PaperException where
-    show (ConfigMissing name) = "[ConfigMissing]\t" ++ name
-    show (DatabaseInitializeException db) = "[DatabaseInitializeException]\t" ++ show db
+    show (IOException ex cs) = "[IOException]\t" ++ show ex ++ "\n" ++ prettyCallStack cs
+    show (ConfigMissing name cs) = "[ConfigMissing]\t" ++ name ++ "\n" ++ prettyCallStack cs
+    show (DatabaseInitializeException db cs) = "[DatabaseInitializeException]\t" ++ show db ++ "\n" ++ prettyCallStack cs
 
 instance Exception PaperException
+
+paperIO :: (HasCallStack, MonadIO m) => IO a -> PaperExceptT m a
+paperIO io = ExceptT $ liftIO $ catch (Right <$> io) (\(ex :: SomeException) ->
+        return $ Left $ IOException ex callStack'
+    )
+
+paperIO' :: HasCallStack => IO a -> IO a
+paperIO' io = catch io (\(ex :: SomeException) ->
+        throwIO (IOException ex callStack')
+    )
+
+runPaperExcept :: MonadIO m => PaperExcept a -> m a
+runPaperExcept p = case p of
+    Left ex -> liftIO $ throwIO ex
+    Right x -> return x
+
+runPaperExceptT :: MonadIO m => PaperExceptT m a -> m a
+runPaperExceptT (ExceptT mea) = runPaperExceptM mea
+
+runPaperExceptM :: MonadIO m => m (PaperExcept a) -> m a
+runPaperExceptM mea = do
+    ea <- mea
+    runPaperExcept ea

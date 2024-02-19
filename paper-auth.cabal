@@ -34,6 +34,7 @@ library
         Paths_paper_auth
       , Import
       , Exception
+      , CallStack
       , Configurator
       , Context
       , DB
@@ -47,7 +48,7 @@ library
       , bytestring
       , text
       , transformers
-      , transformers-either
+      , mtl
       , monad-logger
       , resourcet
       , http-types
@@ -74,8 +75,10 @@ executable paper-auth
     autogen-modules:
         Paths_paper_auth
     build-depends:
-        base ^>=4.19.0.0,
-        paper-auth
+        base ^>=4.19.0.0
+      , paper-auth
+      , transformers
+      , mtl
 
     hs-source-dirs:   app
     default-language: GHC2021

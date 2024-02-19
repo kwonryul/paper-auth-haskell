@@ -2,5 +2,7 @@ module Main where
 
 import Lib
 
-main :: IO ()
+import GHC.Stack
+
+main :: HasCallStack => IO ()
 main = startApp
