@@ -1,3 +1,8 @@
 dist*
 .vscode/
 resources/application.cfg
+resources/tls/cert.pem
+resources/tls/secret-key.pem
+resources/jwt/encrypted-paper.pem
+resources/jwt/paper.pem
+resources/jwt/paper.pub

@@ -10,7 +10,7 @@ module DB(
 
 import Import
 import Configurator
-import Exception
+import GlobalError
 
 import Database.Persist.Typed
 import Database.Persist.MySQL
@@ -24,13 +24,13 @@ instance DB PaperAuthDB
 type PaperAuthConn = SqlFor PaperAuthDB
 type PaperAuthPool = ConnectionPoolFor PaperAuthDB
 
-paperAuthConnInfo' :: HasCallStack => Config -> PaperExceptT IO ConnectInfo
+paperAuthConnInfo' :: HasCallStack => Config -> GlobalExceptT IO ConnectInfo
 paperAuthConnInfo' config = do
-    host <- lookupConfig config "db.paper-auth.host"
-    port <- lookupConfig config "db.paper-auth.port"
-    user <- lookupConfig config "db.paper-auth.user"
-    password <- lookupConfig config "db.paper-auth.password"
-    dbname <- lookupConfig config "db.paper-auth.dbname"
+    host <- lookupConfigGlobal config "db.paper-auth.host"
+    port <- lookupConfigGlobal config "db.paper-auth.port"
+    user <- lookupConfigGlobal config "db.paper-auth.user"
+    password <- lookupConfigGlobal config "db.paper-auth.password"
+    dbname <- lookupConfigGlobal config "db.paper-auth.dbname"
     return defaultConnectInfo {
         connectHost = host
       , connectPort = port
@@ -39,7 +39,7 @@ paperAuthConnInfo' config = do
       , connectDatabase = dbname
     }
 
-getPaperAuthPool' :: HasCallStack => Config -> PaperExceptT IO PaperAuthPool
+getPaperAuthPool' :: HasCallStack => Config -> GlobalExceptT IO PaperAuthPool
 getPaperAuthPool' config = do
     paperAuthConnInfo <- paperAuthConnInfo' config
-    paperIO $ specializePool <$> (runStderrLoggingT $ createMySQLPool paperAuthConnInfo 8)
+    globalLiftIO $ specializePool <$> (runStderrLoggingT $ createMySQLPool paperAuthConnInfo 8)

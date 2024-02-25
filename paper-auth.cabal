@@ -12,10 +12,13 @@ category:           Web
 build-type:         Simple
 data-files:
     resources/static/*.html
-    resources/images/*.png
+    resources/images/*.ico
     resources/*.cfg
+    resources/tls/cert.pem
+    resources/tls/secret-key.pem
+    resources/jwt/paper.pem
+    resources/jwt/paper.pub
 extra-doc-files:
-    README.md
     CHANGELOG.md
 -- extra-source-files:
 
@@ -33,11 +36,26 @@ library
     other-modules:
         Paths_paper_auth
       , Import
-      , Exception
+      , GlobalError
+      , PaperError
       , CallStack
       , Configurator
       , Context
       , DB
+      , JWT.Entity
+      , JWT.Model
+      , JWT.DTO
+      , JWT.AuthCheck
+      , JWT.Controller
+      , JWT.Service
+      , JWT.Repository
+      , User.Entity
+      , User.Model
+      , User.Controller
+      , User.Service
+      , User.Repository
+      , Role.Entity
+      , UserRole.Entity
     -- other-extensions:
     autogen-modules:
         Paths_paper_auth
@@ -45,19 +63,31 @@ library
         base ^>=4.19.0.0
       , template-haskell
       , raw-strings-qq
+      , containers
+      , vector
       , bytestring
       , text
+      , time
+      , exceptions
       , transformers
       , mtl
       , monad-logger
+      , unliftio
+      , unliftio-core
       , resourcet
       , http-types
       , configurator
+      , aeson
+      , cookie
+      , jwt
+      , servant
       , servant-server
       , servant-static-th
+      , servant-auth-server
       , wai
       , wai-cors
       , warp
+      , warp-tls
       , http-types
       , persistent
       , persistent-template
