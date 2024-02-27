@@ -2,10 +2,10 @@
 
 module Context(
     Context(
-        getConfig
-      , getPaperAuthPool
-      , getPaperEncodeSigner
-      , getPaperVerifySigner
+        config
+      , paperAuthPool
+      , paperEncodeSigner
+      , paperVerifySigner
     )
   , getContext'
 ) where
@@ -20,14 +20,14 @@ import Data.Configurator.Types
 import Web.JWT
 
 import Control.Concurrent
-import Data.ByteString as ByteString
+import Data.ByteString
 import GHC.Stack
 
 data Context = Context {
-    getConfig :: Config
-  , getPaperAuthPool :: PaperAuthPool
-  , getPaperEncodeSigner :: EncodeSigner
-  , getPaperVerifySigner :: VerifySigner
+    config :: Config
+  , paperAuthPool :: PaperAuthPool
+  , paperEncodeSigner :: EncodeSigner
+  , paperVerifySigner :: VerifySigner
 }
 
 getConfig' :: HasCallStack => GlobalExceptT IO (Config, ThreadId)
@@ -42,24 +42,24 @@ getContext' = do
     paperEncodeSigner <- getPaperEncodeSigner'
     paperVerifySigner <- getPaperVerifySigner'
     return $ Context {
-        getConfig = config
-      , getPaperAuthPool = paperAuthPool
-      , getPaperEncodeSigner = paperEncodeSigner
-      , getPaperVerifySigner = paperVerifySigner
+        config = config
+      , paperAuthPool = paperAuthPool
+      , paperEncodeSigner = paperEncodeSigner
+      , paperVerifySigner = paperVerifySigner
     }
 
 getPaperEncodeSigner' :: HasCallStack => GlobalExceptT IO EncodeSigner
 getPaperEncodeSigner' = do
-    filePath <- globalLiftIO $ getDataFileName "resources/jwt/paper.pem"
-    content <- globalLiftIO $ ByteString.readFile filePath
+    filePath <- globalLiftIO $ getDataFileName "resources/jwt/paper-auth.pem"
+    content <- globalLiftIO $ Data.ByteString.readFile filePath
     case readRsaSecret content of
         Just privateKey -> return $ EncodeRSAPrivateKey privateKey
-        Nothing -> toGlobalExceptT $ GlobalException "paper private key invalid" callStack'
+        Nothing -> toGlobalExceptT $ GlobalException "paper-auth private key invalid" callStack'
 
 getPaperVerifySigner' :: HasCallStack => GlobalExceptT IO VerifySigner
 getPaperVerifySigner' = do
-    filePath <- globalLiftIO $ getDataFileName "resources/jwt/paper.pub"
-    content <- globalLiftIO $ ByteString.readFile filePath
+    filePath <- globalLiftIO $ getDataFileName "resources/jwt/paper-auth.pub"
+    content <- globalLiftIO $ Data.ByteString.readFile filePath
     case readRsaPublicKey content of
         Just publicKey -> return $ VerifyRSAPublicKey publicKey
-        Nothing -> toGlobalExceptT $ GlobalException "paper public key invalid" callStack'
+        Nothing -> toGlobalExceptT $ GlobalException "paper-auth public key invalid" callStack'

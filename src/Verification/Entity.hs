@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module User.Entity where
+module Verification.Entity where
 
 import DB
 
@@ -13,15 +13,13 @@ import Database.Persist.Sql
 import Database.Persist.TH
 import Database.Persist.Typed
 
-import Data.ByteString
 import Data.Time
 
-share [mkPersist (mkSqlSettingsFor ''PaperAuthDB), mkMigrate "migrateUser"] [persistLowerCase|
-User
-    authenticationType String
-    paperId String
-    password ByteString
-    name String
-    phoneNumber String Maybe
-    registerDate UTCTime
+share [mkPersist (mkSqlSettingsFor ''PaperAuthDB), mkMigrate "migrateVerification"] [persistLowerCase|
+Verification
+    phoneNumber String
+    phoneNumberSecret String
+    iat UTCTime
+    expire UTCTime
+    deleteAt UTCTime
 |]

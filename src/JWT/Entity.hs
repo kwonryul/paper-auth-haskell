@@ -14,44 +14,20 @@ import Database.Persist.Sql
 import Database.Persist.TH
 import Database.Persist.Typed
 
+import Data.Text
 import Data.Time
 
 share [mkPersist (mkSqlSettingsFor ''PaperAuthDB), mkMigrate "migrateJWT"] [persistLowerCase|
 AccessToken
-    token String
+    token Text Maybe
     userId UserId
-    expire UTCTime
-    csrfToken String
-    deriving Show Eq
+    iat UTCTime
+    expire UTCTime Maybe
+    csrfToken Text
 
 RefreshToken
-    token String
+    token Text Maybe
     userId UserId
-    expire UTCTime
-    deriving Show Eq
+    iat UTCTime
+    expire UTCTime Maybe
 |]
-
-{-}
-import Servant.Auth.Server
-
-import GHC.Generics
-import Data.Aeson
-
-data AuthenticatedUser = AuthenticatedUser {
-    auUserId :: Int
-  , auRoles :: [AuthenticatedUserRole]
-  } deriving (Show, Generic)
-
-data AuthenticatedUserRole =
-    Admin
-  | Premium
-  deriving (Show, Generic)
-
-instance ToJSON AuthenticatedUserRole
-instance FromJSON AuthenticatedUserRole
-instance ToJSON AuthenticatedUser
-instance FromJSON AuthenticatedUser
-instance ToJWT AuthenticatedUser
-instance FromJWT AuthenticatedUser
-
--}

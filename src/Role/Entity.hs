@@ -16,5 +16,5 @@ import Database.Persist.Typed
 share [mkPersist (mkSqlSettingsFor ''PaperAuthDB), mkMigrate "migrateRole"] [persistLowerCase|
 Role
     name String
-    deriving Show Eq Ord
+    deriving Eq Ord
 |]

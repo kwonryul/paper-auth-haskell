@@ -20,6 +20,7 @@ module PaperError(
   , paperLog
   , maybeToPaperEither
   , maybeTToPaperExceptT
+  , paperAssert
   , PaperException(PaperException)
 ) where
 
@@ -31,7 +32,7 @@ import Control.Monad.IO.Class
 import Control.Monad.IO.Unlift
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Except
-import Control.Monad.Catch as Catch
+import Control.Monad.Catch
 import UnliftIO.Exception
 import Data.Time
 import GHC.Stack
@@ -43,7 +44,7 @@ data PaperError where
     } -> PaperError
 
 instance Show PaperError where
-    show (PaperError { paperLogError = ple }) = show ple
+    show (PaperError { paperLogError }) = show paperLogError
 
 instance Exception PaperError
 
@@ -108,7 +109,7 @@ runPaperExceptT p = do
     runPaperEither a'
 
 paperLog :: HasCallStack => IO a -> Servant.Handler a
-paperLog io = Catch.catch (liftIO io) (\(ex :: SomeException) -> do
+paperLog io = Control.Monad.Catch.catch (liftIO io) (\(ex :: SomeException) -> do
     let ex' = toPaperError $ PaperOuterException ex callStack'
     currentTime <- liftIO getCurrentTime
     let formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" currentTime
@@ -127,6 +128,13 @@ maybeTToPaperExceptT (MaybeT ima) ex = do
     case a' of
         Just a -> return a
         Nothing -> toPaperExceptT ex
+
+paperAssert :: (ToPaperError p, Monad m) => Bool -> p -> PaperExceptT m ()
+paperAssert b p =
+    if b then
+        return ()
+    else
+        toPaperExceptT p
 
 data PaperOuterException where
     PaperOuterException :: Exception e => e -> CallStack -> PaperOuterException

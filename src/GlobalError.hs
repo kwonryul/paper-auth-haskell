@@ -14,6 +14,7 @@ module GlobalError(
   , globalLog
   , maybeToGlobalEither
   , maybeTToGlobalExceptT
+  , globalAssert
   , GlobalException(GlobalException)
 ) where
 
@@ -114,6 +115,13 @@ maybeTToGlobalExceptT (MaybeT ima) ex = do
     case a' of
         Just a -> return a
         Nothing -> toGlobalExceptT ex
+
+globalAssert :: (ToGlobalError g, Monad m) => Bool -> g -> GlobalExceptT m ()
+globalAssert b g =
+    if b then
+        return ()
+    else
+        toGlobalExceptT g
 
 data GlobalOuterException where
     GlobalOuterException :: Exception e => e -> CallStack ->  GlobalOuterException

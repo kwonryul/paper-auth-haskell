@@ -19,5 +19,4 @@ share [mkPersist (mkSqlSettingsFor ''PaperAuthDB), mkMigrate "migrateUserRole"] 
 UserRole
     userId UserId
     roleId RoleId
-    deriving Show Eq
 |]

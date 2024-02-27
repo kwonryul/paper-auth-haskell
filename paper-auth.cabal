@@ -16,8 +16,8 @@ data-files:
     resources/*.cfg
     resources/tls/cert.pem
     resources/tls/secret-key.pem
-    resources/jwt/paper.pem
-    resources/jwt/paper.pub
+    resources/jwt/paper-auth.pem
+    resources/jwt/paper-auth.pub
 extra-doc-files:
     CHANGELOG.md
 -- extra-source-files:
@@ -49,8 +49,13 @@ library
       , JWT.Controller
       , JWT.Service
       , JWT.Repository
+      , Verification.Util
+      , Verification.Entity
+      , Verification.Service
+      , Verification.Repository
       , User.Entity
       , User.Model
+      , User.DTO
       , User.Controller
       , User.Service
       , User.Repository
@@ -63,18 +68,20 @@ library
         base ^>=4.19.0.0
       , template-haskell
       , raw-strings-qq
+      , random
       , containers
       , vector
       , bytestring
       , text
       , time
+      , bcrypt
+      , regex-tdfa
       , exceptions
       , transformers
       , mtl
       , monad-logger
       , unliftio
       , unliftio-core
-      , resourcet
       , http-types
       , configurator
       , aeson
