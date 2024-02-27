@@ -8,6 +8,7 @@ module User.Controller(
 
 import qualified User.Service
 
+import Authentication ()
 import User.DTO
 import Context
 import PaperError

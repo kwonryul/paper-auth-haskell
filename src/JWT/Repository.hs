@@ -6,6 +6,7 @@ module JWT.Repository(
   , newRefreshToken
   , saveAccessToken
   , saveRefreshToken
+  , findByAccessTokenId
 ) where
 
 import JWT.Model
@@ -58,8 +59,12 @@ newRefreshToken conn userId iat exp' =
 
 saveAccessToken :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> AccessTokenId -> Text -> PaperExceptT m ()
 saveAccessToken conn accessTokenId accessToken =
-    paperLift $ runReaderT (Database.Persist.Sql.update accessTokenId [AccessTokenToken =. Just accessToken]) conn
+    paperLift $ runReaderT (update accessTokenId [AccessTokenToken =. Just accessToken]) conn
 
 saveRefreshToken :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> RefreshTokenId -> Text -> PaperExceptT m ()
 saveRefreshToken conn refreshTokenId refreshToken =
-    paperLift $ runReaderT (Database.Persist.Sql.update refreshTokenId [RefreshTokenToken =. Just refreshToken]) conn
+    paperLift $ runReaderT (update refreshTokenId [RefreshTokenToken =. Just refreshToken]) conn
+
+findByAccessTokenId :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> AccessTokenId -> PaperExceptT m (Maybe AccessToken)
+findByAccessTokenId conn accessTokenId =
+    paperLift $ runReaderT (get accessTokenId) conn

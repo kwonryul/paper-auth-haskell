@@ -7,6 +7,7 @@ module JWT.Model(
       , userId
       , roleSet
       )
+  , AuthenticatedUserCsrf(AuthenticatedUserCsrf)
   , JWTDTO(
         JWTDTO
       , accessToken
@@ -31,6 +32,8 @@ data AuthenticatedUser = AuthenticatedUser {
     userId :: UserId
   , roleSet :: Set Role
 }
+
+newtype AuthenticatedUserCsrf = AuthenticatedUserCsrf AuthenticatedUser
 
 data JWTDTO = JWTDTO {
     accessToken :: Text

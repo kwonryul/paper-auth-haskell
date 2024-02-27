@@ -18,7 +18,7 @@ module PaperError(
   , runPaperEither
   , runPaperExceptT
   , paperLog
-  , maybeToPaperEither
+  , maybeToPaperExceptT
   , maybeTToPaperExceptT
   , paperAssert
   , PaperException(PaperException)
@@ -117,12 +117,14 @@ paperLog io = Control.Monad.Catch.catch (liftIO io) (\(ex :: SomeException) -> d
     throwError $ paperServerError ex'
     )
 
-maybeToPaperEither :: ToPaperError p => Maybe a -> p -> PaperEither a
-maybeToPaperEither a' ex = case a' of
-        Just a -> Right a
-        Nothing -> Left $ toPaperError ex
+maybeToPaperExceptT :: (ToPaperError p, MonadUnliftIO m) => Maybe a -> p -> PaperExceptT m a
+maybeToPaperExceptT a' ex =
+    ExceptT $ return $
+        case a' of
+            Just a -> Right a
+            Nothing -> Left $ toPaperError ex
 
-maybeTToPaperExceptT :: (ToPaperError p, MonadUnliftIO m) => MaybeT IO a -> p -> PaperExceptT m a
+maybeTToPaperExceptT :: (HasCallStack, ToPaperError p, MonadUnliftIO m) => MaybeT IO a -> p -> PaperExceptT m a
 maybeTToPaperExceptT (MaybeT ima) ex = do
     a' <- paperLiftIO ima
     case a' of

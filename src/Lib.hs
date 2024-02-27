@@ -6,7 +6,7 @@ import qualified JWT.Controller
 import qualified User.Controller
 
 import Context
-import JWT.AuthCheck
+import Authentication
 import GlobalError
 import PaperError
 import Paths_paper_auth
@@ -49,7 +49,7 @@ api = Proxy
 app :: HasCallStack => Context.Context -> FilePath -> Application
 app context filePath = serveWithContext
     api
-    (authContext $ paperAuthPool context)
+    (authContext (paperAuthPool context) (paperVerifySigner context))
     (server context filePath)
 
 startApp :: HasCallStack => IO ()

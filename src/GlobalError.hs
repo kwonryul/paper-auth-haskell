@@ -12,7 +12,7 @@ module GlobalError(
   , runGlobalEither
   , runGlobalExceptT
   , globalLog
-  , maybeToGlobalEither
+  , maybeToGlobalExceptT
   , maybeTToGlobalExceptT
   , globalAssert
   , GlobalException(GlobalException)
@@ -104,12 +104,14 @@ globalLog io = Control.Exception.catch io (\(ex :: SomeException) -> do
     Control.Exception.throwIO $ GlobalErrorWithUTC (toGlobalError $ GlobalOuterException ex callStack') currentTime
     )
 
-maybeToGlobalEither :: ToGlobalError g => Maybe a -> g -> GlobalEither a
-maybeToGlobalEither a' ex = case a' of
-    Just a -> Right a
-    Nothing -> Left $ toGlobalError ex
+maybeToGlobalExceptT :: (ToGlobalError g, MonadUnliftIO m) => Maybe a -> g -> GlobalExceptT m a
+maybeToGlobalExceptT a' ex =
+    ExceptT $ return $
+        case a' of
+            Just a -> Right a
+            Nothing -> Left $ toGlobalError ex
 
-maybeTToGlobalExceptT :: (ToGlobalError g, MonadUnliftIO m) => MaybeT IO a -> g -> GlobalExceptT m a
+maybeTToGlobalExceptT :: (HasCallStack, ToGlobalError g, MonadUnliftIO m) => MaybeT IO a -> g -> GlobalExceptT m a
 maybeTToGlobalExceptT (MaybeT ima) ex = do
     a' <- globalLiftIO ima
     case a' of

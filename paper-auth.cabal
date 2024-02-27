@@ -42,10 +42,10 @@ library
       , Configurator
       , Context
       , DB
+      , Authentication
       , JWT.Entity
       , JWT.Model
       , JWT.DTO
-      , JWT.AuthCheck
       , JWT.Controller
       , JWT.Service
       , JWT.Repository
@@ -60,6 +60,7 @@ library
       , User.Service
       , User.Repository
       , Role.Entity
+      , Role.Repository
       , UserRole.Entity
     -- other-extensions:
     autogen-modules:
