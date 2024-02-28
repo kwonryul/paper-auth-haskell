@@ -1,5 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE DataKinds #-}
 
 module User.Service(
     verifyRequest
@@ -12,17 +14,20 @@ import qualified Verification.Repository
 import qualified Verification.Service
 
 import User.DTO
+import JWT.Util
 import JWT.Model
 import Verification.Util
 import Verification.Entity
 import DB
 import PaperError
+import Import
 import CallStack
 
 import Servant
 import Database.Persist.Sql
 import Database.Persist.Typed
 import Web.JWT
+import Web.Cookie
 import Data.Configurator.Types
 import Crypto.BCrypt
 
@@ -73,24 +78,21 @@ verifyCheck' :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> String -> St
 verifyCheck' conn phoneNumber' phoneNumberSecret = do
     phoneNumber <- stringToPhoneNumber phoneNumber'
     currentUTC <- paperLiftIO getCurrentTime
-    verificationEntityList <- Verification.Repository.findByPhoneNumber conn phoneNumber
-    case verificationEntityList of
-        [] -> return False
-        (Entity _ Verification {
+    verificationEntity' <- Verification.Repository.findByPhoneNumber conn phoneNumber
+    case verificationEntity' of
+        Just (Entity _ Verification {
             verificationPhoneNumberSecret
           , verificationExpire
-          } : []) ->
+        }) ->
             if diffUTCTime currentUTC verificationExpire > 0 then
                 return False
             else if phoneNumberSecret /= verificationPhoneNumberSecret then
                 return False
             else
                 return True
-        (_ : _ : _) -> do
-            Verification.Repository.deleteByPhoneNumber conn phoneNumber
-            toPaperExceptT $ PaperException "duplicate phoneNumber in verification" (err500 { errBody = "database error" }) callStack'
+        Nothing -> return False
 
-enroll :: (HasCallStack, MonadUnliftIO m) => Config -> PaperAuthPool -> EncodeSigner -> String -> String -> String -> String -> String -> PaperExceptT m EnrollResDTO
+enroll :: (HasCallStack, MonadUnliftIO m) => Config -> PaperAuthPool -> EncodeSigner -> String -> String -> String -> String -> String -> PaperExceptT m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 enroll config pool encodeSigner paperId password name phoneNumber phoneNumberSecret = do
     unsafePaperExceptTToSafe $ runSqlPoolFor (ReaderT (\conn ->
         catchE (inner conn) $ \e -> do
@@ -98,31 +100,28 @@ enroll config pool encodeSigner paperId password name phoneNumber phoneNumberSec
             ExceptT $ return $ Left e
             )) pool
     where
-        inner :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> PaperExceptT m EnrollResDTO
+        inner :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> PaperExceptT m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
         inner conn = enroll' config conn encodeSigner paperId password name phoneNumber phoneNumberSecret
 
-enroll' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperAuthConn -> EncodeSigner -> String -> String -> String -> String -> String -> PaperExceptT m EnrollResDTO
+enroll' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperAuthConn -> EncodeSigner -> String -> String -> String -> String -> String -> PaperExceptT m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 enroll' config conn encodeSigner paperId password name phoneNumber' phoneNumberSecret = do
     phoneNumber <- stringToPhoneNumber phoneNumber'
     currentUTC <- paperLiftIO getCurrentTime
-    verificationEntityList <- Verification.Repository.findByPhoneNumber conn phoneNumber
-    case verificationEntityList of
-        [] -> toPaperExceptT $ PaperException "verification missing" (err403 { errBody = "verification missing" }) callStack'
-        (Entity _ Verification {
+    verificationEntity' <- Verification.Repository.findByPhoneNumber conn phoneNumber
+    case verificationEntity' of
+        Just (Entity _ Verification {
             verificationPhoneNumberSecret
-          } : []) ->
+        }) ->
             if phoneNumberSecret /= verificationPhoneNumberSecret then
                 toPaperExceptT $ PaperException "phoneNumberSecret wrong" (err403 { errBody = "phoneNumberSecret wrong" }) callStack'
             else
                 return ()
-        (_ : _ : _) -> do
-            Verification.Repository.deleteByPhoneNumber conn phoneNumber
-            toPaperExceptT $ PaperException "duplicate phoneNumber in verification" (err500 { errBody = "database error" }) callStack'
-    sameUserIdList <- User.Repository.findByPaperId conn paperId
-    case sameUserIdList of
-        [] -> return ()
-        _ ->
+        Nothing -> toPaperExceptT $ PaperException "verification missing" (err403 { errBody = "verification missing" }) callStack'
+    sameUserIdEntity' <- User.Repository.findByPaperId conn paperId
+    case sameUserIdEntity' of
+        Just _ ->
             toPaperExceptT $ PaperException "paperId duplicate" (err400 { errBody = "paperId duplicate" }) callStack'
+        Nothing -> return ()
     samePhoneNumberList <- User.Repository.findByPhoneNumber conn phoneNumber
     case samePhoneNumberList of
         [] -> return ()
@@ -131,8 +130,9 @@ enroll' config conn encodeSigner paperId password name phoneNumber' phoneNumberS
     hashedPassword <- maybeTToPaperExceptT
         (MaybeT $ hashPasswordUsingPolicy slowerBcryptHashingPolicy (Data.ByteString.Char8.pack password))
         $ PaperException "hashing string error" (err500 { errBody = "Internal server error" }) callStack'
-    userId <- User.Repository.newUser conn TypePaper paperId hashedPassword name (Just phoneNumber) currentUTC
+    userId <- User.Repository.newUser conn Paper paperId hashedPassword name (Just phoneNumber) currentUTC
     let roleSet = Data.Set.empty
-        authenticatedUser = AuthenticatedUser { userId, roleSet }
-    jwtDTO <- Verification.Service.issueJWT config conn encodeSigner authenticatedUser currentUTC
-    return $ fromJWTDTO jwtDTO
+        preAuthenticatedUser = PreAuthenticatedUser { userId, roleSet }
+    JWTDTO { accessToken, refreshToken } <- Verification.Service.issueJWT config conn encodeSigner preAuthenticatedUser currentUTC
+    let cookie = generateRefreshTokenCookie refreshToken
+    return $ addHeader cookie $ EnrollResDTO { accessToken }

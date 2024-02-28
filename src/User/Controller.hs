@@ -14,6 +14,7 @@ import Context
 import PaperError
 
 import Servant
+import Web.Cookie
 
 import GHC.Stack
 
@@ -39,7 +40,7 @@ type API =
 
 type VerifyRequest = "request" :> ReqBody '[JSON] VerifyRequestReqDTO :> Post '[PlainText] NoContent
 type VerifyCheck = "check" :> ReqBody '[JSON] VerifyCheckReqDTO :> Post '[JSON] Bool
-type Enroll = "enroll" :> ReqBody '[JSON] EnrollReqDTO :> Post '[JSON] EnrollResDTO
+type Enroll = "enroll" :> ReqBody '[JSON] EnrollReqDTO :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 
 verifyRequest :: HasCallStack => Context.Context -> VerifyRequestReqDTO -> Handler NoContent
 verifyRequest context (VerifyRequestReqDTO { phoneNumber }) = do
@@ -51,7 +52,7 @@ verifyCheck context (VerifyCheckReqDTO { phoneNumber, phoneNumberSecret }) = do
     runPaperExceptT $ User.Service.verifyCheck
         (paperAuthPool context) phoneNumber phoneNumberSecret
 
-enroll :: HasCallStack => Context.Context -> EnrollReqDTO -> Handler EnrollResDTO
+enroll :: HasCallStack => Context.Context -> EnrollReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 enroll context (EnrollReqDTO { paperId, password, name, phoneNumber, phoneNumberSecret }) = do
     let encodeSigner = paperEncodeSigner context
     runPaperExceptT $ User.Service.enroll

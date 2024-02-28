@@ -22,4 +22,5 @@ Verification
     iat UTCTime
     expire UTCTime
     deleteAt UTCTime
+    UniquePhoneNumber phoneNumber
 |]

@@ -1,45 +1,55 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+
 module JWT.Model(
-    AuthenticationType(
-      TypePaper
+    PreAuthenticatedUser(
+        PreAuthenticatedUser
+      , userId
+      , roleSet
     )
   , AuthenticatedUser(
         AuthenticatedUser
+      , accessTokenId
+      , refreshTokenId
       , userId
       , roleSet
       )
-  , AuthenticatedUserCsrf(AuthenticatedUserCsrf)
+  , AuthenticatedUserRefresh(
+        AuthenticatedUserRefresh
+      , refreshTokenId
+      , userId
+      )
   , JWTDTO(
         JWTDTO
       , accessToken
       , refreshToken
-      , csrfToken
-      )
-  , FromJWTDTO(
-        fromJWTDTO
       )
 ) where
 
+import JWT.Entity
 import User.Entity
 import Role.Entity
 
 import Data.Set
 import Data.Text
 
-data AuthenticationType = TypePaper
-  deriving (Show, Eq)
+data PreAuthenticatedUser = PreAuthenticatedUser {
+    userId :: UserId
+  , roleSet :: Set Role
+  }
 
 data AuthenticatedUser = AuthenticatedUser {
-    userId :: UserId
+    accessTokenId :: AccessTokenId
+  , refreshTokenId :: RefreshTokenId
+  , userId :: UserId
   , roleSet :: Set Role
 }
 
-newtype AuthenticatedUserCsrf = AuthenticatedUserCsrf AuthenticatedUser
+data AuthenticatedUserRefresh = AuthenticatedUserRefresh {
+    refreshTokenId :: RefreshTokenId
+  , userId :: UserId
+  }
 
 data JWTDTO = JWTDTO {
     accessToken :: Text
   , refreshToken :: Text
-  , csrfToken :: Text
   }
-
-class FromJWTDTO a where
-    fromJWTDTO :: JWTDTO -> a

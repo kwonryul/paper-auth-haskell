@@ -1,7 +1,9 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Verification.Service(
     issueJWT
+  , invalidateJWT
 ) where
 
 import qualified JWT.Repository
@@ -30,20 +32,17 @@ import Data.Int
 import Data.Time.Format
 import Data.Time.Calendar
 import Data.Time.Clock
-import System.Random
-import Data.List
 import Data.Traversable
 import GHC.Stack
 
-issueJWT :: (HasCallStack, MonadUnliftIO m) => Config -> PaperAuthConn -> EncodeSigner -> AuthenticatedUser -> UTCTime -> PaperExceptT m JWTDTO
-issueJWT config conn encodeSigner (AuthenticatedUser { userId, roleSet }) currentUTC = do
-    csrfToken <- generateCsrfToken
+issueJWT :: (HasCallStack, MonadUnliftIO m) => Config -> PaperAuthConn -> EncodeSigner -> PreAuthenticatedUser -> UTCTime -> PaperExceptT m JWTDTO
+issueJWT config conn encodeSigner (PreAuthenticatedUser { userId, roleSet }) currentUTC = do
     accessTokenLifetime <- accessTokenLifetime' config
     refreshTokenLifetime <- refreshTokenLifetime' config
-    accessJti <- JWT.Repository.newAccessToken
-        conn userId currentUTC (addUTCTime <$> accessTokenLifetime <*> Just currentUTC) csrfToken
     refreshJti <- JWT.Repository.newRefreshToken
         conn userId currentUTC (addUTCTime <$> refreshTokenLifetime <*> Just currentUTC)
+    accessJti <- JWT.Repository.newAccessToken
+        conn userId currentUTC (addUTCTime <$> accessTokenLifetime <*> Just currentUTC) refreshJti
     accessTokenHeader <- accessTokenHeader' config
     refreshTokenHeader <- refreshTokenHeader' config
     accessTokenClaimsSet <- accessTokenClaimsSet'
@@ -54,7 +53,7 @@ issueJWT config conn encodeSigner (AuthenticatedUser { userId, roleSet }) curren
         refreshToken = encodeSigned encodeSigner refreshTokenHeader refreshTokenClaimsSet
     JWT.Repository.saveAccessToken conn accessJti accessToken
     JWT.Repository.saveRefreshToken conn refreshJti refreshToken
-    return $ JWTDTO accessToken refreshToken csrfToken
+    return $ JWTDTO accessToken refreshToken
 
 accessTokenHeader' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperExceptT m JOSEHeader
 accessTokenHeader' config = do
@@ -190,14 +189,6 @@ refreshTokenClaimsSet' config jti' iat' exp' userId = do
     let unregisteredClaims = refreshTokenClaimsMap'
     return $ JWTClaimsSet iss sub aud exp'' nbf iat jti unregisteredClaims
 
-generateCsrfToken :: (HasCallStack, MonadUnliftIO m) => PaperExceptT m Text
-generateCsrfToken = do
-    gen <- paperLiftIO newStdGen
-    let tokenChars = ['A'..'Z'] Data.List.++ ['a'..'z'] Data.List.++ ['0'..'9']
-        randomIndexes = Data.List.take 32 $ randomRs (0, 61) gen
-    token <- Data.Traversable.mapM (\i ->
-            case tokenChars Data.List.!? i of
-                Just c -> return c
-                Nothing -> toPaperExceptT $ PaperException "index out of range" (err500 { errBody = "Internal server error" }) callStack'
-            ) randomIndexes
-    return (pack token)
+invalidateJWT :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> UserId -> PaperExceptT m ()
+invalidateJWT conn userId = do
+    JWT.Repository.invalidateJWT conn userId

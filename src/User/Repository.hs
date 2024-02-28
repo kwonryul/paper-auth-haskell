@@ -5,10 +5,10 @@ module User.Repository(
 ) where
 
 import User.Entity
-import JWT.Model
 import Verification.Util
 import DB
 import PaperError
+import Import
 
 import Database.Persist.Sql
 
@@ -24,12 +24,11 @@ newUser conn authenticationType paperId password name phoneNumber' registerDate 
             case phoneNumber' of
                 Just (PhoneNumber p) -> Just p
                 Nothing -> Nothing
-        authType = show authenticationType
-    paperLift $ runReaderT (insert $ User authType paperId password name phoneNumber registerDate) conn
+    paperLift $ runReaderT (insert $ User authenticationType paperId password name phoneNumber registerDate) conn
 
-findByPaperId :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> String -> PaperExceptT m [Entity User]
+findByPaperId :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> String -> PaperExceptT m (Maybe (Entity User))
 findByPaperId conn paperId = do
-    paperLift $ runReaderT (selectList [UserPaperId ==. paperId] []) conn
+    paperLift $ runReaderT (getBy $ UniquePaperId paperId) conn
 
 findByPhoneNumber :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> PhoneNumber -> PaperExceptT m [Entity User]
 findByPhoneNumber conn (PhoneNumber phoneNumber) = do

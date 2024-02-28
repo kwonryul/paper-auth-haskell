@@ -8,6 +8,7 @@
 module User.Entity where
 
 import DB
+import Import
 
 import Database.Persist.Sql
 import Database.Persist.TH
@@ -18,10 +19,11 @@ import Data.Time
 
 share [mkPersist (mkSqlSettingsFor ''PaperAuthDB), mkMigrate "migrateUser"] [persistLowerCase|
 User
-    authenticationType String
+    authenticationType AuthenticationType
     paperId String
     password ByteString
     name String
     phoneNumber String Maybe
     registerDate UTCTime
+    UniquePaperId paperId
 |]

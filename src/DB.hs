@@ -8,14 +8,15 @@ module DB(
   , getPaperAuthPool'
 ) where
 
-import Import
 import Configurator
 import GlobalError
+import Import
 
 import Database.Persist.Typed
 import Database.Persist.MySQL
 import Data.Configurator.Types
 
+import Control.Monad.IO.Unlift
 import Control.Monad.Logger
 import GHC.Stack
 
@@ -24,13 +25,13 @@ instance DB PaperAuthDB
 type PaperAuthConn = SqlFor PaperAuthDB
 type PaperAuthPool = ConnectionPoolFor PaperAuthDB
 
-paperAuthConnInfo' :: HasCallStack => Config -> GlobalExceptT IO ConnectInfo
+paperAuthConnInfo' :: (HasCallStack, MonadUnliftIO m) => Config -> GlobalExceptT m ConnectInfo
 paperAuthConnInfo' config = do
-    host <- lookupConfigGlobal config "db.paper-auth.host"
-    port <- lookupConfigGlobal config "db.paper-auth.port"
-    user <- lookupConfigGlobal config "db.paper-auth.user"
-    password <- lookupConfigGlobal config "db.paper-auth.password"
-    dbname <- lookupConfigGlobal config "db.paper-auth.dbname"
+    host <- lookupRequiredGlobal config "db.paper-auth.host"
+    port <- lookupRequiredGlobal config "db.paper-auth.port"
+    user <- lookupRequiredGlobal config "db.paper-auth.user"
+    password <- lookupRequiredGlobal config "db.paper-auth.password"
+    dbname <- lookupRequiredGlobal config "db.paper-auth.dbname"
     return defaultConnectInfo {
         connectHost = host
       , connectPort = port
@@ -39,7 +40,7 @@ paperAuthConnInfo' config = do
       , connectDatabase = dbname
     }
 
-getPaperAuthPool' :: HasCallStack => Config -> GlobalExceptT IO PaperAuthPool
+getPaperAuthPool' :: (HasCallStack, MonadUnliftIO m) => Config -> GlobalExceptT m PaperAuthPool
 getPaperAuthPool' config = do
     paperAuthConnInfo <- paperAuthConnInfo' config
     globalLiftIO $ specializePool <$> (runStderrLoggingT $ createMySQLPool paperAuthConnInfo 8)

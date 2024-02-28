@@ -22,12 +22,8 @@ module User.DTO(
   , EnrollResDTO(
         EnrollResDTO
       , accessToken
-      , refreshToken
-      , csrfToken
       )
 ) where
-
-import JWT.Model
 
 import Data.Aeson
 import Data.Aeson.TH
@@ -56,11 +52,5 @@ $(deriveFromJSON defaultOptions ''EnrollReqDTO)
 
 data EnrollResDTO = EnrollResDTO {
     accessToken :: Text
-  , refreshToken :: Text
-  , csrfToken :: Text
   }
 $(deriveToJSON defaultOptions ''EnrollResDTO)
-
-instance FromJWTDTO EnrollResDTO where
-    fromJWTDTO (JWTDTO { accessToken, refreshToken, csrfToken }) =
-        EnrollResDTO { accessToken, refreshToken, csrfToken }

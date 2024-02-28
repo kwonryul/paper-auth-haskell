@@ -33,16 +33,18 @@ library
     import:           warnings
     exposed-modules:
         Lib
+      , GlobalError
+      , Context
     other-modules:
         Paths_paper_auth
+      , PaperApp
       , Import
-      , GlobalError
       , PaperError
       , CallStack
       , Configurator
-      , Context
       , DB
       , Authentication
+      , JWT.Util
       , JWT.Entity
       , JWT.Model
       , JWT.DTO

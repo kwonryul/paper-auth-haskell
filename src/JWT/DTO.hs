@@ -10,15 +10,12 @@ module JWT.DTO(
   , IssueJWTResDTO(
         IssueJWTResDTO
       , accessToken
-      , refreshToken
-      , csrfToken
       )
-  , FromJWTDTO(
-        fromJWTDTO
+  , RefreshJWTResDTO(
+        RefreshJWTResDTO
+      , accessToken
       )
 ) where
-
-import JWT.Model
 
 import Data.Aeson
 import Data.Aeson.TH
@@ -33,11 +30,10 @@ $(deriveFromJSON defaultOptions ''IssueJWTReqDTO)
 
 data IssueJWTResDTO = IssueJWTResDTO {
     accessToken :: Text
-  , refreshToken :: Text
-  , csrfToken :: Text
   }
 $(deriveToJSON defaultOptions ''IssueJWTResDTO)
 
-instance FromJWTDTO IssueJWTResDTO where
-    fromJWTDTO (JWTDTO { accessToken, refreshToken, csrfToken }) =
-        IssueJWTResDTO { accessToken, refreshToken, csrfToken }
+data RefreshJWTResDTO = RefreshJWTResDTO {
+    accessToken :: Text
+  }
+$(deriveToJSON defaultOptions ''RefreshJWTResDTO)

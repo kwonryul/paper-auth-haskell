@@ -23,7 +23,7 @@ AccessToken
     userId UserId
     iat UTCTime
     expire UTCTime Maybe
-    csrfToken Text
+    refreshTokenId RefreshTokenId
 
 RefreshToken
     token Text Maybe
