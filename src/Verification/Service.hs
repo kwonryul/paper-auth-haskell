@@ -145,7 +145,7 @@ stringOrURIList mt = case mt of
                 (Data.Text.words t)
 
 formattedDateToNumericDate :: (HasCallStack, MonadUnliftIO m) => Maybe Text -> PaperExceptT m (Maybe NumericDate)
-formattedDateToNumericDate t = case t of
+formattedDateToNumericDate t' = case t' of
     Just t -> Just <$> formattedDateToIntDate' t
     Nothing -> return Nothing
     where

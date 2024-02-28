@@ -14,7 +14,6 @@ import qualified Role.Repository
 
 import JWT.Entity
 import JWT.Model
-import User.Entity
 import Role.Entity
 import DB
 import PaperError
