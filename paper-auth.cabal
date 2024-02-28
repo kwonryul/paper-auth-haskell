@@ -53,6 +53,7 @@ library
       , JWT.Repository
       , Verification.Util
       , Verification.Entity
+      , Verification.DTO
       , Verification.Service
       , Verification.Repository
       , User.Entity

@@ -39,7 +39,7 @@ type API =
     :<|> Enroll
 
 type VerifyRequest = "request" :> ReqBody '[JSON] VerifyRequestReqDTO :> Post '[PlainText] NoContent
-type VerifyCheck = "check" :> ReqBody '[JSON] VerifyCheckReqDTO :> Post '[JSON] Bool
+type VerifyCheck = "check" :> ReqBody '[JSON] VerifyCheckReqDTO :> Post '[JSON] VerifyCheckResDTO
 type Enroll = "enroll" :> ReqBody '[JSON] EnrollReqDTO :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 
 verifyRequest :: HasCallStack => Context.Context -> VerifyRequestReqDTO -> Handler NoContent
@@ -47,7 +47,7 @@ verifyRequest context (VerifyRequestReqDTO { phoneNumber }) = do
     runPaperExceptT $ User.Service.verifyRequest
         (paperAuthPool context) phoneNumber
 
-verifyCheck :: HasCallStack => Context.Context -> VerifyCheckReqDTO -> Handler Bool
+verifyCheck :: HasCallStack => Context.Context -> VerifyCheckReqDTO -> Handler VerifyCheckResDTO
 verifyCheck context (VerifyCheckReqDTO { phoneNumber, phoneNumberSecret }) = do
     runPaperExceptT $ User.Service.verifyCheck
         (paperAuthPool context) phoneNumber phoneNumberSecret

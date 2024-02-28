@@ -17,6 +17,7 @@ import User.DTO
 import JWT.Util
 import JWT.Model
 import Verification.Util
+import Verification.DTO
 import Verification.Entity
 import DB
 import PaperError
@@ -29,6 +30,7 @@ import Database.Persist.Typed
 import Web.JWT
 import Web.Cookie
 import Data.Configurator.Types
+import Data.Aeson
 import Crypto.BCrypt
 
 import Control.Monad.Trans.Maybe
@@ -63,7 +65,7 @@ verifyRequest' conn phoneNumber' = do
     -- send message
     return NoContent
 
-verifyCheck :: (HasCallStack, MonadUnliftIO m) => PaperAuthPool -> String -> String -> PaperExceptT m Bool
+verifyCheck :: (HasCallStack, MonadUnliftIO m) => PaperAuthPool -> String -> String -> PaperExceptT m VerifyCheckResDTO
 verifyCheck pool phoneNumber phoneNumberSecret = do
     unsafePaperExceptTToSafe $ runSqlPoolFor (ReaderT (\conn ->
         catchE (inner conn) $ \e -> do
@@ -71,26 +73,39 @@ verifyCheck pool phoneNumber phoneNumberSecret = do
             ExceptT $ return $ Left e
             )) pool
     where
-        inner :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> PaperExceptT m Bool
-        inner conn = verifyCheck' conn phoneNumber phoneNumberSecret
+        inner :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> PaperExceptT m VerifyCheckResDTO
+        inner conn = verifyCheck' pool conn phoneNumber phoneNumberSecret
 
-verifyCheck' :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> String -> String -> PaperExceptT m Bool
-verifyCheck' conn phoneNumber' phoneNumberSecret = do
+verifyCheck' :: (HasCallStack, MonadUnliftIO m) => PaperAuthPool -> PaperAuthConn -> String -> String -> PaperExceptT m VerifyCheckResDTO
+verifyCheck' pool conn phoneNumber' phoneNumberSecret = do
     phoneNumber <- stringToPhoneNumber phoneNumber'
     currentUTC <- paperLiftIO getCurrentTime
     verificationEntity' <- Verification.Repository.findByPhoneNumber conn phoneNumber
     case verificationEntity' of
-        Just (Entity _ Verification {
+        Just (Entity verificationId Verification {
             verificationPhoneNumberSecret
           , verificationExpire
+          , verificationFailCount
         }) ->
             if diffUTCTime currentUTC verificationExpire > 0 then
-                return False
-            else if phoneNumberSecret /= verificationPhoneNumberSecret then
-                return False
+                return $ VerifyCheckResDTO False 0
+            else if phoneNumberSecret /= verificationPhoneNumberSecret then do
+                unsafePaperExceptTToSafe $ runSqlPoolFor (ReaderT (\innerConn ->
+                    catchE (inner innerConn verificationId verificationFailCount) $ \e -> do
+                        paperLift $ runReaderT transactionUndo (generalizeSqlBackend innerConn)
+                        ExceptT $ return $ Left e
+                        )) pool
+                return $ VerifyCheckResDTO False $ verificationFailCount + 1
             else
-                return True
-        Nothing -> return False
+                return $ VerifyCheckResDTO True verificationFailCount
+        Nothing -> return $ VerifyCheckResDTO False 0
+    where
+        inner :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> VerificationId -> Int -> PaperExceptT m ()
+        inner innerConn verificationId failCount =
+                if failCount == 4 then
+                    Verification.Repository.deleteById innerConn verificationId
+                else
+                    Verification.Repository.increaseFailCount innerConn verificationId
 
 enroll :: (HasCallStack, MonadUnliftIO m) => Config -> PaperAuthPool -> EncodeSigner -> String -> String -> String -> String -> String -> PaperExceptT m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 enroll config pool encodeSigner paperId password name phoneNumber phoneNumberSecret = do
@@ -101,19 +116,27 @@ enroll config pool encodeSigner paperId password name phoneNumber phoneNumberSec
             )) pool
     where
         inner :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> PaperExceptT m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
-        inner conn = enroll' config conn encodeSigner paperId password name phoneNumber phoneNumberSecret
+        inner conn = enroll' config pool conn encodeSigner paperId password name phoneNumber phoneNumberSecret
 
-enroll' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperAuthConn -> EncodeSigner -> String -> String -> String -> String -> String -> PaperExceptT m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
-enroll' config conn encodeSigner paperId password name phoneNumber' phoneNumberSecret = do
+enroll' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperAuthPool -> PaperAuthConn -> EncodeSigner -> String -> String -> String -> String -> String -> PaperExceptT m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
+enroll' config pool conn encodeSigner paperId password name phoneNumber' phoneNumberSecret = do
     phoneNumber <- stringToPhoneNumber phoneNumber'
     currentUTC <- paperLiftIO getCurrentTime
     verificationEntity' <- Verification.Repository.findByPhoneNumber conn phoneNumber
     case verificationEntity' of
-        Just (Entity _ Verification {
+        Just (Entity verificationId Verification {
             verificationPhoneNumberSecret
-        }) ->
-            if phoneNumberSecret /= verificationPhoneNumberSecret then
-                toPaperExceptT $ PaperException "phoneNumberSecret wrong" (err403 { errBody = "phoneNumberSecret wrong" }) callStack'
+          , verificationFailCount
+          }) ->
+            if phoneNumberSecret /= verificationPhoneNumberSecret then do
+                unsafePaperExceptTToSafe $ runSqlPoolFor (ReaderT (\innerConn ->
+                    catchE (inner innerConn verificationId verificationFailCount) $ \e -> do
+                        paperLift $ runReaderT transactionUndo (generalizeSqlBackend innerConn)
+                        ExceptT $ return $ Left e
+                        )) pool
+                toPaperExceptT $ PaperException "phoneNumberSecret wrong" (err403 { errBody =
+                    encode $ PhoneNumberSecretWrongDTO "phoneNumberSecret wrong" $ verificationFailCount + 1
+                  }) callStack'
             else
                 return ()
         Nothing -> toPaperExceptT $ PaperException "verification missing" (err403 { errBody = "verification missing" }) callStack'
@@ -136,3 +159,10 @@ enroll' config conn encodeSigner paperId password name phoneNumber' phoneNumberS
     JWTDTO { accessToken, refreshToken } <- Verification.Service.issueJWT config conn encodeSigner preAuthenticatedUser currentUTC
     let cookie = generateRefreshTokenCookie refreshToken
     return $ addHeader cookie $ EnrollResDTO { accessToken }
+    where
+        inner :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> VerificationId -> Int -> PaperExceptT m ()
+        inner innerConn verificationId failCount =
+                if failCount == 4 then
+                    Verification.Repository.deleteById innerConn verificationId
+                else
+                    Verification.Repository.increaseFailCount innerConn verificationId

@@ -22,5 +22,6 @@ Verification
     iat UTCTime
     expire UTCTime
     deleteAt UTCTime
+    failCount Int
     UniquePhoneNumber phoneNumber
 |]

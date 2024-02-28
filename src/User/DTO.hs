@@ -10,7 +10,12 @@ module User.DTO(
         VerifyCheckReqDTO
       , phoneNumber
       , phoneNumberSecret
-    )
+      )
+  , VerifyCheckResDTO(
+        VerifyCheckResDTO
+      , result
+      , failCount
+      )
   , EnrollReqDTO(
         EnrollReqDTO
       , paperId
@@ -40,6 +45,12 @@ data VerifyCheckReqDTO = VerifyCheckReqDTO {
   , phoneNumberSecret :: String
   }
 $(deriveFromJSON defaultOptions ''VerifyCheckReqDTO)
+
+data VerifyCheckResDTO = VerifyCheckResDTO {
+    result :: Bool
+  , failCount :: Int
+  }
+$(deriveToJSON defaultOptions ''VerifyCheckResDTO)
 
 data EnrollReqDTO = EnrollReqDTO {
     paperId :: String
