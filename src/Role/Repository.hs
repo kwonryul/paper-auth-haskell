@@ -1,12 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Role.Repository(
-    getRoleSetByNameList
+    RoleRepositoryI(
+        getRoleSetByNameList
+      )
 ) where
 
 import Role.Entity
 import DB
-import PaperError
+import PaperMonad
+import Monad.ProfileT
 import CallStack
 
 import Servant
@@ -17,9 +20,13 @@ import Control.Monad.IO.Unlift
 import Data.Set
 import GHC.Stack
 
-getRoleSetByNameList :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> [String] -> PaperExceptT m (Set Role)
-getRoleSetByNameList conn roleNameList = do
-    roleEntityList <- paperLift $ runReaderT (selectList [RoleName <-. roleNameList] []) conn
+class Profile p => RoleRepositoryI p where
+    getRoleSetByNameList :: (HasCallStack, MonadUnliftIO m) => [String] -> PaperAuthConn -> PaperMonad p m (Set Role)
+    getRoleSetByNameList = getRoleSetByNameListImpl
+
+getRoleSetByNameListImpl :: (HasCallStack, RoleRepositoryI p, MonadUnliftIO m) => [String] -> PaperAuthConn -> PaperMonad p m (Set Role)
+getRoleSetByNameListImpl roleNameList conn = do
+    roleEntityList <- paperLiftUnliftIO $ runReaderT (selectList [RoleName <-. roleNameList] []) conn
     paperAssert (length roleEntityList == length roleNameList) $
-        PaperException "some roleName invalid" (err500 { errBody = "some roleName invalid" }) callStack'
+        PaperError "some roleName invalid" (err500 { errBody = "some roleName invalid" }) callStack'
     return $ Data.Set.fromList $ (\(Entity _ role) -> role) <$> roleEntityList

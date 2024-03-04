@@ -2,18 +2,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Verification.Service(
-    issueJWT
-  , invalidateJWT
+    VerificationServiceI(
+        issueJWT
+      , invalidateJWT
+      )
 ) where
 
 import qualified JWT.Repository
+import JWT.Repository(JWTRepositoryI)
 
 import JWT.Model
 import JWT.Entity
 import User.Entity
 import Role.Entity
 import DB
-import PaperError
+import PaperMonad
 import CallStack
 
 import Servant
@@ -24,6 +27,7 @@ import Data.Configurator
 import Data.Configurator.Types
 
 import Control.Monad.IO.Unlift
+import Control.Monad.Reader
 import Data.Map
 import Data.Set
 import Data.Vector
@@ -35,8 +39,46 @@ import Data.Time.Clock
 import Data.Traversable
 import GHC.Stack
 
-issueJWT :: (HasCallStack, MonadUnliftIO m) => Config -> PaperAuthConn -> EncodeSigner -> PreAuthenticatedUser -> UTCTime -> PaperExceptT m JWTDTO
-issueJWT config conn encodeSigner (PreAuthenticatedUser { userId, roleSet }) currentUTC = do
+class JWTRepositoryI p => VerificationServiceI p where
+    issueJWT :: (HasCallStack, MonadUnliftIO m) => Config -> PaperAuthConn -> EncodeSigner -> PreAuthenticatedUser -> UTCTime -> PaperMonad p m JWTDTO
+    issueJWT = issueJWTImpl
+    accessTokenHeader' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperMonad p m JOSEHeader
+    accessTokenHeader' = accessTokenHeader'Impl
+    refreshTokenHeader' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperMonad p m JOSEHeader
+    refreshTokenHeader' = refreshTokenHeader'Impl
+    utcTimeToNominalDiffTime :: Proxy p -> UTCTime -> NominalDiffTime
+    utcTimeToNominalDiffTime = utcTimeToNominalDiffTimeImpl
+    nominalDiffTimeToNumericDate :: (HasCallStack, MonadUnliftIO m) => Maybe NominalDiffTime -> PaperMonad p m (Maybe NumericDate)
+    nominalDiffTimeToNumericDate = nominalDiffTimeToNumericDateImpl
+    accessTokenLifetime' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperMonad p m (Maybe NominalDiffTime)
+    accessTokenLifetime' = accessTokenLifetime'Impl
+    refreshTokenLifetime' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperMonad p m (Maybe NominalDiffTime)
+    refreshTokenLifetime' = refreshTokenLifetime'Impl
+    accessTokenClaimsMap' :: Proxy p -> Set Role -> ClaimsMap
+    accessTokenClaimsMap' = accessTokenClaimsMap'Impl
+    refreshTokenClaimsMap' :: Proxy p -> ClaimsMap
+    refreshTokenClaimsMap' = refreshTokenClaimsMap'Impl
+    accessTokenSub' :: Proxy p -> UserId -> Maybe StringOrURI
+    accessTokenSub' = accessTokenSub'Impl
+    refreshTokenSub' :: Proxy p -> UserId -> Maybe StringOrURI
+    refreshTokenSub' = refreshTokenSub'Impl
+    stringOrURI' :: (HasCallStack, MonadUnliftIO m) => Maybe Text -> PaperMonad p m (Maybe StringOrURI)
+    stringOrURI' = stringOrURI'Impl
+    stringOrURI'' :: (HasCallStack, MonadUnliftIO m) => Int64 -> PaperMonad p m (Maybe StringOrURI)
+    stringOrURI'' = stringOrURI''Impl
+    stringOrURIList :: (HasCallStack, MonadUnliftIO m) => Maybe Text -> PaperMonad p m (Maybe [StringOrURI])
+    stringOrURIList = stringOrURIListImpl
+    formattedDateToNumericDate :: (HasCallStack, MonadUnliftIO m) => Maybe Text -> PaperMonad p m (Maybe NumericDate)
+    formattedDateToNumericDate = formattedDateToNumericDateImpl
+    accessTokenClaimsSet' :: (HasCallStack, MonadUnliftIO m) => Config -> AccessTokenId -> UTCTime -> Maybe NominalDiffTime -> UserId -> Set Role -> PaperMonad p m JWTClaimsSet
+    accessTokenClaimsSet' = accessTokenClaimsSet'Impl
+    refreshTokenClaimsSet' :: (HasCallStack, MonadUnliftIO m) => Config -> RefreshTokenId -> UTCTime -> Maybe NominalDiffTime -> UserId -> PaperMonad p m JWTClaimsSet
+    refreshTokenClaimsSet' = refreshTokenClaimsSet'Impl
+    invalidateJWT :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> UserId -> PaperMonad p m ()
+    invalidateJWT = invalidateJWTImpl
+
+issueJWTImpl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Config -> PaperAuthConn -> EncodeSigner -> PreAuthenticatedUser -> UTCTime -> PaperMonad p m JWTDTO
+issueJWTImpl config conn encodeSigner (PreAuthenticatedUser { userId, roleSet }) currentUTC = do
     accessTokenLifetime <- accessTokenLifetime' config
     refreshTokenLifetime <- refreshTokenLifetime' config
     refreshJti <- JWT.Repository.newRefreshToken
@@ -53,142 +95,144 @@ issueJWT config conn encodeSigner (PreAuthenticatedUser { userId, roleSet }) cur
         refreshToken = encodeSigned encodeSigner refreshTokenHeader refreshTokenClaimsSet
     JWT.Repository.saveAccessToken conn accessJti accessToken
     JWT.Repository.saveRefreshToken conn refreshJti refreshToken
-    return $ JWTDTO accessToken refreshToken
+    return $ JWTDTO accessJti accessToken refreshJti refreshToken
 
-accessTokenHeader' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperExceptT m JOSEHeader
-accessTokenHeader' config = do
-    typ <- paperLiftIO $ Data.Configurator.lookup config "paper-token.access.header.typ"
-    cty <- paperLiftIO $ Data.Configurator.lookup config "paper-token.access.header.cty"
-    alg' <- paperLiftIO $ Data.Configurator.lookup @String config "paper-token.access.header.alg"
+accessTokenHeader'Impl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Config -> PaperMonad p m JOSEHeader
+accessTokenHeader'Impl config = do
+    typ <- paperLiftIOUnliftIO $ Data.Configurator.lookup config "paper-token.access.header.typ"
+    cty <- paperLiftIOUnliftIO $ Data.Configurator.lookup config "paper-token.access.header.cty"
+    alg' <- paperLiftIOUnliftIO $ Data.Configurator.lookup @String config "paper-token.access.header.alg"
     let alg = case alg' of
                 Just "HS256" -> Just HS256
                 Just "RS256" -> Just RS256
                 _ -> Nothing
-    kid <- paperLiftIO $ Data.Configurator.lookup config "paper-token.access.header.kid"
+    kid <- paperLiftIOUnliftIO $ Data.Configurator.lookup config "paper-token.access.header.kid"
     return $ JOSEHeader typ cty alg kid
 
-refreshTokenHeader' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperExceptT m JOSEHeader
-refreshTokenHeader' config = do
-    typ <- paperLiftIO $ Data.Configurator.lookup config "paper-token.refresh.header.typ"
-    cty <- paperLiftIO $ Data.Configurator.lookup config "paper-token.refresh.header.cty"
-    alg' <- paperLiftIO $ Data.Configurator.lookup @String config "paper-token.refresh.header.alg"
+refreshTokenHeader'Impl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Config -> PaperMonad p m JOSEHeader
+refreshTokenHeader'Impl config = do
+    typ <- paperLiftIOUnliftIO $ Data.Configurator.lookup config "paper-token.refresh.header.typ"
+    cty <- paperLiftIOUnliftIO $ Data.Configurator.lookup config "paper-token.refresh.header.cty"
+    alg' <- paperLiftIOUnliftIO $ Data.Configurator.lookup @String config "paper-token.refresh.header.alg"
     let alg = case alg' of
                 Just "HS256" -> Just HS256
                 Just "RS256" -> Just RS256
                 _ -> Nothing
-    kid <- paperLiftIO $ Data.Configurator.lookup config "paper-token.refresh.header.kid"
+    kid <- paperLiftIOUnliftIO $ Data.Configurator.lookup config "paper-token.refresh.header.kid"
     return $ JOSEHeader typ cty alg kid
 
-utcTimeToNominalDiffTime :: UTCTime -> NominalDiffTime
-utcTimeToNominalDiffTime utc =
+utcTimeToNominalDiffTimeImpl :: VerificationServiceI p => Proxy p -> UTCTime -> NominalDiffTime
+utcTimeToNominalDiffTimeImpl _ utc =
     diffUTCTime utc $ UTCTime (fromGregorian 1970 1 1) (secondsToDiffTime 0)
 
-nominalDiffTimeToNumericDate :: (HasCallStack, MonadUnliftIO m) => Maybe NominalDiffTime -> PaperExceptT m (Maybe NumericDate)
-nominalDiffTimeToNumericDate m =
+nominalDiffTimeToNumericDateImpl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Maybe NominalDiffTime -> PaperMonad p m (Maybe NumericDate)
+nominalDiffTimeToNumericDateImpl m =
     case m of
         Just n ->
             case numericDate n of
                 Just nd -> return $ Just nd
-                Nothing -> toPaperExceptT $ PaperException "numericDate invalid" (err500 { errBody = "Internal server error" }) callStack'
+                Nothing -> toPaperMonad $ PaperError "numericDate invalid" (err500 { errBody = "Internal server error" }) callStack'
         Nothing -> return Nothing
 
-accessTokenLifetime' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperExceptT m (Maybe NominalDiffTime)
-accessTokenLifetime' config =
-    paperLiftIO $ (fromInteger <$>) <$> Data.Configurator.lookup config "paper-token.access.claims.lifetime"
+accessTokenLifetime'Impl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Config -> PaperMonad p m (Maybe NominalDiffTime)
+accessTokenLifetime'Impl config =
+    paperLiftIOUnliftIO $ (fromInteger <$>) <$> Data.Configurator.lookup config "paper-token.access.claims.lifetime"
 
-refreshTokenLifetime' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperExceptT m (Maybe NominalDiffTime)
-refreshTokenLifetime' config = 
-    paperLiftIO $ (fromInteger <$>) <$> Data.Configurator.lookup config "paper-token.refresh.claims.lifetime"
+refreshTokenLifetime'Impl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Config -> PaperMonad p m (Maybe NominalDiffTime)
+refreshTokenLifetime'Impl config = 
+    paperLiftIOUnliftIO $ (fromInteger <$>) <$> Data.Configurator.lookup config "paper-token.refresh.claims.lifetime"
 
-accessTokenClaimsMap' :: Set Role -> ClaimsMap
-accessTokenClaimsMap' roleSet =
+accessTokenClaimsMap'Impl :: VerificationServiceI p => Proxy p -> Set Role -> ClaimsMap
+accessTokenClaimsMap'Impl _ roleSet =
     ClaimsMap $ Data.Map.fromList [
         ("roles", Array $ Data.Vector.fromList $ (Data.Aeson.Types.String .pack .roleName) <$> Data.Set.toList roleSet)
     ]
 
-refreshTokenClaimsMap' :: ClaimsMap
-refreshTokenClaimsMap' = ClaimsMap $ Data.Map.empty
+refreshTokenClaimsMap'Impl :: VerificationServiceI p => Proxy p -> ClaimsMap
+refreshTokenClaimsMap'Impl _ = ClaimsMap $ Data.Map.empty
 
-accessTokenSub' :: UserId -> Maybe StringOrURI
-accessTokenSub' userId =
+accessTokenSub'Impl :: VerificationServiceI p => Proxy p -> UserId -> Maybe StringOrURI
+accessTokenSub'Impl _ userId =
     stringOrURI $ pack $ show $ fromSqlKeyFor userId
 
-refreshTokenSub' :: UserId -> Maybe StringOrURI
-refreshTokenSub' userId =
+refreshTokenSub'Impl :: VerificationServiceI p => Proxy p -> UserId -> Maybe StringOrURI
+refreshTokenSub'Impl _ userId =
     stringOrURI $ pack $ show $ fromSqlKeyFor userId
 
-stringOrURI' :: (HasCallStack, MonadUnliftIO m) => Maybe Text -> PaperExceptT m (Maybe StringOrURI)
-stringOrURI' mt = case mt of
+stringOrURI'Impl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Maybe Text -> PaperMonad p m (Maybe StringOrURI)
+stringOrURI'Impl mt = case mt of
     Just t -> case stringOrURI t of
         Just s -> return $ Just s
-        Nothing -> toPaperExceptT $ PaperException "stringOrURI invalid" (err500 { errBody = "Internal server error" }) callStack'
+        Nothing -> toPaperMonad $ PaperError "stringOrURI invalid" (err500 { errBody = "Internal server error" }) callStack'
     Nothing -> return Nothing
 
-stringOrURI'' :: (HasCallStack, MonadUnliftIO m) => Int64 -> PaperExceptT m (Maybe StringOrURI)
-stringOrURI'' i = do
+stringOrURI''Impl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Int64 -> PaperMonad p m (Maybe StringOrURI)
+stringOrURI''Impl i = do
     case stringOrURI $ pack . show $ i of
         Just s -> return $ Just s
-        Nothing -> toPaperExceptT $ PaperException "stringOrURI invalid" (err500 { errBody = "Internal server error" }) callStack'
+        Nothing -> toPaperMonad $ PaperError "stringOrURI invalid" (err500 { errBody = "Internal server error" }) callStack'
 
-stringOrURIList :: (HasCallStack, MonadUnliftIO m) => Maybe Text -> PaperExceptT m (Maybe [StringOrURI])
-stringOrURIList mt = case mt of
+stringOrURIListImpl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Maybe Text -> PaperMonad p m (Maybe [StringOrURI])
+stringOrURIListImpl mt = case mt of
     Just t -> Just <$> stringOrURIList' t
     Nothing -> return Nothing
     where
-        stringOrURIList' :: (HasCallStack, MonadUnliftIO m) => Text -> PaperExceptT m [StringOrURI]
+        stringOrURIList' :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Text -> PaperMonad p m [StringOrURI]
         stringOrURIList' t = do
             Data.Traversable.mapM (\t' -> do
                     case stringOrURI t' of
                         Just s -> return s
-                        Nothing -> toPaperExceptT $ PaperException "stringOrURI invalid" (err500 { errBody = "Internal server error" }) callStack'
+                        Nothing -> toPaperMonad $ PaperError "stringOrURI invalid" (err500 { errBody = "Internal server error" }) callStack'
                 )
                 (Data.Text.words t)
 
-formattedDateToNumericDate :: (HasCallStack, MonadUnliftIO m) => Maybe Text -> PaperExceptT m (Maybe NumericDate)
-formattedDateToNumericDate t' = case t' of
+formattedDateToNumericDateImpl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Maybe Text -> PaperMonad p m (Maybe NumericDate)
+formattedDateToNumericDateImpl t' = case t' of
     Just t -> Just <$> formattedDateToIntDate' t
     Nothing -> return Nothing
     where
-        formattedDateToIntDate' :: (HasCallStack, MonadUnliftIO m) => Text -> PaperExceptT m NumericDate
+        formattedDateToIntDate' :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Text -> PaperMonad p m NumericDate
         formattedDateToIntDate' t = do
             case parseTimeM True defaultTimeLocale "%Y-%m-%d %H:%M:%S" (show t) of
                 Just utc -> do
                     let nominalDiffTime = diffUTCTime utc $ UTCTime (fromGregorian 1970 1 1) (secondsToDiffTime 0)
                     case numericDate nominalDiffTime of
                         Just n -> return n
-                        Nothing -> toPaperExceptT $ PaperException "numericDate invalid" (err500 { errBody = "Internal server error" }) callStack'
-                Nothing -> toPaperExceptT $ PaperException "parseTimeM failed" (err500 { errBody = "Internal server error" }) callStack'
+                        Nothing -> toPaperMonad $ PaperError "numericDate invalid" (err500 { errBody = "Internal server error" }) callStack'
+                Nothing -> toPaperMonad $ PaperError "parseTimeM failed" (err500 { errBody = "Internal server error" }) callStack'
 
-accessTokenClaimsSet' :: (HasCallStack, MonadUnliftIO m) => Config -> AccessTokenId -> UTCTime -> Maybe NominalDiffTime -> UserId -> Set Role -> PaperExceptT m JWTClaimsSet
-accessTokenClaimsSet' config jti' iat' exp' userId roleSet = do
-    iss' <- paperLiftIO $ Data.Configurator.lookup config "paper-token.access.claims.iss"
+accessTokenClaimsSet'Impl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Config -> AccessTokenId -> UTCTime -> Maybe NominalDiffTime -> UserId -> Set Role -> PaperMonad p m JWTClaimsSet
+accessTokenClaimsSet'Impl config jti' iat' exp' userId roleSet = do
+    proxy <- ask
+    iss' <- paperLiftIOUnliftIO $ Data.Configurator.lookup config "paper-token.access.claims.iss"
     iss <- stringOrURI' iss'
-    let sub = accessTokenSub' userId
-    aud' <- paperLiftIO $ Data.Configurator.lookup config "paper-token.access.claims.aud"
+    let sub = accessTokenSub' proxy userId
+    aud' <- paperLiftIOUnliftIO $ Data.Configurator.lookup config "paper-token.access.claims.aud"
     aud <- (Right <$>) <$> stringOrURIList aud'
-    exp'' <- nominalDiffTimeToNumericDate $ (utcTimeToNominalDiffTime iat' +) <$> exp'
-    nbf' <- paperLiftIO $ Data.Configurator.lookup config "paper-token.access.claims.nbf"
+    exp'' <- nominalDiffTimeToNumericDate $ (utcTimeToNominalDiffTime proxy iat' +) <$> exp'
+    nbf' <- paperLiftIOUnliftIO $ Data.Configurator.lookup config "paper-token.access.claims.nbf"
     nbf <- formattedDateToNumericDate nbf'
-    iat <- nominalDiffTimeToNumericDate $ Just $ utcTimeToNominalDiffTime iat'
+    iat <- nominalDiffTimeToNumericDate $ Just $ utcTimeToNominalDiffTime proxy iat'
     jti <- stringOrURI'' $ fromSqlKeyFor jti'
-    let unregisteredClaims = accessTokenClaimsMap' roleSet
+    let unregisteredClaims = accessTokenClaimsMap' proxy roleSet
     return $ JWTClaimsSet iss sub aud exp'' nbf iat jti unregisteredClaims
 
-refreshTokenClaimsSet' :: (HasCallStack, MonadUnliftIO m) => Config -> RefreshTokenId -> UTCTime -> Maybe NominalDiffTime -> UserId -> PaperExceptT m JWTClaimsSet
-refreshTokenClaimsSet' config jti' iat' exp' userId = do
-    iss' <- paperLiftIO $ Data.Configurator.lookup config "paper-token.refresh.claims.iss"
+refreshTokenClaimsSet'Impl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Config -> RefreshTokenId -> UTCTime -> Maybe NominalDiffTime -> UserId -> PaperMonad p m JWTClaimsSet
+refreshTokenClaimsSet'Impl config jti' iat' exp' userId = do
+    proxy <- ask
+    iss' <- paperLiftIOUnliftIO $ Data.Configurator.lookup config "paper-token.refresh.claims.iss"
     iss <- stringOrURI' iss'
-    let sub = refreshTokenSub' userId
-    aud' <- paperLiftIO $ Data.Configurator.lookup config "paper-token.refresh.claims.aud"
+    let sub = refreshTokenSub' proxy userId
+    aud' <- paperLiftIOUnliftIO $ Data.Configurator.lookup config "paper-token.refresh.claims.aud"
     aud <- (Right <$>) <$> stringOrURIList aud'
-    exp'' <- nominalDiffTimeToNumericDate $ (utcTimeToNominalDiffTime iat' +) <$> exp'
-    nbf' <- paperLiftIO $ Data.Configurator.lookup config "paper-token.refresh.claims.nbf"
+    exp'' <- nominalDiffTimeToNumericDate $ (utcTimeToNominalDiffTime proxy iat' +) <$> exp'
+    nbf' <- paperLiftIOUnliftIO $ Data.Configurator.lookup config "paper-token.refresh.claims.nbf"
     nbf <- formattedDateToNumericDate nbf'
-    iat <- nominalDiffTimeToNumericDate $ Just $ utcTimeToNominalDiffTime iat'
+    iat <- nominalDiffTimeToNumericDate $ Just $ utcTimeToNominalDiffTime proxy iat'
     jti <- stringOrURI'' $ fromSqlKeyFor jti'
-    let unregisteredClaims = refreshTokenClaimsMap'
+    let unregisteredClaims = refreshTokenClaimsMap' proxy
     return $ JWTClaimsSet iss sub aud exp'' nbf iat jti unregisteredClaims
 
-invalidateJWT :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> UserId -> PaperExceptT m ()
-invalidateJWT conn userId = do
+invalidateJWTImpl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => PaperAuthConn -> UserId -> PaperMonad p m ()
+invalidateJWTImpl conn userId = do
     JWT.Repository.invalidateJWT conn userId

@@ -1,3 +1,0 @@
-module User.Model(
-
-) where

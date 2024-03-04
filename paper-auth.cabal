@@ -33,38 +33,40 @@ library
     import:           warnings
     exposed-modules:
         Lib
-      , GlobalError
-      , Context
+      , Profile.Prod
     other-modules:
         Paths_paper_auth
-      , PaperApp
-      , Import
-      , PaperError
-      , CallStack
-      , Configurator
-      , DB
-      , Authentication
-      , JWT.Util
+      , JWT.Controller
+      , JWT.DTO
       , JWT.Entity
       , JWT.Model
-      , JWT.DTO
-      , JWT.Controller
-      , JWT.Service
       , JWT.Repository
-      , Verification.Util
-      , Verification.Entity
-      , Verification.DTO
-      , Verification.Service
-      , Verification.Repository
-      , User.Entity
-      , User.Model
-      , User.DTO
-      , User.Controller
-      , User.Service
-      , User.Repository
+      , JWT.Service
+      , JWT.Util
+      , Monad.ErrorT
+      , Monad.ProfileT
       , Role.Entity
       , Role.Repository
+      , User.Controller
+      , User.DTO
+      , User.Entity
+      , User.Repository
+      , User.Service
       , UserRole.Entity
+      , Verification.DTO
+      , Verification.Entity
+      , Verification.Repository
+      , Verification.Service
+      , Verification.Util
+      , Authentication
+      , CallStack
+      , Configurator
+      , Context
+      , DB
+      , GlobalMonad
+      , Import
+      , PaperApp
+      , PaperMonad
     -- other-extensions:
     autogen-modules:
         Paths_paper_auth
@@ -107,7 +109,7 @@ library
     hs-source-dirs:   src
     default-language: GHC2021
 
-executable paper-auth
+executable paper-auth-exe
     import:           warnings
     main-is:          Main.hs
     other-modules:
@@ -118,8 +120,6 @@ executable paper-auth
     build-depends:
         base ^>=4.19.0.0
       , paper-auth
-      , transformers
-      , mtl
 
     hs-source-dirs:   app
     default-language: GHC2021
@@ -129,12 +129,81 @@ test-suite paper-auth-test
     default-language: GHC2021
     other-modules:
         Paths_paper_auth
+      , Lib
+      , Profile.Prod
+      , JWT.Controller
+      , JWT.DTO
+      , JWT.Entity
+      , JWT.Model
+      , JWT.Repository
+      , JWT.Service
+      , JWT.Util
+      , Monad.ErrorT
+      , Monad.ProfileT
+      , Role.Entity
+      , Role.Repository
+      , User.Controller
+      , User.DTO
+      , User.Entity
+      , User.Repository
+      , User.Service
+      , UserRole.Entity
+      , Verification.DTO
+      , Verification.Entity
+      , Verification.Repository
+      , Verification.Service
+      , Verification.Util
+      , Authentication
+      , CallStack
+      , Configurator
+      , Context
+      , DB
+      , GlobalMonad
+      , Import
+      , PaperApp
+      , PaperMonad
     -- other-extensions:
     autogen-modules:
         Paths_paper_auth
     type:             exitcode-stdio-1.0
-    hs-source-dirs:   test
-    main-is:          Main.hs
+    hs-source-dirs:   test, src
+    main-is:          Spec.hs
     build-depends:
-        base ^>=4.19.0.0,
-        paper-auth
+        base ^>=4.19.0.0
+      , template-haskell
+      , raw-strings-qq
+      , random
+      , containers
+      , vector
+      , bytestring
+      , text
+      , time
+      , bcrypt
+      , regex-tdfa
+      , exceptions
+      , transformers
+      , mtl
+      , monad-logger
+      , unliftio
+      , unliftio-core
+      , http-types
+      , configurator
+      , aeson
+      , cookie
+      , jwt
+      , servant
+      , servant-server
+      , servant-static-th
+      , servant-auth-server
+      , wai
+      , wai-cors
+      , warp
+      , warp-tls
+      , http-types
+      , persistent
+      , persistent-template
+      , persistent-typed-db
+      , persistent-mysql
+      , hspec
+      , hspec-wai
+      , hspec-wai-json

@@ -1,0 +1,25 @@
+cradle:
+  multi:
+    - path: ./Setup.hs
+      config:
+        cradle:
+          direct:
+            arguments:
+              - "-package Cabal"
+              - "-package base"
+
+    - path: ./
+      config:
+        cradle:
+          cabal:
+            - path: "./src"
+              component: "paper-auth:lib:paper-auth"
+
+            - path: "./app/Main.hs"
+              component: "paper-auth:exe:paper-auth-exe"
+
+            - path: "./test"
+              component: "paper-auth:test:paper-auth-test"
+            
+            - path: "./src"
+              component: "paper-auth:test:paper-auth-test"

@@ -3,33 +3,24 @@
 
 module User.Controller(
     API
-  , server
+  , UserControllerI(
+        server
+      )
 ) where
 
 import qualified User.Service
+import User.Service(UserServiceI)
 
 import Authentication ()
 import User.DTO
 import Context
-import PaperError
+import PaperMonad
 
 import Servant
 import Web.Cookie
 
+import Control.Monad.IO.Class
 import GHC.Stack
-
-{-
-type API = "user" :> (
-    Enroll
-    :<|> Login
-    :<|> RefreshToken
-    :<|> Withdrawal
-    :<|> "info" :> (
-            GetUserInfo
-            :<|> PatchUserInfo
-        )
-    )
--}
 
 type API =
     "verify" :> (
@@ -42,25 +33,35 @@ type VerifyRequest = "request" :> ReqBody '[JSON] VerifyRequestReqDTO :> Post '[
 type VerifyCheck = "check" :> ReqBody '[JSON] VerifyCheckReqDTO :> Post '[JSON] VerifyCheckResDTO
 type Enroll = "enroll" :> ReqBody '[JSON] EnrollReqDTO :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 
-verifyRequest :: HasCallStack => Context.Context -> VerifyRequestReqDTO -> Handler NoContent
-verifyRequest context (VerifyRequestReqDTO { phoneNumber }) = do
-    runPaperExceptT $ User.Service.verifyRequest
-        (paperAuthPool context) phoneNumber
+class UserServiceI p => UserControllerI p where
+    verifyRequest :: HasCallStack => Proxy p -> Context.Context -> VerifyRequestReqDTO -> Handler NoContent
+    verifyRequest = verifyRequestImpl
+    verifyCheck :: HasCallStack => Proxy p -> Context.Context -> VerifyCheckReqDTO -> Handler VerifyCheckResDTO
+    verifyCheck = verifyCheckImpl
+    enroll :: HasCallStack => Proxy p -> Context.Context -> EnrollReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
+    enroll = enrollImpl
+    server :: HasCallStack => Proxy p -> Context.Context -> Server API
+    server = serverImpl
 
-verifyCheck :: HasCallStack => Context.Context -> VerifyCheckReqDTO -> Handler VerifyCheckResDTO
-verifyCheck context (VerifyCheckReqDTO { phoneNumber, phoneNumberSecret }) = do
-    runPaperExceptT $ User.Service.verifyCheck
-        (paperAuthPool context) phoneNumber phoneNumberSecret
+verifyRequestImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> VerifyRequestReqDTO -> Handler NoContent
+verifyRequestImpl _ context (VerifyRequestReqDTO { phoneNumber }) =
+    runPaperMonad $ User.Service.verifyRequest @p
+        phoneNumber (paperAuthPool context)
 
-enroll :: HasCallStack => Context.Context -> EnrollReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
-enroll context (EnrollReqDTO { paperId, password, name, phoneNumber, phoneNumberSecret }) = do
-    let encodeSigner = paperEncodeSigner context
-    runPaperExceptT $ User.Service.enroll
-        (config context) (paperAuthPool context) encodeSigner paperId password name phoneNumber phoneNumberSecret
+verifyCheckImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> VerifyCheckReqDTO -> Handler VerifyCheckResDTO
+verifyCheckImpl _ context (VerifyCheckReqDTO { phoneNumber, phoneNumberSecret }) =
+    runPaperMonad $ User.Service.verifyCheck @p
+        phoneNumber phoneNumberSecret (paperAuthPool context)
 
-server :: HasCallStack => Context.Context -> Server API
-server context = (
-        verifyRequest context
-        :<|> verifyCheck context
+enrollImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> EnrollReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
+enrollImpl _  context (EnrollReqDTO { paperId, password, name, phoneNumber, phoneNumberSecret }) =
+    let encodeSigner = paperEncodeSigner context in
+    runPaperMonad $ User.Service.enroll @p
+        (config context) encodeSigner paperId password name phoneNumber phoneNumberSecret (paperAuthPool context)
+
+serverImpl :: (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> Server API
+serverImpl p context = (
+        verifyRequest p context
+        :<|> verifyCheck p context
         )
-    :<|> enroll context
+    :<|> enroll p context

@@ -1,0 +1,203 @@
+[PaperError]	2024-03-04 13:48:51
+[PaperError]
+"paperId duplicate"
+CallStack (from HasCallStack):
+  callStack', called at src/User/Service.hs:130:102 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:User.Service
+  enroll'Impl, called at src/User/Service.hs:59:15 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:User.Service
+  $dmenroll', called at src/Profile/Prod.hs:35:10 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:Profile.Prod
+  enroll', called at src/User/Service.hs:107:116 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:User.Service
+  enrollImpl, called at src/User/Service.hs:57:14 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:User.Service
+  $dmenroll, called at src/Profile/Prod.hs:35:10 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:Profile.Prod
+  enroll, called at src/User/Controller.hs:59:30 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:User.Controller
+  enrollImpl, called at src/User/Controller.hs:42:14 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:User.Controller
+  $dmenroll, called at src/Profile/Prod.hs:33:10 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:Profile.Prod
+  enroll, called at src/User/Controller.hs:67:10 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:User.Controller
+  serverImpl, called at src/User/Controller.hs:44:14 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:User.Controller
+  $dmserver, called at src/Profile/Prod.hs:33:10 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:Profile.Prod
+  server, called at src/PaperApp.hs:48:10 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:PaperApp
+  serverImpl, called at src/PaperApp.hs:35:14 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:PaperApp
+  $dmserver, called at src/Profile/Prod.hs:44:10 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:Profile.Prod
+  server, called at src/PaperApp.hs:65:6 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:PaperApp
+  appImpl, called at src/PaperApp.hs:41:11 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:PaperApp
+  $dmapp, called at src/Profile/Prod.hs:44:10 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:Profile.Prod
+  app, called at src/Lib.hs:87:65 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:Lib
+  startApp'Impl, called at src/Lib.hs:60:17 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:Lib
+  $dmstartApp', called at src/Profile/Prod.hs:43:10 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:Profile.Prod
+  startApp', called at src/Lib.hs:83:22 in paper-auth-0.1.0.0-93e893cac37427140c63d157f82192f94e1f996f1d11ab3ed6296839021f4bb5:Lib
+molypoly
+[PaperError]	2024-03-04 17:15:55
+[PaperError]
+"paperId duplicate"
+CallStack (from HasCallStack):
+  callStack', called at src/User/Service.hs:130:102 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:User.Service
+  enroll'Impl, called at src/User/Service.hs:59:15 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:User.Service
+  $dmenroll', called at src/Profile/Prod.hs:35:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  enroll', called at src/User/Service.hs:107:116 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:User.Service
+  enrollImpl, called at src/User/Service.hs:57:14 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:User.Service
+  $dmenroll, called at src/Profile/Prod.hs:35:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  enroll, called at src/User/Controller.hs:59:21 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:User.Controller
+  enrollImpl, called at src/User/Controller.hs:42:14 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:User.Controller
+  $dmenroll, called at src/Profile/Prod.hs:33:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  enroll, called at src/User/Controller.hs:67:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:User.Controller
+  serverImpl, called at src/User/Controller.hs:44:14 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:User.Controller
+  $dmserver, called at src/Profile/Prod.hs:33:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  server, called at src/PaperApp.hs:48:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:PaperApp
+  serverImpl, called at src/PaperApp.hs:35:14 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:PaperApp
+  $dmserver, called at src/Profile/Prod.hs:44:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  server, called at src/PaperApp.hs:65:6 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:PaperApp
+  appImpl, called at src/PaperApp.hs:41:11 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:PaperApp
+  $dmapp, called at src/Profile/Prod.hs:44:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  app, called at src/Lib.hs:87:63 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Lib
+  startApp'Impl, called at src/Lib.hs:60:17 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Lib
+  $dmstartApp', called at src/Profile/Prod.hs:43:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  startApp', called at src/Lib.hs:83:22 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Lib
+molypoly
+[PaperError]	2024-03-04 17:16:32
+[PaperError]
+"accessToken invalidated"
+CallStack (from HasCallStack):
+  callStack', called at src/Authentication.hs:144:173 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Authentication
+  getAccessTokenAndRoleSetImpl, called at src/Authentication.hs:70:32 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Authentication
+  $dmgetAccessTokenAndRoleSet, called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  getAccessTokenAndRoleSet, called at src/Authentication.hs:89:95 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Authentication
+  jwtAuthHandler'''Impl, called at src/Authentication.hs:60:25 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Authentication
+  $dmjwtAuthHandler''', called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  jwtAuthHandler''', called at src/Authentication.hs:84:75 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Authentication
+  jwtAuthHandler''Impl, called at src/Authentication.hs:58:24 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Authentication
+  $dmjwtAuthHandler'', called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  jwtAuthHandler'', called at src/Authentication.hs:81:67 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Authentication
+  jwtAuthHandler'Impl, called at src/Authentication.hs:56:23 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Authentication
+  $dmjwtAuthHandler', called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  jwtAuthHandler', called at src/Authentication.hs:78:58 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Authentication
+  jwtAuthHandlerImpl, called at src/Authentication.hs:54:22 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Authentication
+  $dmjwtAuthHandler, called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  jwtAuthHandler, called at src/Authentication.hs:75:39 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Authentication
+  authContextImpl, called at src/Authentication.hs:52:19 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Authentication
+  $dmauthContext, called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  authContext, called at src/PaperApp.hs:64:6 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:PaperApp
+  appImpl, called at src/PaperApp.hs:41:11 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:PaperApp
+  $dmapp, called at src/Profile/Prod.hs:44:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  app, called at src/Lib.hs:87:63 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Lib
+  startApp'Impl, called at src/Lib.hs:60:17 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Lib
+  $dmstartApp', called at src/Profile/Prod.hs:43:10 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Profile.Prod
+  startApp', called at src/Lib.hs:83:22 in paper-auth-0.1.0.0-bcf72eaccb851d692f950d06cbbfa2a9607e5f4a6351578ced47322fb512ddf6:Lib
+molypoly
+[GlobalError]	2024-03-04 17:21:27
+[GlobalDefaultError]
+/home/kwonryul/.cabal/store/ghc-9.8.1/paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962/share/resources/application.cfg: openFile: does not exist (No such file or directory)
+CallStack (from HasCallStack):
+  callStack', called at src/Monad/ErrorT.hs:134:57 in paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962:Monad.ErrorT
+  unsafeToSafeUnliftIO, called at src/Monad/ErrorT.hs:150:22 in paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962:Monad.ErrorT
+  liftIOSafeUnliftIO, called at src/GlobalMonad.hs:132:45 in paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962:GlobalMonad
+  globalLiftIOUnliftIO, called at src/Context.hs:50:5 in paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962:Context
+  getConfig'Impl, called at src/Context.hs:38:18 in paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962:Context
+  $dmgetConfig', called at src/Profile/Prod.hs:41:10 in paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962:Profile.Prod
+  getConfig', called at src/Context.hs:54:20 in paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962:Context
+  getContextImpl, called at src/Context.hs:40:18 in paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962:Context
+  $dmgetContext, called at src/Profile/Prod.hs:41:10 in paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962:Profile.Prod
+  getContext, called at src/Lib.hs:74:16 in paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962:Lib
+  getAllResources'Impl, called at src/Lib.hs:56:24 in paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962:Lib
+  $dmgetAllResources', called at src/Profile/Prod.hs:43:10 in paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962:Profile.Prod
+  getAllResources', called at src/Lib.hs:69:42 in paper-auth-0.1.0.0-f8a4500182007e4ad9de8e6291b5b4483059710f255318933e68c5c0c5400962:Lib
+molypoly
+[PaperError]	2024-03-04 17:25:02
+[PaperError]
+"accessToken invalidated"
+CallStack (from HasCallStack):
+  callStack', called at src/Authentication.hs:144:173 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  getAccessTokenAndRoleSetImpl, called at src/Authentication.hs:70:32 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmgetAccessTokenAndRoleSet, called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  getAccessTokenAndRoleSet, called at src/Authentication.hs:89:95 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  jwtAuthHandler'''Impl, called at src/Authentication.hs:60:25 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmjwtAuthHandler''', called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  jwtAuthHandler''', called at src/Authentication.hs:84:75 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  jwtAuthHandler''Impl, called at src/Authentication.hs:58:24 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmjwtAuthHandler'', called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  jwtAuthHandler'', called at src/Authentication.hs:81:67 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  jwtAuthHandler'Impl, called at src/Authentication.hs:56:23 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmjwtAuthHandler', called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  jwtAuthHandler', called at src/Authentication.hs:78:58 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  jwtAuthHandlerImpl, called at src/Authentication.hs:54:22 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmjwtAuthHandler, called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  jwtAuthHandler, called at src/Authentication.hs:75:39 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  authContextImpl, called at src/Authentication.hs:52:19 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmauthContext, called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  authContext, called at src/PaperApp.hs:64:6 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:PaperApp
+  appImpl, called at src/PaperApp.hs:41:11 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:PaperApp
+  $dmapp, called at src/Profile/Prod.hs:44:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  app, called at src/Lib.hs:87:63 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Lib
+  startApp'Impl, called at src/Lib.hs:60:17 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Lib
+  $dmstartApp', called at src/Profile/Prod.hs:43:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  startApp', called at src/Lib.hs:83:22 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Lib
+molypoly
+[PaperError]	2024-03-04 17:25:20
+[PaperError]
+"accessToken invalidated"
+CallStack (from HasCallStack):
+  callStack', called at src/Authentication.hs:144:173 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  getAccessTokenAndRoleSetImpl, called at src/Authentication.hs:70:32 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmgetAccessTokenAndRoleSet, called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  getAccessTokenAndRoleSet, called at src/Authentication.hs:89:95 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  jwtAuthHandler'''Impl, called at src/Authentication.hs:60:25 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmjwtAuthHandler''', called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  jwtAuthHandler''', called at src/Authentication.hs:84:75 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  jwtAuthHandler''Impl, called at src/Authentication.hs:58:24 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmjwtAuthHandler'', called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  jwtAuthHandler'', called at src/Authentication.hs:81:67 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  jwtAuthHandler'Impl, called at src/Authentication.hs:56:23 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmjwtAuthHandler', called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  jwtAuthHandler', called at src/Authentication.hs:78:58 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  jwtAuthHandlerImpl, called at src/Authentication.hs:54:22 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmjwtAuthHandler, called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  jwtAuthHandler, called at src/Authentication.hs:75:39 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  authContextImpl, called at src/Authentication.hs:52:19 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmauthContext, called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  authContext, called at src/PaperApp.hs:64:6 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:PaperApp
+  appImpl, called at src/PaperApp.hs:41:11 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:PaperApp
+  $dmapp, called at src/Profile/Prod.hs:44:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  app, called at src/Lib.hs:87:63 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Lib
+  startApp'Impl, called at src/Lib.hs:60:17 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Lib
+  $dmstartApp', called at src/Profile/Prod.hs:43:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  startApp', called at src/Lib.hs:83:22 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Lib
+molypoly
+[PaperError]	2024-03-04 17:25:21
+[PaperError]
+"accessToken invalidated"
+CallStack (from HasCallStack):
+  callStack', called at src/Authentication.hs:144:173 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  getAccessTokenAndRoleSetImpl, called at src/Authentication.hs:70:32 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmgetAccessTokenAndRoleSet, called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  getAccessTokenAndRoleSet, called at src/Authentication.hs:89:95 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  jwtAuthHandler'''Impl, called at src/Authentication.hs:60:25 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmjwtAuthHandler''', called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  jwtAuthHandler''', called at src/Authentication.hs:84:75 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  jwtAuthHandler''Impl, called at src/Authentication.hs:58:24 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmjwtAuthHandler'', called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  jwtAuthHandler'', called at src/Authentication.hs:81:67 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  jwtAuthHandler'Impl, called at src/Authentication.hs:56:23 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmjwtAuthHandler', called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  jwtAuthHandler', called at src/Authentication.hs:78:58 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  jwtAuthHandlerImpl, called at src/Authentication.hs:54:22 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmjwtAuthHandler, called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  jwtAuthHandler, called at src/Authentication.hs:75:39 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  authContextImpl, called at src/Authentication.hs:52:19 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Authentication
+  $dmauthContext, called at src/Profile/Prod.hs:39:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  authContext, called at src/PaperApp.hs:64:6 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:PaperApp
+  appImpl, called at src/PaperApp.hs:41:11 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:PaperApp
+  $dmapp, called at src/Profile/Prod.hs:44:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  app, called at src/Lib.hs:87:63 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Lib
+  startApp'Impl, called at src/Lib.hs:60:17 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Lib
+  $dmstartApp', called at src/Profile/Prod.hs:43:10 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Profile.Prod
+  startApp', called at src/Lib.hs:83:22 in paper-auth-0.1.0.0-01a76daa681aa495bebe0d5194b7dc693dff60b6beaec69d6bd5f716b7d799be:Lib
+molypoly
+[GlobalError]	2024-03-04 17:38:33
+[GlobalDefaultError]
+user error (hoogle)
+CallStack (from HasCallStack):
+  callStack', called at src/Monad/ErrorT.hs:154:30 in paper-auth-0.1.0.0-fcdd3567cbac9ce2018dec6edaa0a6c0a4b21e120175921511e68b1696f821cd:Monad.ErrorT
+  errorLog, called at src/GlobalMonad.hs:135:13 in paper-auth-0.1.0.0-fcdd3567cbac9ce2018dec6edaa0a6c0a4b21e120175921511e68b1696f821cd:GlobalMonad
+  globalLog, called at src/Lib.hs:90:43 in paper-auth-0.1.0.0-fcdd3567cbac9ce2018dec6edaa0a6c0a4b21e120175921511e68b1696f821cd:Lib
+  startApp'Impl, called at src/Lib.hs:62:17 in paper-auth-0.1.0.0-fcdd3567cbac9ce2018dec6edaa0a6c0a4b21e120175921511e68b1696f821cd:Lib
+  $dmstartApp', called at src/Profile/Prod.hs:43:10 in paper-auth-0.1.0.0-fcdd3567cbac9ce2018dec6edaa0a6c0a4b21e120175921511e68b1696f821cd:Profile.Prod
+  startApp', called at src/Lib.hs:85:22 in paper-auth-0.1.0.0-fcdd3567cbac9ce2018dec6edaa0a6c0a4b21e120175921511e68b1696f821cd:Lib
+molypoly

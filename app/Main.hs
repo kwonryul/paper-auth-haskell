@@ -1,19 +1,21 @@
 module Main where
 
 import Lib
-import Context
-import GlobalError
+import Profile.Prod
 
+import Data.Proxy
 import GHC.Stack
+
+profile :: Proxy Prod
+profile = Proxy
 
 main :: HasCallStack => IO ()
 main = do
-    runGlobalExceptT $ do
-        Resources {
-            staticFilePath
-          , context
-          , certPath
-          , secretKeyPath
-        } <- getAllResources
-        migratePaperAuth (paperAuthPool context)
-        startApp staticFilePath context certPath secretKeyPath
+    Resources {
+        staticFilePath
+      , context
+      , certPath
+      , secretKeyPath
+      } <- getAllResources profile
+    migratePaperAuth profile (paperAuthPool context)
+    startApp profile staticFilePath context certPath secretKeyPath

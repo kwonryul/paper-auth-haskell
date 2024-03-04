@@ -5,6 +5,7 @@ module Verification.DTO(
       , msg
       , failCount
       )
+  , phoneNumberSecretWrongDTO
 ) where
 
 import Data.Aeson
@@ -15,3 +16,9 @@ data PhoneNumberSecretWrongDTO = PhoneNumberSecretWrongDTO {
   , failCount :: Int
   }
 $(deriveToJSON defaultOptions ''PhoneNumberSecretWrongDTO)
+
+phoneNumberSecretWrongDTO :: Int -> PhoneNumberSecretWrongDTO
+phoneNumberSecretWrongDTO failCount = PhoneNumberSecretWrongDTO {
+    msg = "phoneNumberSecret wrong"
+  , failCount
+  }

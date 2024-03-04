@@ -2,21 +2,25 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 module JWT.Controller(
-    API
-  , server
+    JWTControllerI(
+        server
+      )
+  , API
 ) where
 
 import qualified JWT.Service
+import JWT.Service (JWTServiceI)
 
 import Authentication ()
 import JWT.Model
 import JWT.DTO
 import Context
-import PaperError
+import PaperMonad
 
 import Servant
 import Web.Cookie
 
+import Control.Monad.IO.Class
 import GHC.Stack
 
 type API = IssueJWT
@@ -33,28 +37,38 @@ type InvalidateJWT = "invalidate" :> AuthProtect "jwt-auth" :> Delete '[PlainTex
 type IndirectRequestJWT = "request" :> Get '[JSON] NoContent
 type IndirectIssueJWT = "issue" :> Get '[JSON] NoContent
 
-issueJWT :: HasCallStack => Context.Context -> IssueJWTReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)
-issueJWT context (IssueJWTReqDTO { paperId, password }) = do
+class JWTServiceI p => JWTControllerI p where
+    issueJWT :: HasCallStack => Proxy p -> Context.Context -> IssueJWTReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)
+    issueJWT = issueJWTImpl
+    refreshJWT :: HasCallStack => Proxy p -> Context.Context -> AuthenticatedUserRefresh -> Handler (Headers '[Header "Set-Cookie" SetCookie] RefreshJWTResDTO)
+    refreshJWT = refreshJWTImpl
+    invalidateJWT :: HasCallStack => Proxy p -> Context.Context -> AuthenticatedUser -> Handler NoContent
+    invalidateJWT = invalidateJWTImpl
+    server :: HasCallStack => Proxy p -> Context.Context -> Server API
+    server = serverImpl
+
+issueJWTImpl :: forall p. (HasCallStack, JWTControllerI p) => Proxy p -> Context.Context -> IssueJWTReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)
+issueJWTImpl _ context (IssueJWTReqDTO { paperId, password }) = do
     let encodeSigner = paperEncodeSigner context
-    runPaperExceptT $ JWT.Service.issueJWT
-        (config context) (paperAuthPool context) encodeSigner paperId password
+    runPaperMonad $ JWT.Service.issueJWT @p (config context) encodeSigner paperId password (paperAuthPool context)
 
-refreshJWT :: HasCallStack => Context.Context -> AuthenticatedUserRefresh -> Handler (Headers '[Header "Set-Cookie" SetCookie] RefreshJWTResDTO)
-refreshJWT context (AuthenticatedUserRefresh { userId }) = do
+
+refreshJWTImpl :: forall p. (HasCallStack, JWTControllerI p) => Proxy p -> Context.Context -> AuthenticatedUserRefresh -> Handler (Headers '[Header "Set-Cookie" SetCookie] RefreshJWTResDTO)
+refreshJWTImpl _ context (AuthenticatedUserRefresh { userId }) = do
     let encodeSigner = paperEncodeSigner context
-    runPaperExceptT $ JWT.Service.refreshJWT
-        (config context) (paperAuthPool context) encodeSigner userId
+    runPaperMonad $ JWT.Service.refreshJWT @p
+        (config context) encodeSigner userId (paperAuthPool context)
 
-invalidateJWT :: HasCallStack => Context.Context -> AuthenticatedUser -> Handler NoContent
-invalidateJWT context (AuthenticatedUser { userId }) = do
-    runPaperExceptT $ JWT.Service.invalidateJWT
-        (paperAuthPool context) userId
+invalidateJWTImpl :: forall p. (HasCallStack, JWTControllerI p) => Proxy p -> Context.Context -> AuthenticatedUser -> Handler NoContent
+invalidateJWTImpl _ context (AuthenticatedUser { userId }) = do
+    runPaperMonad $ JWT.Service.invalidateJWT @p
+        userId (paperAuthPool context)
 
-server :: HasCallStack => Context.Context -> Server API
-server context = issueJWT context
-    :<|> refreshJWT context
-    :<|> invalidateJWT context
+serverImpl :: (HasCallStack, JWTControllerI p) => Proxy p -> Context.Context -> Server API
+serverImpl p context = issueJWT p context
+    :<|> refreshJWT p context
+    :<|> invalidateJWT p context
     :<|> (
         undefined
         :<|> undefined
-    )
+        )

@@ -7,11 +7,13 @@ module Context(
       , paperEncodeSigner
       , paperVerifySigner
     )
-  , getContext'
+  , ContextI(
+        getContext
+      )
 ) where
 
-import GlobalError
 import DB
+import GlobalMonad
 import CallStack
 import Paths_paper_auth
 
@@ -31,13 +33,24 @@ data Context = Context {
   , paperVerifySigner :: VerifySigner
 }
 
-getConfig' :: (HasCallStack, MonadUnliftIO m) => GlobalExceptT m (Config, ThreadId)
-getConfig' = do
-    filePath <- globalLiftIO $ getDataFileName "resources/application.cfg"
-    globalLiftIO $ autoReload autoConfig [Required filePath]
+class DBI p => ContextI p where
+    getConfig' :: (HasCallStack, MonadUnliftIO m) => GlobalMonad p m (Config, ThreadId)
+    getConfig' = getConfig'Impl
+    getContext :: (HasCallStack, MonadUnliftIO m) => GlobalMonad p m Context
+    getContext = getContextImpl
+    getPaperEncodeSigner' :: (HasCallStack, MonadUnliftIO m) => GlobalMonad p m EncodeSigner
+    getPaperEncodeSigner' = getPaperEncodeSigner'Impl
+    getPaperVerifySigner' :: (HasCallStack, MonadUnliftIO m) => GlobalMonad p m VerifySigner
+    getPaperVerifySigner' = getPaperVerifySigner'Impl
 
-getContext' :: (HasCallStack, MonadUnliftIO m) => GlobalExceptT m Context
-getContext' = do
+
+getConfig'Impl :: (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m (Config, ThreadId)
+getConfig'Impl = do
+    filePath <- globalLiftIOUnliftIO $ getDataFileName "resources/application.cfg"
+    globalLiftIOUnliftIO $ autoReload autoConfig [Required filePath]
+
+getContextImpl :: (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m Context
+getContextImpl = do
     (config, _) <- getConfig'
     paperAuthPool <- getPaperAuthPool' config
     paperEncodeSigner <- getPaperEncodeSigner'
@@ -49,18 +62,18 @@ getContext' = do
       , paperVerifySigner = paperVerifySigner
     }
 
-getPaperEncodeSigner' :: (HasCallStack, MonadUnliftIO m) => GlobalExceptT m EncodeSigner
-getPaperEncodeSigner' = do
-    filePath <- globalLiftIO $ getDataFileName "resources/jwt/paper-auth.pem"
-    content <- globalLiftIO $ Data.ByteString.readFile filePath
+getPaperEncodeSigner'Impl :: (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m EncodeSigner
+getPaperEncodeSigner'Impl = do
+    filePath <- globalLiftIOUnliftIO $ getDataFileName "resources/jwt/paper-auth.pem"
+    content <- globalLiftIOUnliftIO $ Data.ByteString.readFile filePath
     case readRsaSecret content of
         Just privateKey -> return $ EncodeRSAPrivateKey privateKey
-        Nothing -> toGlobalExceptT $ GlobalException "paper-auth private key invalid" callStack'
+        Nothing -> toGlobalMonad $ GlobalError "paper-auth private key invalid" callStack'
 
-getPaperVerifySigner' :: (HasCallStack, MonadUnliftIO m) => GlobalExceptT m VerifySigner
-getPaperVerifySigner' = do
-    filePath <- globalLiftIO $ getDataFileName "resources/jwt/paper-auth.pub"
-    content <- globalLiftIO $ Data.ByteString.readFile filePath
+getPaperVerifySigner'Impl :: (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m VerifySigner
+getPaperVerifySigner'Impl = do
+    filePath <- globalLiftIOUnliftIO $ getDataFileName "resources/jwt/paper-auth.pub"
+    content <- globalLiftIOUnliftIO $ Data.ByteString.readFile filePath
     case readRsaPublicKey content of
         Just publicKey -> return $ VerifyRSAPublicKey publicKey
-        Nothing -> toGlobalExceptT $ GlobalException "paper-auth public key invalid" callStack'
+        Nothing -> toGlobalMonad $ GlobalError "paper-auth public key invalid" callStack'

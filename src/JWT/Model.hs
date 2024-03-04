@@ -22,6 +22,8 @@ module JWT.Model(
         JWTDTO
       , accessToken
       , refreshToken
+      , accessTokenId
+      , refreshTokenId
       )
 ) where
 
@@ -42,7 +44,7 @@ data AuthenticatedUser = AuthenticatedUser {
   , refreshTokenId :: RefreshTokenId
   , userId :: UserId
   , roleSet :: Set Role
-}
+  }
 
 data AuthenticatedUserRefresh = AuthenticatedUserRefresh {
     refreshTokenId :: RefreshTokenId
@@ -50,6 +52,8 @@ data AuthenticatedUserRefresh = AuthenticatedUserRefresh {
   }
 
 data JWTDTO = JWTDTO {
-    accessToken :: Text
+    accessTokenId :: AccessTokenId
+  , accessToken :: Text
+  , refreshTokenId :: RefreshTokenId
   , refreshToken :: Text
   }
