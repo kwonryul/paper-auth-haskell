@@ -83,14 +83,13 @@ instance ErrorTProfile GlobalErrorP where
     defaultLogger _ = (\_ _ _ msg  -> do
         let filePath = "/home/kwonryul/dev/haskell/paper-auth/log/error.log"
         Data.Text.IO.appendFile filePath (Data.Text.Encoding.decodeUtf8 $ fromLogStr msg)
-        Data.Text.IO.appendFile filePath "\nmolypoly\n"
         )
     defaultErrorLog _ ie currentTime = (defaultLoc, "GlobalError", LevelError, globalLogStr ie currentTime)
 
 globalLogStr :: GlobalInnerError -> UTCTime -> LogStr
 globalLogStr ie currentTime =
     let formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" currentTime in
-    toLogStr $ "[GlobalError]\t" ++ formattedDate ++ "\n" ++ show ie
+    toLogStr $ "[Global]\t" ++ formattedDate ++ "\n" ++ show ie ++ "\n"
 
 type GlobalMonad :: Type -> (Type -> Type) -> Type -> Type
 data GlobalMonad p m a where

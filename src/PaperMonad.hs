@@ -94,14 +94,13 @@ instance ErrorTProfile PaperErrorP where
     defaultLogger _ = (\_ _ _ msg  -> do
         let filePath = "/home/kwonryul/dev/haskell/paper-auth/log/error.log"
         Data.Text.IO.appendFile filePath (Data.Text.Encoding.decodeUtf8 $ fromLogStr msg)
-        Data.Text.IO.appendFile filePath "\nmolypoly\n"
         )
     defaultErrorLog _ ie currentTime = (defaultLoc, "PaperError", LevelError, paperLogStr ie currentTime)
 
 paperLogStr :: PaperInnerError -> UTCTime -> LogStr
 paperLogStr ie currentTime =
     let formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" currentTime in
-    toLogStr $ "[PaperError]\t" ++ formattedDate ++ "\n" ++ show ie
+    toLogStr $ "[Paper]\t" ++ formattedDate ++ "\n" ++ show ie ++ "\n"
 
 type PaperMonad :: Type -> (Type -> Type) -> Type -> Type
 data PaperMonad p m a where
