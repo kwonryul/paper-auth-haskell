@@ -21,7 +21,6 @@ import Role.Entity
 import UserRole.Entity
 import DB
 import PaperMonad
-import Monad.ProfileT
 import CallStack
 
 import Servant
@@ -37,7 +36,7 @@ import GHC.Stack
 import Crypto.BCrypt
 import Data.ByteString.Char8
 
-class Profile p => JWTRepositoryI p where
+class PaperMonadI p => JWTRepositoryI p where
     verifyIdPw :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> String -> String -> PaperMonad p m (Entity User)
     verifyIdPw = verifyIdPwImpl
     getPreAuthenticatedUser :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> UserId -> PaperMonad p m PreAuthenticatedUser
@@ -57,27 +56,33 @@ class Profile p => JWTRepositoryI p where
     invalidateJWT :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> UserId -> PaperMonad p m ()
     invalidateJWT = invalidateJWTImpl
 
-verifyIdPwImpl :: (HasCallStack, JWTRepositoryI p, MonadUnliftIO m) => PaperAuthConn -> String -> String -> PaperMonad p m (Entity User)
+verifyIdPwImpl :: forall p m. (HasCallStack, JWTRepositoryI p, MonadUnliftIO m) => PaperAuthConn -> String -> String -> PaperMonad p m (Entity User)
 verifyIdPwImpl conn paperId password = do
     userEntity' <- paperLiftUnliftIO $ runReaderT (getBy $ UniquePaperId paperId) conn
     rt@(Entity _ user) <- case userEntity' of
         Just userEntity -> return userEntity
         Nothing ->
-            toPaperMonad $ PaperError "user not found" (err401 { errBody = "user not found" }) callStack'
+            toPaperMonad $ PaperError "user not found" (err401 { errBody = "user not found" }) (callStack' profile)
     paperAssert
         (validatePassword (userPassword user) (Data.ByteString.Char8.pack password))
-        (PaperError "password invalid" (err401 { errBody = "password invalid" }) callStack')
+        (PaperError "password invalid" (err401 { errBody = "password invalid" }) (callStack' profile))
     return rt
+    where
+        profile :: Proxy p
+        profile = Proxy
 
-getPreAuthenticatedUserImpl :: (HasCallStack, JWTRepositoryI p, MonadUnliftIO m) => PaperAuthConn -> UserId -> PaperMonad p m PreAuthenticatedUser
+getPreAuthenticatedUserImpl :: forall p m. (HasCallStack, JWTRepositoryI p, MonadUnliftIO m) => PaperAuthConn -> UserId -> PaperMonad p m PreAuthenticatedUser
 getPreAuthenticatedUserImpl conn userId = do
     userEntity' <- paperLiftUnliftIO $ runReaderT (get userId) conn
-    _ <- maybeToPaperMonad userEntity' $ PaperError "user not found" (err500 { errBody = "user not found" }) callStack'
+    _ <- maybeToPaperMonad userEntity' $ PaperError "user not found" (err500 { errBody = "user not found" }) (callStack' profile)
     userRoleEntityList <- paperLiftUnliftIO $ runReaderT (selectList [UserRoleUserId ==. userId] []) conn
     let roleIdList = (\(Entity _ userRole) -> userRoleRoleId userRole) <$> userRoleEntityList
     roleEntityList <- paperLiftUnliftIO $ runReaderT (selectList [RoleId <-. roleIdList] []) conn
     let roleSet = fromList $ (\(Entity _ role) -> role) <$> roleEntityList
     return $ PreAuthenticatedUser userId roleSet
+    where
+        profile :: Proxy p
+        profile = Proxy
 
 newAccessTokenImpl :: (HasCallStack, JWTRepositoryI p, MonadUnliftIO m) => PaperAuthConn -> UserId -> UTCTime -> Maybe UTCTime -> RefreshTokenId -> PaperMonad p m AccessTokenId
 newAccessTokenImpl conn userId iat exp' refreshTokenId =

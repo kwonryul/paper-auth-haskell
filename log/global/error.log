@@ -1,0 +1,37 @@
+[ERROR]
+[Global]	2024-03-05 11:10:39
+[GlobalDefaultError]
+Network.Socket.bind: permission denied (Permission denied)
+CallStack (from HasCallStack):
+  callStack'Impl, called at src/CallStack.hs:14:18 in paper-auth-0.1.0.0-inplace:CallStack
+  $dmcallStack', called at src/Profile/Prod.hs:59:10 in paper-auth-0.1.0.0-inplace:Profile.Prod
+  callStack', called at src/Monad/ErrorT.hs:204:42 in paper-auth-0.1.0.0-inplace:Monad.ErrorT
+  errorLogImpl, called at src/Monad/ErrorT.hs:147:16 in paper-auth-0.1.0.0-inplace:Monad.ErrorT
+  $dmerrorLog, called at src/Profile/Prod.hs:49:10 in paper-auth-0.1.0.0-inplace:Profile.Prod
+  errorLog, called at src/GlobalMonad.hs:154:33 in paper-auth-0.1.0.0-inplace:GlobalMonad
+  globalLogImpl, called at src/GlobalMonad.hs:119:17 in paper-auth-0.1.0.0-inplace:GlobalMonad
+  $dmglobalLog, called at src/Profile/Prod.hs:63:10 in paper-auth-0.1.0.0-inplace:Profile.Prod
+  globalLog, called at src/Lib.hs:92:43 in paper-auth-0.1.0.0-inplace:Lib
+  startApp'Impl, called at src/Lib.hs:63:17 in paper-auth-0.1.0.0-inplace:Lib
+  $dmstartApp', called at src/Profile/Prod.hs:64:10 in paper-auth-0.1.0.0-inplace:Profile.Prod
+  startApp', called at src/Lib.hs:86:30 in paper-auth-0.1.0.0-inplace:Lib
+[ERROR]
+[Global]	2024-03-05 11:10:39
+[GlobalDefaultError]
+Network.Socket.bind: permission denied (Permission denied)
+CallStack (from HasCallStack):
+  callStack'Impl, called at src/CallStack.hs:14:18 in paper-auth-0.1.0.0-inplace:CallStack
+  $dmcallStack', called at src/Profile/Prod.hs:59:10 in paper-auth-0.1.0.0-inplace:Profile.Prod
+  callStack', called at src/Monad/ErrorT.hs:179:68 in paper-auth-0.1.0.0-inplace:Monad.ErrorT
+  unsafeToSafeUnliftIOImpl, called at src/Monad/ErrorT.hs:137:28 in paper-auth-0.1.0.0-inplace:Monad.ErrorT
+  $dmunsafeToSafeUnliftIO, called at src/Profile/Prod.hs:49:10 in paper-auth-0.1.0.0-inplace:Profile.Prod
+  unsafeToSafeUnliftIO, called at src/Monad/ErrorT.hs:200:26 in paper-auth-0.1.0.0-inplace:Monad.ErrorT
+  liftIOSafeUnliftIOImpl, called at src/Monad/ErrorT.hs:145:26 in paper-auth-0.1.0.0-inplace:Monad.ErrorT
+  $dmliftIOSafeUnliftIO, called at src/Profile/Prod.hs:49:10 in paper-auth-0.1.0.0-inplace:Profile.Prod
+  liftIOSafeUnliftIO, called at src/GlobalMonad.hs:151:49 in paper-auth-0.1.0.0-inplace:GlobalMonad
+  globalLiftIOUnliftIOImpl, called at src/GlobalMonad.hs:117:28 in paper-auth-0.1.0.0-inplace:GlobalMonad
+  $dmglobalLiftIOUnliftIO, called at src/Profile/Prod.hs:63:10 in paper-auth-0.1.0.0-inplace:Profile.Prod
+  globalLiftIOUnliftIO, called at src/Lib.hs:93:5 in paper-auth-0.1.0.0-inplace:Lib
+  startApp'Impl, called at src/Lib.hs:63:17 in paper-auth-0.1.0.0-inplace:Lib
+  $dmstartApp', called at src/Profile/Prod.hs:64:10 in paper-auth-0.1.0.0-inplace:Profile.Prod
+  startApp', called at src/Lib.hs:86:30 in paper-auth-0.1.0.0-inplace:Lib

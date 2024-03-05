@@ -31,11 +31,6 @@ import Control.Monad.Logger
 import Data.Proxy
 import GHC.Stack
 
-data PaperAuthDB = PaperAuthDB deriving Show
-instance DB PaperAuthDB
-type PaperAuthConn = SqlFor PaperAuthDB
-type PaperAuthPool = ConnectionPoolFor PaperAuthDB
-
 class ConfiguratorI p => DBI p where
     paperAuthConnInfo' :: (HasCallStack, MonadUnliftIO m) => Config -> GlobalMonad p m ConnectInfo
     paperAuthConnInfo' = paperAuthConnInfo'Impl

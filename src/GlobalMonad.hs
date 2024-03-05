@@ -1,38 +1,44 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
+
 module GlobalMonad(
     GlobalError(
         GlobalError
       , globalErrorMsg
       , globalErrorCallStack
       )
-  , GlobalDefaultError
+  , GlobalDefaultError(
+        GlobalDefaultError
+      )
   , GlobalInnerError
   , GlobalErrorP
   , GlobalMonad(
         unGlobalMonad
       )
-  , toGlobalMonad
-  , safeErrorTToGlobalMonad
-  , globalLift
-  , globalLiftUnliftIO
-  , globalLiftIO
-  , globalLiftIOUnliftIO
-  , globalLog
-  , runGlobalErrorEither
-  , runGlobalMonad
-  , maybeToGlobalMonad
-  , maybeTToGlobalMonad
-  , maybeTToGlobalMonadUnliftIO
-  , globalAssert
+  , GlobalMonadI(
+        toGlobalMonad
+      , safeErrorTToGlobalMonad
+      , globalLift
+      , globalLiftUnliftIO
+      , globalLiftIO
+      , globalLiftIOUnliftIO
+      , globalLog
+      , runGlobalErrorEither
+      , runGlobalMonad
+      , runGlobalMonadWithoutLog
+      , maybeToGlobalMonad
+      , maybeTToGlobalMonad
+      , maybeTToGlobalMonadUnliftIO
+      , globalAssert
+      )
 ) where
 
 import Monad.ErrorT
 import Monad.ProfileT
+import Import
 
 import Servant
 
-import Control.Monad.Logger
 import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
 import Control.Monad.IO.Unlift
@@ -40,9 +46,6 @@ import Control.Monad.Catch
 import Control.Monad.Error.Class
 import Control.Exception
 import Data.Kind
-import Data.Time
-import Data.Text.Encoding
-import Data.Text.IO
 import GHC.Stack
 
 data GlobalError = GlobalError {
@@ -63,90 +66,110 @@ instance Show GlobalInnerError where
     show (GlobalInnerError e) = show e
 instance Exception GlobalInnerError
 
-instance ErrorTError GlobalError where
-    type InnerError GlobalError = GlobalInnerError
-    type OuterError GlobalError = IOException
-    toOuterError _ ie = userError $ show ie
-    toInnerError e = GlobalInnerError e
-
-instance ErrorTError GlobalDefaultError where
-    type InnerError GlobalDefaultError = GlobalInnerError
-    type OuterError GlobalDefaultError = IOException
-    toOuterError _ ie = userError $ show ie
-    toInnerError e = GlobalInnerError e
-
 data GlobalErrorP
 
-instance ErrorTProfile GlobalErrorP where
-    type DefaultError GlobalErrorP = GlobalDefaultError
-    defaultError = GlobalDefaultError
-    defaultLogger _ = (\_ _ _ msg  -> do
-        let filePath = "/home/kwonryul/dev/haskell/paper-auth/log/error.log"
-        Data.Text.IO.appendFile filePath (Data.Text.Encoding.decodeUtf8 $ fromLogStr msg)
-        )
-    defaultErrorLog _ ie currentTime = (defaultLoc, "GlobalError", LevelError, globalLogStr ie currentTime)
+type instance InnerError GlobalError = GlobalInnerError
+type instance InnerError GlobalDefaultError = GlobalInnerError
+type instance OuterError GlobalError = IOException
+type instance OuterError GlobalDefaultError = IOException
+type instance DefaultError GlobalErrorP = GlobalDefaultError
 
-globalLogStr :: GlobalInnerError -> UTCTime -> LogStr
-globalLogStr ie currentTime =
-    let formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" currentTime in
-    toLogStr $ "[Global]\t" ++ formattedDate ++ "\n" ++ show ie ++ "\n"
+instance ErrorTError GlobalError where
+    toOuterError _ ie = userError $ show ie
+    toInnerError e = GlobalInnerError e
+instance ErrorTError GlobalDefaultError where
+    toOuterError _ ie = userError $ show ie
+    toInnerError e = GlobalInnerError e
 
 type GlobalMonad :: Type -> (Type -> Type) -> Type -> Type
-data GlobalMonad p m a where
-    GlobalMonad :: Profile p => {
-        unGlobalMonad :: ProfileT p (SafeErrorT GlobalErrorP m) a
-    } -> GlobalMonad p m a
+data GlobalMonad profile m a where
+    GlobalMonad :: Profile profile => {
+        unGlobalMonad :: ProfileT profile (SafeErrorT profile GlobalErrorP m) a
+    } -> GlobalMonad profile m a
 
-instance (Profile p, Functor m) => Functor (GlobalMonad p m) where
+instance (Profile profile, ErrorTProfile profile GlobalErrorP, Functor m) => Functor (GlobalMonad profile m) where
     fmap f (GlobalMonad p) = GlobalMonad $ fmap f p
 
-instance (Profile p, Monad m) => Applicative (GlobalMonad p m) where
+instance (Profile profile, ErrorTProfile profile GlobalErrorP, Monad m) => Applicative (GlobalMonad profile m) where
     pure x = GlobalMonad $ pure x
     GlobalMonad f <*> GlobalMonad x = GlobalMonad $ f <*> x
 
-instance (Profile p, Monad m) => Monad (GlobalMonad p m) where
+instance (Profile profile, ErrorTProfile profile GlobalErrorP, Monad m) => Monad (GlobalMonad profile m) where
     return = pure
     GlobalMonad x >>= f = GlobalMonad $ x >>= unGlobalMonad . f
 
-instance (Profile p, Monad m) => MonadReader (Proxy p) (GlobalMonad p m) where
+instance (Profile profile, ErrorTProfile profile GlobalErrorP, Monad m) => MonadReader (Proxy profile) (GlobalMonad profile m) where
     ask = GlobalMonad $ ask
     local f x = GlobalMonad $ local f $ unGlobalMonad x
 
-toGlobalMonad :: forall e p m a. (Profile p, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => e -> GlobalMonad p m a
-toGlobalMonad = GlobalMonad . lift . toSafeErrorT (Proxy :: Proxy e) . toInnerError
+class (ErrorTI profile, ErrorTProfile profile GlobalErrorP) => GlobalMonadI profile where
+    toGlobalMonad :: forall e m a. (ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => e -> GlobalMonad profile m a
+    toGlobalMonad = toGlobalMonadImpl
+    safeErrorTToGlobalMonad :: HasCallStack => SafeErrorT profile GlobalErrorP m a -> GlobalMonad profile m a
+    safeErrorTToGlobalMonad = safeErrorTToGlobalMonadImpl
+    globalLift :: (HasCallStack, MonadCatch m) => m a -> GlobalMonad profile m a
+    globalLift = globalLiftImpl
+    globalLiftUnliftIO :: (HasCallStack, MonadUnliftIO m) => m a -> GlobalMonad profile m a
+    globalLiftUnliftIO = globalLiftUnliftIOImpl
+    globalLiftIO :: (HasCallStack, MonadIO m, MonadCatch m) => IO a -> GlobalMonad profile m a
+    globalLiftIO = globalLiftIOImpl
+    globalLiftIOUnliftIO :: (HasCallStack, MonadUnliftIO m) => IO a -> GlobalMonad profile m a
+    globalLiftIOUnliftIO = globalLiftIOUnliftIOImpl
+    globalLog :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> IO a -> m a
+    globalLog = globalLogImpl
+    runGlobalErrorEither :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> Either GlobalInnerError a -> m a
+    runGlobalErrorEither = runGlobalErrorEitherImpl
+    runGlobalMonad :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Import.Context -> GlobalMonad profile IO a -> m a
+    runGlobalMonad = runGlobalMonadImpl
+    runGlobalMonadWithoutLog :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => GlobalMonad profile IO a -> m a
+    runGlobalMonadWithoutLog = runGlobalMonadWithoutLogImpl
+    maybeToGlobalMonad :: (HasCallStack, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => Maybe a -> e -> GlobalMonad profile m a
+    maybeToGlobalMonad= maybeToGlobalMonadImpl
+    maybeTToGlobalMonad :: (HasCallStack, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, MonadIO m, MonadCatch m) => MaybeT IO a -> e -> GlobalMonad profile m a
+    maybeTToGlobalMonad = maybeTToGlobalMonadImpl
+    maybeTToGlobalMonadUnliftIO :: (HasCallStack, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, MonadUnliftIO m) => MaybeT IO a -> e -> GlobalMonad profile m a
+    maybeTToGlobalMonadUnliftIO = maybeTToGlobalMonadUnliftIOImpl
+    globalAssert :: (ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => Bool -> e -> GlobalMonad profile m ()
+    globalAssert = globalAssertImpl
 
-safeErrorTToGlobalMonad :: (HasCallStack, Profile p) => SafeErrorT GlobalErrorP m a -> GlobalMonad p m a
-safeErrorTToGlobalMonad = GlobalMonad . ProfileT . ReaderT . const
+toGlobalMonadImpl :: forall e profile m a. (GlobalMonadI profile, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => e -> GlobalMonad profile m a
+toGlobalMonadImpl = GlobalMonad . lift . toSafeErrorT (Proxy :: Proxy e) . toInnerError
 
-globalLift :: (HasCallStack, Profile p, MonadCatch m) => m a -> GlobalMonad p m a
-globalLift = GlobalMonad . lift . liftSafe
+safeErrorTToGlobalMonadImpl :: (HasCallStack, GlobalMonadI profile) => SafeErrorT profile GlobalErrorP m a -> GlobalMonad profile m a
+safeErrorTToGlobalMonadImpl = GlobalMonad . ProfileT . ReaderT . const
 
-globalLiftUnliftIO :: (HasCallStack, Profile p, MonadUnliftIO m) => m a -> GlobalMonad p m a
-globalLiftUnliftIO = GlobalMonad . lift . liftSafeUnliftIO
+globalLiftImpl :: (HasCallStack, GlobalMonadI profile, MonadCatch m) => m a -> GlobalMonad profile m a
+globalLiftImpl = GlobalMonad . lift . liftSafe
 
-globalLiftIO :: (HasCallStack, Profile p, MonadIO m, MonadCatch m) => IO a -> GlobalMonad p m a
-globalLiftIO = GlobalMonad . lift . liftIOSafe
+globalLiftUnliftIOImpl :: (HasCallStack, GlobalMonadI profile, MonadUnliftIO m) => m a -> GlobalMonad profile m a
+globalLiftUnliftIOImpl = GlobalMonad . lift . liftSafeUnliftIO
 
-globalLiftIOUnliftIO :: (HasCallStack, Profile p, MonadUnliftIO m) => IO a -> GlobalMonad p m a
-globalLiftIOUnliftIO = GlobalMonad . lift . liftIOSafeUnliftIO
+globalLiftIOImpl :: (HasCallStack, GlobalMonadI profile, MonadIO m, MonadCatch m) => IO a -> GlobalMonad profile m a
+globalLiftIOImpl = GlobalMonad . lift . liftIOSafe
 
-globalLog :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => IO a -> m a
-globalLog = errorLog (Proxy :: Proxy GlobalErrorP)
+globalLiftIOUnliftIOImpl :: (HasCallStack, GlobalMonadI profile, MonadUnliftIO m) => IO a -> GlobalMonad profile m a
+globalLiftIOUnliftIOImpl = GlobalMonad . lift . liftIOSafeUnliftIO
 
-runGlobalErrorEither :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Either GlobalInnerError a -> m a
-runGlobalErrorEither = runErrorEither (Proxy :: Proxy GlobalErrorP)
+globalLogImpl :: (HasCallStack, GlobalMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> IO a -> m a
+globalLogImpl profile context = errorLog profile (Proxy :: Proxy GlobalErrorP) context
 
-runGlobalMonad :: (HasCallStack, Profile p, MonadError IOException m, MonadIO m, MonadCatch m) => GlobalMonad p IO a -> m a
-runGlobalMonad (GlobalMonad (ProfileT (ReaderT x))) = runErrorT $ x (Proxy :: Proxy p)
+runGlobalErrorEitherImpl :: (HasCallStack, GlobalMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> Either GlobalInnerError a -> m a
+runGlobalErrorEitherImpl profile context = runErrorEither profile (Proxy :: Proxy GlobalErrorP) context
 
-maybeToGlobalMonad :: (HasCallStack, Profile p, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => Maybe a -> e -> GlobalMonad p m a
-maybeToGlobalMonad a' ex = GlobalMonad $ lift $ maybeToErrorT a' ex
+runGlobalMonadImpl :: (HasCallStack, GlobalMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Import.Context -> GlobalMonad profile IO a -> m a
+runGlobalMonadImpl context (GlobalMonad (ProfileT (ReaderT x))) = runErrorT context $ x (Proxy :: Proxy p)
 
-maybeTToGlobalMonad :: (HasCallStack, Profile p, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, MonadIO m, MonadCatch m) => MaybeT IO a -> e -> GlobalMonad p m a
-maybeTToGlobalMonad m ex = GlobalMonad $ lift $ maybeTToErrorT m ex
+runGlobalMonadWithoutLogImpl :: (HasCallStack, GlobalMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => GlobalMonad profile IO a -> m a
+runGlobalMonadWithoutLogImpl (GlobalMonad (ProfileT (ReaderT x))) = runErrorTWithoutLog $ x (Proxy :: Proxy p)
 
-maybeTToGlobalMonadUnliftIO :: (HasCallStack, Profile p, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, MonadUnliftIO m) => MaybeT IO a -> e -> GlobalMonad p m a
-maybeTToGlobalMonadUnliftIO m ex = GlobalMonad $ lift $ maybeTToErrorTUnliftIO m ex
+maybeToGlobalMonadImpl :: (HasCallStack, GlobalMonadI profile, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => Maybe a -> e -> GlobalMonad profile m a
+maybeToGlobalMonadImpl a' ex = GlobalMonad $ lift $ maybeToErrorT a' ex
 
-globalAssert :: (Profile p, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => Bool -> e -> GlobalMonad p m ()
-globalAssert b ex = GlobalMonad $ lift $ errorAssert b ex
+maybeTToGlobalMonadImpl :: (HasCallStack, GlobalMonadI profile, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, MonadIO m, MonadCatch m) => MaybeT IO a -> e -> GlobalMonad profile m a
+maybeTToGlobalMonadImpl m ex = GlobalMonad $ lift $ maybeTToErrorT m ex
+
+maybeTToGlobalMonadUnliftIOImpl :: (HasCallStack, GlobalMonadI profile, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, MonadUnliftIO m) => MaybeT IO a -> e -> GlobalMonad profile m a
+maybeTToGlobalMonadUnliftIOImpl m ex = GlobalMonad $ lift $ maybeTToErrorTUnliftIO m ex
+
+globalAssertImpl :: (GlobalMonadI profile, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => Bool -> e -> GlobalMonad profile m ()
+globalAssertImpl b ex = GlobalMonad $ lift $ errorAssert b ex

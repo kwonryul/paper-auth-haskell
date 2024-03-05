@@ -37,6 +37,7 @@ import Data.Configurator.Types
 import Data.Aeson
 import Crypto.BCrypt
 
+import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
 import Control.Monad.IO.Unlift
 import Data.Set hiding (deleteAt)
@@ -44,7 +45,7 @@ import Data.Time
 import Data.ByteString.Char8
 import GHC.Stack
 
-class (DBI p, JWTUtilI p, UserRepositoryI p, VerificationUtilI p, VerificationRepositoryI p, VerificationServiceI p) => UserServiceI p where
+class (DBI p, JWTUtilI p, UserRepositoryI p, VerificationDTOI p, VerificationRepositoryI p, VerificationServiceI p, VerificationUtilI p) => UserServiceI p where
     verifyRequest :: (HasCallStack, MonadUnliftIO m) => String -> PaperAuthPool -> PaperMonad p m NoContent
     verifyRequest = verifyRequestImpl
     verifyRequest' :: (HasCallStack, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m NoContent
@@ -108,6 +109,7 @@ enrollImpl config encodeSigner paperId password name phoneNumber phoneNumberSecr
 
 enroll'Impl :: forall p m. (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 enroll'Impl config encodeSigner paperId password name phoneNumber' phoneNumberSecret pool conn= do
+    profile <- ask
     phoneNumber <- stringToPhoneNumber phoneNumber'
     currentUTC <- paperLiftIOUnliftIO getCurrentTime
     verificationEntity' <- Verification.Repository.findByPhoneNumber conn phoneNumber
@@ -119,24 +121,24 @@ enroll'Impl config encodeSigner paperId password name phoneNumber' phoneNumberSe
             if phoneNumberSecret /= verificationPhoneNumberSecret then do
                 runSqlPoolOneConnection (inner verificationId verificationFailCount) pool
                 toPaperMonad $ PaperError "phoneNumberSecret wrong" (err403 { errBody =
-                    encode $ phoneNumberSecretWrongDTO $ verificationFailCount + 1
-                  }) callStack'
+                    encode $ phoneNumberSecretWrongDTO profile $ verificationFailCount + 1
+                  }) (callStack' profile)
             else
                 return ()
-        Nothing -> toPaperMonad $ PaperError "verification missing" (err403 { errBody = "verification missing" }) callStack'
+        Nothing -> toPaperMonad $ PaperError "verification missing" (err403 { errBody = "verification missing" }) (callStack' profile)
     sameUserIdEntity' <- User.Repository.findByPaperId paperId conn
     case sameUserIdEntity' of
         Just _ ->
-            toPaperMonad $ PaperError "paperId duplicate" (err400 { errBody = "paperId duplicate" }) callStack'
+            toPaperMonad $ PaperError "paperId duplicate" (err400 { errBody = "paperId duplicate" }) (callStack' profile)
         Nothing -> return ()
     samePhoneNumberList <- User.Repository.findByPhoneNumber phoneNumber conn
     case samePhoneNumberList of
         [] -> return ()
         _ ->
-            toPaperMonad $ PaperError "phoneNumber duplicate" (err400 { errBody = "phoneNumber duplicate" }) callStack'
+            toPaperMonad $ PaperError "phoneNumber duplicate" (err400 { errBody = "phoneNumber duplicate" }) (callStack' profile)
     hashedPassword <- maybeTToPaperMonadUnliftIO
         (MaybeT $ hashPasswordUsingPolicy slowerBcryptHashingPolicy (Data.ByteString.Char8.pack password))
-        $ PaperError "hashing string error" (err500 { errBody = "Internal server error" }) callStack'
+        $ PaperError "hashing string error" (err500 { errBody = "Internal server error" }) (callStack' profile)
     userId <- User.Repository.newUser Paper paperId hashedPassword name (Just phoneNumber) currentUTC conn
     let roleSet = Data.Set.empty
         preAuthenticatedUser = PreAuthenticatedUser { userId, roleSet }

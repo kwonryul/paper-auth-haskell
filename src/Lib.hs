@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Lib(
     Resources(
         Resources
@@ -27,6 +29,7 @@ import Role.Entity
 import UserRole.Entity
 import PaperApp
 import Context
+import Configurator
 import GlobalMonad
 import DB
 import Paths_paper_auth
@@ -58,7 +61,7 @@ class (ContextI p, PaperAppI p) => LibI p where
     startApp = startAppImpl
     startApp' :: (HasCallStack, MonadUnliftIO m) => FilePath -> Context -> FilePath -> FilePath -> GlobalMonad p m ()
     startApp' = startApp'Impl
-    migratePaperAuth :: Proxy p -> PaperAuthPool -> IO ()
+    migratePaperAuth :: Proxy p -> Context.Context -> PaperAuthPool -> IO ()
     migratePaperAuth = migratePaperAuthImpl
     migratePaperAuth' :: (HasCallStack, MonadUnliftIO m) => PaperAuthPool -> GlobalMonad p m ()
     migratePaperAuth' = migratePaperAuth'Impl
@@ -66,7 +69,7 @@ class (ContextI p, PaperAppI p) => LibI p where
     migratePaperAuth'' = migratePaperAuth''Impl
 
 getAllResourcesImpl :: forall p. LibI p => Proxy p -> IO Resources
-getAllResourcesImpl _ = runGlobalMonad $ getAllResources' @p
+getAllResourcesImpl _ = runGlobalMonadWithoutLog $ getAllResources' @p
 
 getAllResources'Impl :: forall p m. (HasCallStack, LibI p, MonadUnliftIO m) => GlobalMonad p m Resources
 getAllResources'Impl = do
@@ -80,18 +83,23 @@ getAllResources'Impl = do
 
 startAppImpl :: forall p. LibI p => Proxy p -> FilePath -> Context -> FilePath -> FilePath -> IO ()
 startAppImpl _ staticFilePath context certPath secretKeyPath =
-    runGlobalMonad $ startApp' @p staticFilePath context certPath secretKeyPath
+    runGlobalMonad context $ startApp' @p staticFilePath context certPath secretKeyPath
 
 startApp'Impl :: forall p m. (HasCallStack, LibI p, MonadUnliftIO m) => FilePath -> Context -> FilePath -> FilePath -> GlobalMonad p m ()
 startApp'Impl staticFilePath context certPath secretKeyPath = do
-    _ <- globalLiftIOUnliftIO $ forkIO $ (globalLog $ run 80 (app (Proxy :: Proxy p) context staticFilePath))
+    httpPort <- lookupRequiredGlobal (config context) "port.http"
+    httpsPort <- lookupRequiredGlobal (config context) "port.https"
+    _ <- globalLiftIOUnliftIO $ forkIO $ (globalLog profile context $ run httpPort (app (Proxy :: Proxy p) context staticFilePath))
     globalLiftIOUnliftIO $ runTLS
         (tlsSettings certPath secretKeyPath)
-        (setPort 443 defaultSettings)
-        (app (Proxy :: Proxy p) context staticFilePath)
+        (setPort httpsPort defaultSettings)
+        (app profile context staticFilePath)
+    where
+        profile :: Proxy p
+        profile = Proxy
 
-migratePaperAuthImpl :: forall p. LibI p => Proxy p -> PaperAuthPool -> IO ()
-migratePaperAuthImpl _ = runGlobalMonad . migratePaperAuth' @p
+migratePaperAuthImpl :: forall p. LibI p => Proxy p -> Context.Context -> PaperAuthPool -> IO ()
+migratePaperAuthImpl _ context = runGlobalMonad context . migratePaperAuth' @p
 
 migratePaperAuth'Impl :: (HasCallStack, LibI p, MonadUnliftIO m) => PaperAuthPool -> GlobalMonad p m ()
 migratePaperAuth'Impl pool = runSqlPoolOneConnectionGlobal (migratePaperAuth'') pool

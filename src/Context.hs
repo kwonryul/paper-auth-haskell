@@ -15,6 +15,7 @@ module Context(
 import DB
 import GlobalMonad
 import CallStack
+import Import
 import Paths_paper_auth
 
 import Data.Configurator
@@ -24,14 +25,8 @@ import Web.JWT
 import Control.Monad.IO.Unlift
 import Control.Concurrent
 import Data.ByteString
+import Data.Proxy
 import GHC.Stack
-
-data Context = Context {
-    config :: Config
-  , paperAuthPool :: PaperAuthPool
-  , paperEncodeSigner :: EncodeSigner
-  , paperVerifySigner :: VerifySigner
-}
 
 class DBI p => ContextI p where
     getConfig' :: (HasCallStack, MonadUnliftIO m) => GlobalMonad p m (Config, ThreadId)
@@ -62,18 +57,24 @@ getContextImpl = do
       , paperVerifySigner = paperVerifySigner
     }
 
-getPaperEncodeSigner'Impl :: (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m EncodeSigner
+getPaperEncodeSigner'Impl :: forall p m. (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m EncodeSigner
 getPaperEncodeSigner'Impl = do
     filePath <- globalLiftIOUnliftIO $ getDataFileName "resources/jwt/paper-auth.pem"
     content <- globalLiftIOUnliftIO $ Data.ByteString.readFile filePath
     case readRsaSecret content of
         Just privateKey -> return $ EncodeRSAPrivateKey privateKey
-        Nothing -> toGlobalMonad $ GlobalError "paper-auth private key invalid" callStack'
+        Nothing -> toGlobalMonad $ GlobalError "paper-auth private key invalid" (callStack' profile)
+    where
+      profile :: Proxy p
+      profile = Proxy
 
-getPaperVerifySigner'Impl :: (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m VerifySigner
+getPaperVerifySigner'Impl :: forall p m. (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m VerifySigner
 getPaperVerifySigner'Impl = do
     filePath <- globalLiftIOUnliftIO $ getDataFileName "resources/jwt/paper-auth.pub"
     content <- globalLiftIOUnliftIO $ Data.ByteString.readFile filePath
     case readRsaPublicKey content of
         Just publicKey -> return $ VerifyRSAPublicKey publicKey
-        Nothing -> toGlobalMonad $ GlobalError "paper-auth public key invalid" callStack'
+        Nothing -> toGlobalMonad $ GlobalError "paper-auth public key invalid" (callStack' profile)
+    where
+      profile :: Proxy p
+      profile = Proxy

@@ -20,7 +20,6 @@ import PaperMonad
 import Servant
 import Web.Cookie
 
-import Control.Monad.IO.Class
 import GHC.Stack
 
 type API = IssueJWT
@@ -50,18 +49,18 @@ class JWTServiceI p => JWTControllerI p where
 issueJWTImpl :: forall p. (HasCallStack, JWTControllerI p) => Proxy p -> Context.Context -> IssueJWTReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)
 issueJWTImpl _ context (IssueJWTReqDTO { paperId, password }) = do
     let encodeSigner = paperEncodeSigner context
-    runPaperMonad $ JWT.Service.issueJWT @p (config context) encodeSigner paperId password (paperAuthPool context)
+    runPaperMonad context $ JWT.Service.issueJWT @p (config context) encodeSigner paperId password (paperAuthPool context)
 
 
 refreshJWTImpl :: forall p. (HasCallStack, JWTControllerI p) => Proxy p -> Context.Context -> AuthenticatedUserRefresh -> Handler (Headers '[Header "Set-Cookie" SetCookie] RefreshJWTResDTO)
 refreshJWTImpl _ context (AuthenticatedUserRefresh { userId }) = do
     let encodeSigner = paperEncodeSigner context
-    runPaperMonad $ JWT.Service.refreshJWT @p
+    runPaperMonad context $ JWT.Service.refreshJWT @p
         (config context) encodeSigner userId (paperAuthPool context)
 
 invalidateJWTImpl :: forall p. (HasCallStack, JWTControllerI p) => Proxy p -> Context.Context -> AuthenticatedUser -> Handler NoContent
 invalidateJWTImpl _ context (AuthenticatedUser { userId }) = do
-    runPaperMonad $ JWT.Service.invalidateJWT @p
+    runPaperMonad context $ JWT.Service.invalidateJWT @p
         userId (paperAuthPool context)
 
 serverImpl :: (HasCallStack, JWTControllerI p) => Proxy p -> Context.Context -> Server API

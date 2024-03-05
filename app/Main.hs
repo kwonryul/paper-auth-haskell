@@ -17,5 +17,5 @@ main = do
       , certPath
       , secretKeyPath
       } <- getAllResources profile
-    migratePaperAuth profile (paperAuthPool context)
+    migratePaperAuth profile context (paperAuthPool context)
     startApp profile staticFilePath context certPath secretKeyPath

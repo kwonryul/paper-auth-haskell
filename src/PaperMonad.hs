@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
+
 module PaperMonad(
     PaperError(
         PaperError
@@ -7,30 +8,34 @@ module PaperMonad(
       , paperServerError
       , paperErrorCallStack
       )
-  , PaperDefaultError
+  , PaperDefaultError(
+        PaperDefaultError
+      )
   , PaperInnerError
   , PaperErrorP
   , PaperMonad(
         unPaperMonad
       )
-  , toPaperMonad
-  , safeErrorTToPaperMonad
-  , paperLift
-  , paperLiftUnliftIO
-  , paperLiftIO
-  , paperLiftIOUnliftIO
-  , paperLog
-  , runPaperErrorEither
-  , runPaperMonad
-  , maybeToPaperMonad
-  , maybeTToPaperMonad
-  , maybeTToPaperMonadUnliftIO
-  , paperAssert
+  , PaperMonadI(
+        toPaperMonad
+      , safeErrorTToPaperMonad
+      , paperLift
+      , paperLiftUnliftIO
+      , paperLiftIO
+      , paperLiftIOUnliftIO
+      , paperLog
+      , runPaperErrorEither
+      , runPaperMonad
+      , maybeToPaperMonad
+      , maybeTToPaperMonad
+      , maybeTToPaperMonadUnliftIO
+      , paperAssert
+      )
 ) where
 
 import Monad.ErrorT
 import Monad.ProfileT
-import Paths_paper_auth
+import Import
 
 import Servant
 
@@ -41,9 +46,6 @@ import Control.Monad.IO.Unlift
 import Control.Monad.Catch
 import Control.Monad.Error.Class
 import Data.Kind
-import Data.Time
-import Data.Text.Encoding
-import Data.Text.IO
 import GHC.Stack
 
 data PaperError = PaperError {
@@ -68,9 +70,15 @@ instance Show PaperInnerError where
     show (PaperInnerError { paperInnerLogError }) = show paperInnerLogError
 instance Exception PaperInnerError
 
+data PaperErrorP
+
+type instance InnerError PaperError = PaperInnerError
+type instance InnerError PaperDefaultError = PaperInnerError
+type instance OuterError PaperError = ServerError
+type instance OuterError PaperDefaultError = ServerError
+type instance DefaultError PaperErrorP = PaperDefaultError
+
 instance ErrorTError PaperError where
-    type InnerError PaperError = PaperInnerError
-    type OuterError PaperError = ServerError
     toOuterError _ (PaperInnerError { paperInnerServerError }) = paperInnerServerError
     toInnerError e = PaperInnerError {
         paperInnerServerError = paperServerError e
@@ -78,89 +86,100 @@ instance ErrorTError PaperError where
       }
 
 instance ErrorTError PaperDefaultError where
-    type InnerError PaperDefaultError = PaperInnerError
-    type OuterError PaperDefaultError = ServerError
     toOuterError _ (PaperInnerError { paperInnerServerError }) = paperInnerServerError
     toInnerError e = PaperInnerError {
         paperInnerServerError = err500 { errBody = "Unexpected server exception" }
       , paperInnerLogError = e
       }
 
-data PaperErrorP
-
-instance ErrorTProfile PaperErrorP where
-    type DefaultError PaperErrorP = PaperDefaultError
-    defaultError = PaperDefaultError
-    defaultLogger _ = (\_ _ _ msg  -> do
-        let filePath = "/home/kwonryul/dev/haskell/paper-auth/log/error.log"
-        Data.Text.IO.appendFile filePath (Data.Text.Encoding.decodeUtf8 $ fromLogStr msg)
-        )
-    defaultErrorLog _ ie currentTime = (defaultLoc, "PaperError", LevelError, paperLogStr ie currentTime)
-
-paperLogStr :: PaperInnerError -> UTCTime -> LogStr
-paperLogStr ie currentTime =
-    let formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" currentTime in
-    toLogStr $ "[Paper]\t" ++ formattedDate ++ "\n" ++ show ie ++ "\n"
-
 type PaperMonad :: Type -> (Type -> Type) -> Type -> Type
-data PaperMonad p m a where
-    PaperMonad :: Profile p => {
-        unPaperMonad :: ProfileT p (SafeErrorT PaperErrorP m) a
-    } -> PaperMonad p m a
+data PaperMonad profile m a where
+    PaperMonad :: Profile profile => {
+        unPaperMonad :: ProfileT profile (SafeErrorT profile PaperErrorP m) a
+    } -> PaperMonad profile m a
 
-instance (Profile p, Functor m) => Functor (PaperMonad p m) where
+instance (Profile profile, ErrorTProfile profile PaperErrorP, Functor m) => Functor (PaperMonad profile m) where
     fmap f (PaperMonad p) = PaperMonad $ fmap f p
 
-instance (Profile p, Monad m) => Applicative (PaperMonad p m) where
+instance (Profile profile, ErrorTProfile profile PaperErrorP, Monad m) => Applicative (PaperMonad profile m) where
     pure x = PaperMonad $ pure x
     PaperMonad f <*> PaperMonad x = PaperMonad $ f <*> x
 
-instance (Profile p, Monad m) => Monad (PaperMonad p m) where
+instance (Profile profile, ErrorTProfile profile PaperErrorP, Monad m) => Monad (PaperMonad profile m) where
     return = pure
     PaperMonad x >>= f = PaperMonad $ x >>= unPaperMonad . f
 
-instance (Profile p, Monad m) => MonadReader (Proxy p) (PaperMonad p m) where
+instance (Profile profile, ErrorTProfile profile PaperErrorP, Monad m) => MonadReader (Proxy profile) (PaperMonad profile m) where
     ask = PaperMonad $ ask
     local f x = PaperMonad $ local f $ unPaperMonad x
 
-instance (Profile p, MonadIO m) => MonadLogger (PaperMonad p m) where
+instance (Profile profile, ErrorTProfile profile PaperErrorP, MonadIO m) => MonadLogger (PaperMonad profile m) where
     monadLoggerLog loc logSource logLevel msg = PaperMonad $ ProfileT $ ReaderT $ const $ monadLoggerLog loc logSource logLevel msg
 
-toPaperMonad :: forall e p m a. (Profile p, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => e -> PaperMonad p m a
-toPaperMonad = PaperMonad . lift . toSafeErrorT (Proxy :: Proxy e). toInnerError
+class (ErrorTI profile, ErrorTProfile profile PaperErrorP) => PaperMonadI profile where
+    toPaperMonad :: forall e m a. (ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => e -> PaperMonad profile m a
+    toPaperMonad = toPaperMonadImpl
+    safeErrorTToPaperMonad :: HasCallStack => SafeErrorT profile PaperErrorP m a -> PaperMonad profile m a
+    safeErrorTToPaperMonad = safeErrorTToPaperMonadImpl
+    paperLift :: (HasCallStack, MonadCatch m) => m a -> PaperMonad profile m a
+    paperLift = paperLiftImpl
+    paperLiftUnliftIO :: (HasCallStack, MonadUnliftIO m) => m a -> PaperMonad profile m a
+    paperLiftUnliftIO = paperLiftUnliftIOImpl
+    paperLiftIO :: (HasCallStack, MonadIO m, MonadCatch m) => IO a -> PaperMonad profile m a
+    paperLiftIO = paperLiftIOImpl
+    paperLiftIOUnliftIO :: (HasCallStack, MonadUnliftIO m) => IO a -> PaperMonad profile m a
+    paperLiftIOUnliftIO = paperLiftIOUnliftIOImpl
+    paperLog :: (HasCallStack, MonadError ServerError m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> IO a -> m a
+    paperLog = paperLogImpl
+    runPaperErrorEither :: (HasCallStack, MonadError ServerError m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> Either PaperInnerError a -> m a
+    runPaperErrorEither = runPaperErrorEitherImpl
+    runPaperMonad :: (HasCallStack, MonadError ServerError m, MonadIO m, MonadCatch m) => Import.Context -> PaperMonad profile IO a -> m a
+    runPaperMonad = runPaperMonadImpl
+    maybeToPaperMonad :: (HasCallStack, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => Maybe a -> e -> PaperMonad profile m a
+    maybeToPaperMonad = maybeToPaperMonadImpl
+    maybeTToPaperMonad :: (HasCallStack, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, MonadIO m, MonadCatch m) => MaybeT IO a -> e -> PaperMonad profile m a
+    maybeTToPaperMonad = maybeTToPaperMonadImpl
+    maybeTToPaperMonadUnliftIO :: (HasCallStack, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, MonadUnliftIO m) => MaybeT IO a -> e -> PaperMonad profile m a
+    maybeTToPaperMonadUnliftIO = maybeTToPaperMonadUnliftIOImpl
+    paperAssert :: (ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => Bool -> e -> PaperMonad profile m ()
+    paperAssert = paperAssertImpl
 
-safeErrorTToPaperMonad :: (HasCallStack, Profile p) => SafeErrorT PaperErrorP m a -> PaperMonad p m a
-safeErrorTToPaperMonad = PaperMonad . ProfileT . ReaderT . const
 
-paperLift :: (HasCallStack, Profile p, MonadCatch m) => m a -> PaperMonad p m a
-paperLift = PaperMonad . lift . liftSafe
+toPaperMonadImpl :: forall e profile m a. (PaperMonadI profile, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => e -> PaperMonad profile m a
+toPaperMonadImpl = PaperMonad . lift . toSafeErrorT (Proxy :: Proxy e). toInnerError
 
-paperLiftUnliftIO :: (HasCallStack, Profile p, MonadUnliftIO m) => m a -> PaperMonad p m a
-paperLiftUnliftIO = PaperMonad . lift . liftSafeUnliftIO
+safeErrorTToPaperMonadImpl :: (HasCallStack, PaperMonadI profile) => SafeErrorT profile PaperErrorP m a -> PaperMonad profile m a
+safeErrorTToPaperMonadImpl = PaperMonad . ProfileT . ReaderT . const
 
-paperLiftIO :: (HasCallStack, Profile p, MonadIO m, MonadCatch m) => IO a -> PaperMonad p m a
-paperLiftIO = PaperMonad . lift . liftIOSafe
+paperLiftImpl :: (HasCallStack, PaperMonadI profile, MonadCatch m) => m a -> PaperMonad profile m a
+paperLiftImpl = PaperMonad . lift . liftSafe
 
-paperLiftIOUnliftIO :: (HasCallStack, Profile p, MonadUnliftIO m) => IO a -> PaperMonad p m a
-paperLiftIOUnliftIO = PaperMonad . lift . liftIOSafeUnliftIO
+paperLiftUnliftIOImpl :: (HasCallStack, PaperMonadI profile, MonadUnliftIO m) => m a -> PaperMonad profile m a
+paperLiftUnliftIOImpl = PaperMonad . lift . liftSafeUnliftIO
 
-paperLog :: (HasCallStack, MonadError ServerError m, MonadIO m, MonadCatch m) => IO a -> m a
-paperLog = errorLog (Proxy :: Proxy PaperErrorP)
+paperLiftIOImpl :: (HasCallStack, PaperMonadI profile, MonadIO m, MonadCatch m) => IO a -> PaperMonad profile m a
+paperLiftIOImpl = PaperMonad . lift . liftIOSafe
 
-runPaperErrorEither :: (HasCallStack, MonadError ServerError m, MonadIO m, MonadCatch m) => Either PaperInnerError a -> m a
-runPaperErrorEither = runErrorEither (Proxy :: Proxy PaperErrorP)
+paperLiftIOUnliftIOImpl :: (HasCallStack, PaperMonadI profile, MonadUnliftIO m) => IO a -> PaperMonad profile m a
+paperLiftIOUnliftIOImpl = PaperMonad . lift . liftIOSafeUnliftIO
 
-runPaperMonad :: (HasCallStack, Profile p, MonadError ServerError m, MonadIO m, MonadCatch m) => PaperMonad p IO a -> m a
-runPaperMonad (PaperMonad (ProfileT (ReaderT x))) = runErrorT $ x (Proxy :: Proxy p)
+paperLogImpl :: (HasCallStack, PaperMonadI profile, MonadError ServerError m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> IO a -> m a
+paperLogImpl profile context = errorLog profile (Proxy :: Proxy PaperErrorP) context
 
-maybeToPaperMonad :: (HasCallStack, Profile p, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => Maybe a -> e -> PaperMonad p m a
-maybeToPaperMonad a' ex = PaperMonad $ lift $ maybeToErrorT a' ex
+runPaperErrorEitherImpl :: (HasCallStack, PaperMonadI profile, MonadError ServerError m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> Either PaperInnerError a -> m a
+runPaperErrorEitherImpl profile context = runErrorEither profile (Proxy :: Proxy PaperErrorP) context
 
-maybeTToPaperMonad :: (HasCallStack, Profile p, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, MonadIO m, MonadCatch m) => MaybeT IO a -> e -> PaperMonad p m a
-maybeTToPaperMonad m ex = PaperMonad $ lift $ maybeTToErrorT m ex
+runPaperMonadImpl :: (HasCallStack, PaperMonadI profile, MonadError ServerError m, MonadIO m, MonadCatch m) => Import.Context -> PaperMonad profile IO a -> m a
+runPaperMonadImpl context (PaperMonad (ProfileT (ReaderT x))) = runErrorT context $ x (Proxy :: Proxy profile)
 
-maybeTToPaperMonadUnliftIO :: (HasCallStack, Profile p, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, MonadUnliftIO m) => MaybeT IO a -> e -> PaperMonad p m a
-maybeTToPaperMonadUnliftIO m ex = PaperMonad $ lift $ maybeTToErrorTUnliftIO m ex
+maybeToPaperMonadImpl :: (HasCallStack, PaperMonadI profile, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => Maybe a -> e -> PaperMonad profile m a
+maybeToPaperMonadImpl a' ex = PaperMonad $ lift $ maybeToErrorT a' ex
 
-paperAssert :: (Profile p, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => Bool -> e -> PaperMonad p m ()
-paperAssert b ex = PaperMonad $ lift $ errorAssert b ex
+maybeTToPaperMonadImpl :: (HasCallStack, PaperMonadI profile, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, MonadIO m, MonadCatch m) => MaybeT IO a -> e -> PaperMonad profile m a
+maybeTToPaperMonadImpl m ex = PaperMonad $ lift $ maybeTToErrorT m ex
+
+maybeTToPaperMonadUnliftIOImpl :: (HasCallStack, PaperMonadI profile, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, MonadUnliftIO m) => MaybeT IO a -> e -> PaperMonad profile m a
+maybeTToPaperMonadUnliftIOImpl m ex = PaperMonad $ lift $ maybeTToErrorTUnliftIO m ex
+
+paperAssertImpl :: (PaperMonadI profile, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => Bool -> e -> PaperMonad profile m ()
+paperAssertImpl b ex = PaperMonad $ lift $ errorAssert b ex

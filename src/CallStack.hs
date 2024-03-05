@@ -1,8 +1,18 @@
 module CallStack(
-    callStack'
+    CallStackI(
+        callStack'
+      )
 ) where
 
+import Monad.ProfileT
+
+import Data.Proxy
 import GHC.Stack
 
-callStack' :: HasCallStack => CallStack
-callStack' = callStack
+class Profile p => CallStackI p where
+    callStack' :: HasCallStack => Proxy p -> CallStack
+    callStack' = callStack'Impl
+
+
+callStack'Impl :: (HasCallStack, CallStackI p) => Proxy p -> CallStack
+callStack'Impl _ = callStack

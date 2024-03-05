@@ -19,7 +19,6 @@ import PaperMonad
 import Servant
 import Web.Cookie
 
-import Control.Monad.IO.Class
 import GHC.Stack
 
 type API =
@@ -45,18 +44,18 @@ class UserServiceI p => UserControllerI p where
 
 verifyRequestImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> VerifyRequestReqDTO -> Handler NoContent
 verifyRequestImpl _ context (VerifyRequestReqDTO { phoneNumber }) =
-    runPaperMonad $ User.Service.verifyRequest @p
+    runPaperMonad context $ User.Service.verifyRequest @p
         phoneNumber (paperAuthPool context)
 
 verifyCheckImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> VerifyCheckReqDTO -> Handler VerifyCheckResDTO
 verifyCheckImpl _ context (VerifyCheckReqDTO { phoneNumber, phoneNumberSecret }) =
-    runPaperMonad $ User.Service.verifyCheck @p
+    runPaperMonad context $ User.Service.verifyCheck @p
         phoneNumber phoneNumberSecret (paperAuthPool context)
 
 enrollImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> EnrollReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 enrollImpl _  context (EnrollReqDTO { paperId, password, name, phoneNumber, phoneNumberSecret }) =
     let encodeSigner = paperEncodeSigner context in
-    runPaperMonad $ User.Service.enroll @p
+    runPaperMonad context $ User.Service.enroll @p
         (config context) encodeSigner paperId password name phoneNumber phoneNumberSecret (paperAuthPool context)
 
 serverImpl :: (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> Server API

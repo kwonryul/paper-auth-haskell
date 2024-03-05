@@ -12,7 +12,6 @@ import Verification.Util
 import Verification.Entity
 import DB
 import PaperMonad
-import Monad.ProfileT
 
 import Database.Persist
 
@@ -21,7 +20,7 @@ import Control.Monad.IO.Unlift
 import Data.Time
 import GHC.Stack
 
-class Profile p => VerificationRepositoryI p where
+class PaperMonadI p => VerificationRepositoryI p where
     newVerification :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> PhoneNumber -> String -> UTCTime -> UTCTime -> UTCTime -> PaperMonad p m VerificationId
     newVerification = newVerificationImpl
     findByPhoneNumber :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> PhoneNumber -> PaperMonad p m (Maybe (Entity Verification))

@@ -1,0 +1,32 @@
+[ERROR]
+[Paper]	2024-03-05 09:29:02
+[PaperError]
+"accessToken invalidated"
+CallStack (from HasCallStack):
+  callStack'Impl, called at src/CallStack.hs:14:18 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:CallStack
+  $dmcallStack', called at src/Profile/Prod.hs:59:10 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Profile.Prod
+  callStack', called at src/Authentication.hs:150:174 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Authentication
+  getAccessTokenAndRoleSetImpl, called at src/Authentication.hs:72:32 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Authentication
+  $dmgetAccessTokenAndRoleSet, called at src/Profile/Prod.hs:58:10 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Profile.Prod
+  getAccessTokenAndRoleSet, called at src/Authentication.hs:92:95 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Authentication
+  jwtAuthHandler'''Impl, called at src/Authentication.hs:62:25 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Authentication
+  $dmjwtAuthHandler''', called at src/Profile/Prod.hs:58:10 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Profile.Prod
+  jwtAuthHandler''', called at src/Authentication.hs:87:75 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Authentication
+  jwtAuthHandler''Impl, called at src/Authentication.hs:60:24 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Authentication
+  $dmjwtAuthHandler'', called at src/Profile/Prod.hs:58:10 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Profile.Prod
+  jwtAuthHandler'', called at src/Authentication.hs:84:74 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Authentication
+  jwtAuthHandler'Impl, called at src/Authentication.hs:58:23 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Authentication
+  $dmjwtAuthHandler', called at src/Profile/Prod.hs:58:10 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Profile.Prod
+  jwtAuthHandler', called at src/Authentication.hs:81:48 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Authentication
+  jwtAuthHandlerImpl, called at src/Authentication.hs:56:22 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Authentication
+  $dmjwtAuthHandler, called at src/Profile/Prod.hs:58:10 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Profile.Prod
+  jwtAuthHandler, called at src/Authentication.hs:77:29 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Authentication
+  authContextImpl, called at src/Authentication.hs:54:19 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Authentication
+  $dmauthContext, called at src/Profile/Prod.hs:58:10 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Profile.Prod
+  authContext, called at src/PaperApp.hs:65:6 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:PaperApp
+  appImpl, called at src/PaperApp.hs:42:11 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:PaperApp
+  $dmapp, called at src/Profile/Prod.hs:65:10 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Profile.Prod
+  app, called at src/Lib.hs:93:94 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Lib
+  startApp'Impl, called at src/Lib.hs:64:17 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Lib
+  $dmstartApp', called at src/Profile/Prod.hs:64:10 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Profile.Prod
+  startApp', called at src/Lib.hs:87:39 in paper-auth-0.1.0.0-11c163057a05198ba2d42c831af1037d9e142c73e9f331c88a852e0e337c12ea:Lib

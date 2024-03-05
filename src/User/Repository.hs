@@ -10,7 +10,6 @@ import User.Entity
 import Verification.Util
 import DB
 import PaperMonad
-import Monad.ProfileT
 import Import
 
 import Database.Persist.Sql
@@ -21,7 +20,7 @@ import Data.Time
 import Data.ByteString
 import GHC.Stack
 
-class Profile p => UserRepositoryI p where
+class PaperMonadI p => UserRepositoryI p where
     newUser :: (HasCallStack, MonadUnliftIO m) => AuthenticationType -> String -> ByteString -> String -> Maybe PhoneNumber -> UTCTime -> PaperAuthConn -> PaperMonad p m UserId
     newUser = newUserImpl
     findByPaperId :: (HasCallStack, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m (Maybe (Entity User))
