@@ -1,6 +1,8 @@
 dist*
 .vscode/
+log/
 resources/application.cfg
+resources/application-test.cfg
 resources/tls/cert.pem
 resources/tls/secret-key.pem
 resources/jwt/encrypted-paper-auth.pem

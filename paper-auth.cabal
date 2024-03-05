@@ -74,6 +74,7 @@ library
         base ^>=4.19.0.0
       , template-haskell
       , raw-strings-qq
+      , directory
       , random
       , containers
       , vector
@@ -162,6 +163,7 @@ test-suite paper-auth-test
       , Import
       , PaperApp
       , PaperMonad
+      , Profile.Test
     -- other-extensions:
     autogen-modules:
         Paths_paper_auth
@@ -172,6 +174,7 @@ test-suite paper-auth-test
         base ^>=4.19.0.0
       , template-haskell
       , raw-strings-qq
+      , directory
       , random
       , containers
       , vector

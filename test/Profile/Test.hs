@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Profile.Prod(
-    Prod
+module Profile.Test(
+    Test
 ) where
 
 import Monad.ProfileT
@@ -29,47 +29,51 @@ import GlobalMonad
 import Lib
 import PaperMonad
 
-import Control.Monad.Logger
+import Paths_paper_auth
+
+import Data.Configurator
+
 import Data.Text
 import Data.Text.IO
 import Data.Text.Encoding
 import Data.ByteString
+import Control.Monad.Logger
 import Data.Time
 import System.Directory
 
-data Prod
-instance Profile Prod
+data Test
+instance Profile Test
 
-instance JWTControllerI Prod
-instance JWTRepositoryI Prod
-instance JWTServiceI Prod
-instance JWTUtilI Prod
-instance ErrorTI Prod
-instance RoleRepositoryI Prod
-instance UserControllerI Prod
-instance UserRepositoryI Prod
-instance UserServiceI Prod
-instance VerificationDTOI Prod
-instance VerificationRepositoryI Prod
-instance VerificationServiceI Prod
-instance VerificationUtilI Prod
-instance AuthenticationI Prod
-instance CallStackI Prod
-instance ConfiguratorI Prod
-instance ContextI Prod
-instance DBI Prod
-instance GlobalMonadI Prod
-instance LibI Prod
-instance PaperAppI Prod
-instance PaperMonadI Prod
+instance JWTControllerI Test
+instance JWTRepositoryI Test
+instance JWTServiceI Test
+instance JWTUtilI Test
+instance ErrorTI Test
+instance RoleRepositoryI Test
+instance UserControllerI Test
+instance UserRepositoryI Test
+instance UserServiceI Test
+instance VerificationDTOI Test
+instance VerificationRepositoryI Test
+instance VerificationServiceI Test
+instance VerificationUtilI Test
+instance AuthenticationI Test
+instance CallStackI Test
+instance ConfiguratorI Test
+--instance ContextI Test
+instance DBI Test
+instance GlobalMonadI Test
+instance LibI Test
+instance PaperAppI Test
+instance PaperMonadI Test
 
-instance ErrorTProfile Prod PaperErrorP where
+instance ErrorTProfile Test PaperErrorP where
     defaultError _ _ = PaperDefaultError
     defaultLogger _ _ context = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime
         let cfg = config context
             formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
-        logDir :: String <- runGlobalMonadWithoutLog $ lookupRequiredGlobal @Prod cfg "log.paper"
+        logDir :: String <- runGlobalMonadWithoutLog $ lookupRequiredGlobal @Test cfg "log.paper"
         let (fileNameList, header) =
                 case logLevel of
                     LevelDebug -> (["debug.log", "all.log"], "[DEBUG]\t")
@@ -92,14 +96,13 @@ instance ErrorTProfile Prod PaperErrorP where
     defaultErrorLog _ _ ie =
         (defaultLoc, "PaperErrorP", LevelError, toLogStr $ show ie)
 
-
-instance ErrorTProfile Prod GlobalErrorP where
+instance ErrorTProfile Test GlobalErrorP where
     defaultError _ _= GlobalDefaultError
     defaultLogger _ _ context = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime
         let cfg = config context
             formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
-        logDir :: String <- runGlobalMonadWithoutLog $ lookupRequiredGlobal @Prod cfg "log.global"
+        logDir :: String <- runGlobalMonadWithoutLog $ lookupRequiredGlobal @Test cfg "log.global"
         let (fileNameList, header) =
                 case logLevel of
                     LevelDebug -> (["debug.log", "all.log"], "[DEBUG]\t")
@@ -121,3 +124,8 @@ instance ErrorTProfile Prod GlobalErrorP where
         )
     defaultErrorLog _ _ ie =
         (defaultLoc, "GlobalErrorP", LevelError, toLogStr $ show ie)
+
+instance ContextI Test where
+    getConfig' = do
+        filePath <- globalLiftIOUnliftIO $ getDataFileName "resources/application-test.cfg"
+        globalLiftIOUnliftIO $ autoReload autoConfig [Required filePath]

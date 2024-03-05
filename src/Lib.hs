@@ -19,7 +19,9 @@ module Lib(
       , paperEncodeSigner
       , paperVerifySigner
       )
-  , app
+  , PaperAppI(
+        app
+      )
 ) where
 
 import JWT.Entity

@@ -9,6 +9,7 @@ module Context(
     )
   , ContextI(
         getContext
+      , getConfig'
       )
 ) where
 

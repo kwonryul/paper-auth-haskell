@@ -56,7 +56,6 @@ import Control.Monad.Error.Class
 import UnliftIO.Exception
 import Data.Proxy
 import Data.Kind
-import Data.Time
 import System.IO
 import GHC.Stack
 
@@ -73,7 +72,7 @@ class (Show e, Exception (InnerError e), Exception (OuterError e)) => ErrorTErro
 class (Profile profile, ErrorTError (DefaultError p)) => ErrorTProfile profile p where
     defaultError :: Exception e => Proxy profile -> Proxy p -> e -> CallStack -> DefaultError p
     defaultLogger :: Proxy profile -> Proxy p -> Context -> Loc -> LogSource -> LogLevel -> LogStr -> IO ()
-    defaultErrorLog :: Proxy profile -> Proxy p -> InnerError (DefaultError p) -> UTCTime -> (Loc, LogSource, LogLevel, LogStr)
+    defaultErrorLog :: Proxy profile -> Proxy p -> InnerError (DefaultError p) -> (Loc, LogSource, LogLevel, LogStr)
 
 type ErrorT :: Type -> Type -> (Type -> Type) -> Type -> Type
 data ErrorT profile p m a where
@@ -203,8 +202,7 @@ errorLogImpl :: forall profile p m a. (HasCallStack, ErrorTI profile, ErrorTProf
 errorLogImpl profile p context io = Control.Monad.Catch.catch (liftIO io) (\(ex :: SomeException) -> do
     let de = defaultError profile p ex $ callStack' profile
     let ie = toInnerError de
-    currentTime <- liftIO getCurrentTime
-    let (loc, logSource, logLevel, logStr) = defaultErrorLog profile p ie currentTime
+    let (loc, logSource, logLevel, logStr) = defaultErrorLog profile p ie
     liftIO $ defaultLogger profile p context loc logSource logLevel logStr
     throwError $ toOuterError (Proxy :: Proxy (DefaultError p)) ie
     )
@@ -212,8 +210,7 @@ errorLogImpl profile p context io = Control.Monad.Catch.catch (liftIO io) (\(ex 
 runErrorEitherImpl :: forall profile p m a. (HasCallStack, ErrorTI profile, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Context -> Either (InnerError (DefaultError p)) a -> m a
 runErrorEitherImpl profile p context e = case e of
     Left ex -> do
-        currentTime <- liftIO getCurrentTime
-        let (loc, logSource, logLevel, logStr) = defaultErrorLog profile p ex currentTime
+        let (loc, logSource, logLevel, logStr) = defaultErrorLog profile p ex
         liftIO $ defaultLogger profile p context loc logSource logLevel logStr
         throwError $ toOuterError (Proxy :: Proxy (DefaultError p)) ex
     Right x -> return x
@@ -221,8 +218,7 @@ runErrorEitherImpl profile p context e = case e of
 runErrorEitherWithoutLogImpl :: forall profile p m a. (HasCallStack, ErrorTI profile, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Either (InnerError (DefaultError p)) a -> m a
 runErrorEitherWithoutLogImpl profile p e = case e of
     Left ex -> do
-        currentTime <- liftIO getCurrentTime
-        let (loc, logSource, logLevel, logStr) = defaultErrorLog profile p ex currentTime
+        let (loc, logSource, logLevel, logStr) = defaultErrorLog profile p ex
         liftIO $ defaultLoggerWithoutLog loc logSource logLevel logStr
         throwError $ toOuterError (Proxy :: Proxy (DefaultError p)) ex
     Right x -> return x
