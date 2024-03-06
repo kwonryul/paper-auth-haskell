@@ -89,7 +89,7 @@ startApp'Impl context certPath secretKeyPath = do
     projectDir <- lookupRequiredGlobal (config context) "projectDir"
     httpPort <- lookupRequiredGlobal (config context) "port.http"
     httpsPort <- lookupRequiredGlobal (config context) "port.https"
-    let docsFilePath = projectDir ++ "docs/"
+    let docsFilePath = projectDir ++ "generated/docs/"
         staticFilePath = projectDir ++ "static/"
     _ <- globalLiftIOUnliftIO $ forkIO $ (globalLog profile context $ run httpPort (app (Proxy :: Proxy p) context docsFilePath staticFilePath))
     globalLiftIOUnliftIO $ runTLS
