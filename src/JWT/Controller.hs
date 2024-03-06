@@ -1,11 +1,18 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE CPP #-}
+
 module JWT.Controller(
     JWTControllerI(
         server
       )
   , API
+#ifdef TEST
+  , API2
+  , IssueJWTReqDTO
+  , IssueJWTResDTO
+#endif
 ) where
 
 import qualified JWT.Service
@@ -29,6 +36,8 @@ type API = IssueJWT
         IndirectRequestJWT
         :<|> IndirectIssueJWT
         )
+
+type API2 = IssueJWT
 
 type IssueJWT = "issue" :> ReqBody '[JSON] IssueJWTReqDTO :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)
 type RefreshJWT = "refresh" :> AuthProtect "jwt-auth-refresh" :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie] RefreshJWTResDTO)

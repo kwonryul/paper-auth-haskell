@@ -1,0 +1,44 @@
+= PaperAuth API document
+:doctype: book
+:icons: font
+:toc: left
+:toclevels: 2
+:sectlinks:
+:docinfo: shared-head
+
+== Commons
+|===
+|Key |Value |Description
+
+|Domain |43.200.64.248 |-
+|Port |80 |http port
+|Port |443 |https port
+|===
+
+|===
+|Url |Description
+
+|/favicon.ico |favicon
+|/static/docs/index.html |api docs
+|/static/** |other static files
+|/** |inner apis
+|===
+
+== Authentication
+=== JWT-AUTH
+|===
+|Method |Name |TokenType |Description
+
+|Header |Authorization |Bearer |paper accessToken
+|Cookie |Paper-Refresh-Token |- |paper refreshToken
+|===
+
+=== JWT-AUTH-REFRESH
+|===
+|Path |Name |TokenType |Description
+
+|Cookie |Paper-Refresh-Token |- |paper refreshToken
+|===
+
+include::{docfile}/../jwt.adoc[]
+include::{docfile}/../user.adoc[]

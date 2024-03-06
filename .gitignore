@@ -8,3 +8,5 @@ resources/tls/secret-key.pem
 resources/jwt/encrypted-paper-auth.pem
 resources/jwt/paper-auth.pem
 resources/jwt/paper-auth.pub
+snippets/
+generated/

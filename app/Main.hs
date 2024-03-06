@@ -12,10 +12,11 @@ profile = Proxy
 main :: HasCallStack => IO ()
 main = do
     Resources {
-        staticFilePath
+        docsFilePath
+      , staticFilePath
       , context
       , certPath
       , secretKeyPath
       } <- getAllResources profile
     migratePaperAuth profile context (paperAuthPool context)
-    startApp profile staticFilePath context certPath secretKeyPath
+    startApp profile docsFilePath staticFilePath context certPath secretKeyPath

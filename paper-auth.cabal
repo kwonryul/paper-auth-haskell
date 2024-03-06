@@ -10,6 +10,7 @@ maintainer:         pkr08205@gmail.com
 -- copyright:
 category:           Web
 build-type:         Simple
+
 data-files:
     resources/static/*.html
     resources/images/*.ico
@@ -80,10 +81,12 @@ library
       , vector
       , bytestring
       , text
+      , case-insensitive
       , time
       , bcrypt
       , regex-tdfa
       , exceptions
+      , free
       , transformers
       , mtl
       , monad-logger
@@ -96,6 +99,8 @@ library
       , jwt
       , servant
       , servant-server
+      , servant-client-core
+      , servant-client
       , servant-static-th
       , servant-auth-server
       , wai
@@ -164,6 +169,8 @@ test-suite paper-auth-test
       , PaperApp
       , PaperMonad
       , Profile.Test
+      , Profile.Test.Import
+      , Profile.Test.Snippet
     -- other-extensions:
     autogen-modules:
         Paths_paper_auth
@@ -180,10 +187,12 @@ test-suite paper-auth-test
       , vector
       , bytestring
       , text
+      , case-insensitive
       , time
       , bcrypt
       , regex-tdfa
       , exceptions
+      , free
       , transformers
       , mtl
       , monad-logger
@@ -196,6 +205,8 @@ test-suite paper-auth-test
       , jwt
       , servant
       , servant-server
+      , servant-client-core
+      , servant-client
       , servant-static-th
       , servant-auth-server
       , wai
@@ -210,3 +221,5 @@ test-suite paper-auth-test
       , hspec
       , hspec-wai
       , hspec-wai-json
+      , filepath
+    cpp-options: -DTEST

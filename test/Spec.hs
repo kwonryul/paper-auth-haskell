@@ -3,31 +3,34 @@
 module Main (main) where
 
 import Lib
-import Profile.Test
 
-import Test.Hspec
-import Test.Hspec.Wai
+import Profile.Test.Import
+import Profile.Test()
 
 import Data.Proxy
+import GHC.Stack
 
 profile :: Proxy Test
 profile = Proxy
 
 main :: HasCallStack => IO ()
+main = return ()
+{-
 main = do
     Resources {
-        staticFilePath
+        docsFilePath
+      , staticFilePath
       , Lib.context = ctx
       , certPath
       , secretKeyPath
       } <- getAllResources profile
     migratePaperAuth profile ctx (paperAuthPool ctx)
-    startApp profile staticFilePath ctx certPath secretKeyPath
+    startApp profile docsFilePath staticFilePath ctx certPath secretKeyPath
+    -}
 
-{-
+{-}
 main :: IO ()
 main = hspec spec
-
 spec :: Spec
 spec = do
   with (do

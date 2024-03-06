@@ -26,14 +26,14 @@ data IssueJWTReqDTO = IssueJWTReqDTO {
     paperId :: String
   , password :: String
   }
-$(deriveFromJSON defaultOptions ''IssueJWTReqDTO)
+$(deriveJSON defaultOptions ''IssueJWTReqDTO)
 
 data IssueJWTResDTO = IssueJWTResDTO {
     accessToken :: Text
   }
-$(deriveToJSON defaultOptions ''IssueJWTResDTO)
+$(deriveJSON defaultOptions ''IssueJWTResDTO)
 
 data RefreshJWTResDTO = RefreshJWTResDTO {
     accessToken :: Text
   }
-$(deriveToJSON defaultOptions ''RefreshJWTResDTO)
+$(deriveJSON defaultOptions ''RefreshJWTResDTO)

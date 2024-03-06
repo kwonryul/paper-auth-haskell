@@ -1,0 +1,136 @@
+:major-index: 2
+:minor-index: 0
+
+== {major-index}. User
+:minor-index: 1
+=== {major-index}.{minor-index}. Verification Request
+*POST /user/verify/request* +
+
+Random 6 digits are sent to the phoneNumber. +
+Use it for enrolling.
+
+==== {major-index}.{minor-index}.1. Specifications
+===== Request
+====== Body
+[VerifyRequestReqDTO]
+|===
+|Path |Type |Description
+
+|phoneNumber |String |-
+|===
+
+===== Response
+====== Body
+
+==== {major-index}.{minor-index}.2. Example
+[source]
+----
+include::{docfile}/../../generated/snippets/user/verifyRequest-request.adoc[]
+----
+
+[source]
+----
+include::{docfile}/../../generated/snippets/user/verifyRequest-response.adoc[]
+----
+
+:minor-index: 2
+=== {major-index}.{minor-index}. Verification Check
+*POST /user/verify/check* +
+
+Verification check for phoneNumberSecret. +
+Secret has expiration of 3 minutes (only for frontend). +
+Its real expriation is 30 minutes, but Verification Check fails when 3 minutes overed. +
+You can skip this process and go directly to enroll. It doesn't affect enrolling proccess. +
+This api is only for frontend user experience.
+
+==== {major-index}.{minor-index}.1. Specifications
+===== Request
+====== Body
+[VerifyCheckReqDTO]
+|===
+|Path |Type |Description
+
+|phoneNumber |String |-
+|phoneNumberSecret |String |random digits sent by Verification Request
+|===
+
+===== Response
+====== Body
+[VerifyCheckResDTO]
+|===
+|Path |Type |Description
+
+|result |Bool |whether phoneNumber and phoneNumberSecret matches and valid
+|failCount |Int |number of failCount of phoneNumberSecret. +
+                Its count is shared with Enroll. +
+                After five failures, secret becomes invalid.
+|===
+
+==== {major-index}.{minor-index}.2. Example
+[source]
+----
+include::{docfile}/../../generated/snippets/user/verifyCheck-request.adoc[]
+----
+
+[source]
+----
+include::{docfile}/../../generated/snippets/user/verifyCheck-response.adoc[]
+----
+
+:minor-index: 3
+=== {major-index}.{minor-index}. Enroll
+*POST /user/enroll* +
+
+For all user enrolled by this api, authenticationType becomes Paper.
+
+==== {major-index}.{minor-index}.1. Specifications
+===== Request
+====== Body
+[VerifyRequestReqDTO]
+|===
+|Path |Type |Description
+
+|paperId |String |-
+|password |String |not hashed
+|name |String |-
+|phoneNumber |String |you must Verify Request first.
+|phoneNumberSecret |String |although you have passed Verify Check, send it again while enrolling.
+|===
+
+===== Response
+====== Cookie
+|===
+|Name |Type |Description
+
+|Paper-Refresh-Token |String |paper refreshToken
+|===
+
+====== Body
+[EnrollResDTO]
+|===
+|Path |Type |Description
+
+|accessToken |Text |paper accessToken
+|===
+
+==== {major-index}.{minor-index}.2. Example
+[source]
+----
+include::{docfile}/../../generated/snippets/user/enroll-request.adoc[]
+----
+
+[source]
+----
+include::{docfile}/../../generated/snippets/user/enroll-response.adoc[]
+----
+
+==== {major-index}.{minor-index}.3. Exceptions
+[PhoneNumberSecretWrongDTO]
+|===
+|Path |Type |Description
+
+|msg |String |human readable error message
+|failCount |Int |failCount for phoneNumberSecret verification. +
+                It is shared with Verification Check. +
+                After 5 failure, phoneNumberSecret becomes invalid.
+|===
