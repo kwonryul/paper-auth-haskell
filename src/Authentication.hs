@@ -3,11 +3,16 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Authentication(
     AuthenticationI(
         authContext
+#ifdef TEST
+      , jwtAuthHandler'''
+      , jwtAuthRefreshHandler'''
+#endif
       )
 ) where
 

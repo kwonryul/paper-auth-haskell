@@ -14,19 +14,14 @@ profile :: Proxy Test
 profile = Proxy
 
 main :: HasCallStack => IO ()
-main = return ()
-{-
 main = do
     Resources {
-        docsFilePath
-      , staticFilePath
-      , Lib.context = ctx
+        Lib.context = ctx
       , certPath
       , secretKeyPath
       } <- getAllResources profile
     migratePaperAuth profile ctx (paperAuthPool ctx)
-    startApp profile docsFilePath staticFilePath ctx certPath secretKeyPath
-    -}
+    startApp profile ctx certPath secretKeyPath
 
 {-}
 main :: IO ()

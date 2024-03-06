@@ -12,7 +12,6 @@ import Configurator
 import Network.Wai
 import Network.HTTP.Types
 
-import Control.Monad.IO.Class
 import Data.ByteString.Lazy.Char8
 import Data.ByteString.Char8
 import Data.ByteString.Builder
@@ -24,8 +23,9 @@ import System.FilePath.Posix
 
 generateSnippetM :: Context -> Middleware
 generateSnippetM context app req sendResponse = do
-    snippetsDir <- runGlobalMonad @Test context $ lookupRequiredGlobal (config context) "snippetsDir"
-    let maybeFilePath = lookup "Snippet-Path" $ requestHeaders req
+    projectDir <- runGlobalMonad @Test context $ lookupRequiredGlobal (config context) "projectDir"
+    let snippetsDir = projectDir ++ "generated/snippets/"
+        maybeFilePath = lookup "Snippet-Path" $ requestHeaders req
     case maybeFilePath of
         Just fp -> do
             let filePath = snippetsDir ++ Data.ByteString.Char8.unpack fp

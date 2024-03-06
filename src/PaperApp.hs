@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module PaperApp (
     PaperAppI(
@@ -15,6 +16,7 @@ import JWT.Controller (JWTControllerI)
 import qualified User.Controller
 import User.Controller (UserControllerI)
 
+import Configurator
 import Context
 import Authentication
 import PaperMonad
@@ -53,9 +55,10 @@ serverImpl p context docsFilePath staticFilePath = faviconServer p context
 --    :<|> (OAuth2.server context)
     :<|> User.Controller.server p context
 
-faviconServerImpl :: (HasCallStack, PaperAppI p) => Proxy p -> Context.Context -> Servant.Handler ByteString
+faviconServerImpl :: forall p. (HasCallStack, PaperAppI p) => Proxy p -> Context.Context -> Servant.Handler ByteString
 faviconServerImpl profile context = do
-    filePath <- paperLog profile context $ getDataFileName "resources/images/favicon.ico"
+    projectDir <- runPaperMonad @p context $ lookupRequired (config context) "projectDir"
+    let filePath = projectDir ++ "static/favicon.ico"
     Control.Monad.Catch.bracket
         (paperLog profile context $ openFile filePath ReadMode)
         (paperLog profile context . hClose)

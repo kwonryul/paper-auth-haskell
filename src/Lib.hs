@@ -3,8 +3,6 @@
 module Lib(
     Resources(
         Resources
-      , docsFilePath
-      , staticFilePath
       , context
       , certPath
       , secretKeyPath
@@ -49,9 +47,7 @@ import Data.Proxy
 import GHC.Stack
 
 data Resources = Resources {
-    docsFilePath :: FilePath
-  , staticFilePath :: FilePath
-  , context :: Context
+    context :: Context
   , certPath :: FilePath
   , secretKeyPath :: FilePath
   }
@@ -61,9 +57,9 @@ class (ContextI p, PaperAppI p) => LibI p where
     getAllResources = getAllResourcesImpl
     getAllResources' :: (HasCallStack, MonadUnliftIO m) => GlobalMonad p m Resources
     getAllResources' = getAllResources'Impl
-    startApp :: Proxy p -> FilePath -> FilePath -> Context -> FilePath -> FilePath -> IO ()
+    startApp :: Proxy p -> Context -> FilePath -> FilePath -> IO ()
     startApp = startAppImpl
-    startApp' :: (HasCallStack, MonadUnliftIO m) => FilePath -> FilePath -> Context -> FilePath -> FilePath -> GlobalMonad p m ()
+    startApp' :: (HasCallStack, MonadUnliftIO m) => Context -> FilePath -> FilePath -> GlobalMonad p m ()
     startApp' = startApp'Impl
     migratePaperAuth :: Proxy p -> Context.Context -> PaperAuthPool -> IO ()
     migratePaperAuth = migratePaperAuthImpl
@@ -77,23 +73,24 @@ getAllResourcesImpl _ = runGlobalMonadWithoutLog $ getAllResources' @p
 
 getAllResources'Impl :: forall p m. (HasCallStack, LibI p, MonadUnliftIO m) => GlobalMonad p m Resources
 getAllResources'Impl = do
-    staticFilePath <- globalLiftIOUnliftIO $ getDataFileName "resources/static"
     context <- getContext @p
-    docsFilePath <- lookupRequiredGlobal (config context) "docsDir"
     certPath <- globalLiftIOUnliftIO $ getDataFileName "resources/tls/cert.pem"
     secretKeyPath <- globalLiftIOUnliftIO $ getDataFileName "resources/tls/secret-key.pem"
     return $ Resources {
-        docsFilePath, staticFilePath, context, certPath, secretKeyPath
+        context, certPath, secretKeyPath
         }
 
-startAppImpl :: forall p. LibI p => Proxy p -> FilePath -> FilePath -> Context -> FilePath -> FilePath -> IO ()
-startAppImpl _ docsFilePath staticFilePath context certPath secretKeyPath =
-    runGlobalMonad context $ startApp' @p docsFilePath staticFilePath context certPath secretKeyPath
+startAppImpl :: forall p. LibI p => Proxy p -> Context -> FilePath -> FilePath -> IO ()
+startAppImpl _ context certPath secretKeyPath =
+    runGlobalMonad context $ startApp' @p context certPath secretKeyPath
 
-startApp'Impl :: forall p m. (HasCallStack, LibI p, MonadUnliftIO m) => FilePath -> FilePath -> Context -> FilePath -> FilePath -> GlobalMonad p m ()
-startApp'Impl docsFilePath staticFilePath context certPath secretKeyPath = do
+startApp'Impl :: forall p m. (HasCallStack, LibI p, MonadUnliftIO m) => Context -> FilePath -> FilePath -> GlobalMonad p m ()
+startApp'Impl context certPath secretKeyPath = do
+    projectDir <- lookupRequiredGlobal (config context) "projectDir"
     httpPort <- lookupRequiredGlobal (config context) "port.http"
     httpsPort <- lookupRequiredGlobal (config context) "port.https"
+    let docsFilePath = projectDir ++ "docs/"
+        staticFilePath = projectDir ++ "static/"
     _ <- globalLiftIOUnliftIO $ forkIO $ (globalLog profile context $ run httpPort (app (Proxy :: Proxy p) context docsFilePath staticFilePath))
     globalLiftIOUnliftIO $ runTLS
         (tlsSettings certPath secretKeyPath)

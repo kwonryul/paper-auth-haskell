@@ -1,9 +1,3 @@
-define read_config
-$(shell grep "^$1" makefile.cfg | cut -d'=' -f2)
-endef
-
-DOCS_DIR := $(call read_config,docsDir)
-
 .PHONY: build install test asciidoctor
 
 build: asciidoctor
@@ -16,7 +10,7 @@ install: asciidoctor
 
 asciidoctor: test
 	echo "Generating HTML files..."
-	asciidoctor -R ./docs -D $(DOCS_DIR) '**/*.adoc'
+	asciidoctor --attribute snippetDir=generated/snippets -R docs -D generated/docs 'docs/**/*.adoc'
 
 test:
 	echo "Running tests..."

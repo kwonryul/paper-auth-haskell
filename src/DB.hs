@@ -36,9 +36,9 @@ class ConfiguratorI p => DBI p where
     paperAuthConnInfo' = paperAuthConnInfo'Impl
     getPaperAuthPool' :: (HasCallStack, MonadUnliftIO m) => Config -> GlobalMonad p m PaperAuthPool
     getPaperAuthPool' = getPaperAuthPool'Impl
-    runSqlPoolOneConnection :: forall db m a. (HasCallStack, DB db, Profile p, MonadUnliftIO m) => (SqlFor db -> PaperMonad p m a) -> ConnectionPoolFor db -> PaperMonad p m a
+    runSqlPoolOneConnection :: forall db m a. (HasCallStack, DB db, MonadUnliftIO m) => (SqlFor db -> PaperMonad p m a) -> ConnectionPoolFor db -> PaperMonad p m a
     runSqlPoolOneConnection = runSqlPoolOneConnectionImpl
-    runSqlPoolOneConnectionGlobal :: forall db m a. (HasCallStack, DB db, Profile p, MonadUnliftIO m) => (SqlFor db -> GlobalMonad p m a) -> ConnectionPoolFor db -> GlobalMonad p m a
+    runSqlPoolOneConnectionGlobal :: forall db m a. (HasCallStack, DB db, MonadUnliftIO m) => (SqlFor db -> GlobalMonad p m a) -> ConnectionPoolFor db -> GlobalMonad p m a
     runSqlPoolOneConnectionGlobal = runSqlPoolOneConnectionGlobalImpl
 
 paperAuthConnInfo'Impl :: (HasCallStack, DBI p, MonadUnliftIO m) => Config -> GlobalMonad p m ConnectInfo
@@ -67,12 +67,12 @@ runSqlPoolOneConnectionImpl inner pool = do
     safeErrorTToPaperMonad $ unsafeToSafeUnliftIO $ ErrorT $ LoggingT $ (\logger ->
         ExceptT $ runSqlPoolFor (ReaderT (\conn ->
             runExceptT $ catchE (inner' profile logger conn) (\e -> do
-                runReaderT transactionUndo (generalizeSqlBackend conn)
-                ExceptT $ return $ Left $ e)
+                runReaderT transactionUndo $ generalizeSqlBackend conn
+                ExceptT $ return $ Left e)
             )) pool
             )
     where
-        inner' :: (HasCallStack, DB db, Profile p, MonadUnliftIO m) => Proxy p -> (Loc -> LogSource -> LogLevel -> LogStr -> IO ()) -> SqlFor db -> ExceptT PaperInnerError m a
+        inner' :: (HasCallStack, DB db, MonadUnliftIO m) => Proxy p -> (Loc -> LogSource -> LogLevel -> LogStr -> IO ()) -> SqlFor db -> ExceptT PaperInnerError m a
         inner' profile logger conn = (runLoggingT $ unErrorT $ unSafeErrorT $ runReaderT (unProfileT $ unPaperMonad $ inner conn) profile) logger
 
 runSqlPoolOneConnectionGlobalImpl :: forall db p m a. (HasCallStack, DBI p, DB db, MonadUnliftIO m) => (SqlFor db -> GlobalMonad p m a) -> ConnectionPoolFor db -> GlobalMonad p m a
@@ -81,10 +81,10 @@ runSqlPoolOneConnectionGlobalImpl inner pool = do
     safeErrorTToGlobalMonad $ unsafeToSafeUnliftIO $ ErrorT $ LoggingT $ (\logger ->
         ExceptT $ runSqlPoolFor (ReaderT (\conn ->
             runExceptT $ catchE (inner' profile logger conn) (\e -> do
-                runReaderT transactionUndo (generalizeSqlBackend conn)
-                ExceptT $ return $ Left $ e)
+                runReaderT transactionUndo $ generalizeSqlBackend conn
+                ExceptT $ return $ Left e)
                 )) pool
                 )
     where
-        inner' :: (HasCallStack, DB db, Profile p, MonadUnliftIO m) => Proxy p -> (Loc -> LogSource -> LogLevel -> LogStr -> IO ()) -> SqlFor db -> ExceptT GlobalInnerError m a
+        inner' :: (HasCallStack, DB db, MonadUnliftIO m) => Proxy p -> (Loc -> LogSource -> LogLevel -> LogStr -> IO ()) -> SqlFor db -> ExceptT GlobalInnerError m a
         inner' profile logger conn = (runLoggingT $ unErrorT $ unSafeErrorT $ runReaderT (unProfileT $ unGlobalMonad $ inner conn) profile) logger

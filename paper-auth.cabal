@@ -12,8 +12,6 @@ category:           Web
 build-type:         Simple
 
 data-files:
-    resources/static/*.html
-    resources/images/*.ico
     resources/*.cfg
     resources/tls/cert.pem
     resources/tls/secret-key.pem
@@ -86,7 +84,6 @@ library
       , bcrypt
       , regex-tdfa
       , exceptions
-      , free
       , transformers
       , mtl
       , monad-logger
@@ -192,7 +189,6 @@ test-suite paper-auth-test
       , bcrypt
       , regex-tdfa
       , exceptions
-      , free
       , transformers
       , mtl
       , monad-logger
