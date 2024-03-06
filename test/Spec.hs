@@ -13,6 +13,9 @@ import GHC.Stack
 profile :: Proxy Test
 profile = Proxy
 
+main :: IO ()
+main = return ()
+{-
 main :: HasCallStack => IO ()
 main = do
     Resources {
@@ -22,6 +25,7 @@ main = do
       } <- getAllResources profile
     migratePaperAuth profile ctx (paperAuthPool ctx)
     startApp profile ctx certPath secretKeyPath
+-}
 
 {-}
 main :: IO ()
