@@ -36,12 +36,12 @@
 ==== {major-index}.{minor-index}.2. Example
 [source]
 ----
-include::{docfile}/../../generated/snippets/jwt/issueJWT-request.adoc[]
+include::{snippetsDir}jwt/issueJWT-request.adoc[]
 ----
 
 [source]
 ----
-include::{docfile}/../../generated/snippets/jwt/issueJWT-response.adoc[]
+include::{snippetsDir}jwt/issueJWT-response.adoc[]
 ----
 
 :minor-index: 2
@@ -67,12 +67,12 @@ include::{docfile}/../../generated/snippets/jwt/issueJWT-response.adoc[]
 ==== {major-index}.{minor-index}.2. Example
 [source]
 ----
-include::{docfile}/../../generated/snippets/jwt/refreshJWT-request.adoc[]
+include::{snippetsDir}jwt/refreshJWT-request.adoc[]
 ----
 
 [source]
 ----
-include::{docfile}/../../generated/snippets/jwt/refreshJWT-response.adoc[]
+include::{snippetsDir}jwt/refreshJWT-response.adoc[]
 ----
 
 :minor-index: 3
@@ -92,10 +92,10 @@ include::{docfile}/../../generated/snippets/jwt/refreshJWT-response.adoc[]
 ==== {major-index}.{minor-index}.2. Example
 [source]
 ----
-include::{docfile}/../../generated/snippets/jwt/invalidateJWT-request.adoc[]
+include::{snippetsDir}jwt/invalidateJWT-request.adoc[]
 ----
 
 [source]
 ----
-include::{docfile}/../../generated/snippets/jwt/invalidateJWT-response.adoc[]
+include::{snippetsDir}jwt/invalidateJWT-response.adoc[]
 ----

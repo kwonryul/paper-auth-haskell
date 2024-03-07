@@ -15,6 +15,7 @@ import Authentication ()
 import User.DTO
 import Context
 import PaperMonad
+import MIME
 
 import Servant
 import Web.Cookie
@@ -28,9 +29,9 @@ type API =
         )
     :<|> Enroll
 
-type VerifyRequest = "request" :> ReqBody '[JSON] VerifyRequestReqDTO :> Post '[PlainText] NoContent
-type VerifyCheck = "check" :> ReqBody '[JSON] VerifyCheckReqDTO :> Post '[JSON] VerifyCheckResDTO
-type Enroll = "enroll" :> ReqBody '[JSON] EnrollReqDTO :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
+type VerifyRequest = "request" :> ReqBody '[PrettyJSON] VerifyRequestReqDTO :> Post '[PlainText] NoContent
+type VerifyCheck = "check" :> ReqBody '[PrettyJSON] VerifyCheckReqDTO :> Post '[PrettyJSON] VerifyCheckResDTO
+type Enroll = "enroll" :> ReqBody '[PrettyJSON] EnrollReqDTO :> Post '[PrettyJSON] (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 
 class UserServiceI p => UserControllerI p where
     verifyRequest :: HasCallStack => Proxy p -> Context.Context -> VerifyRequestReqDTO -> Handler NoContent

@@ -2,19 +2,26 @@
 
 module Main (main) where
 
-import Lib
-
 import Profile.Test.Import
 import Profile.Test()
+import Test.JWT
+import Test.User
+
+import Test.Hspec
 
 import Data.Proxy
-import GHC.Stack
 
 profile :: Proxy Test
 profile = Proxy
 
 main :: IO ()
-main = return ()
+main = hspec $ spec
+
+spec :: Spec
+spec = do
+    jwtSpec profile
+    userSpec profile
+
 {-
 main :: HasCallStack => IO ()
 main = do

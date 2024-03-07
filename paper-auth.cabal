@@ -9,7 +9,7 @@ author:             kwonryul
 maintainer:         pkr08205@gmail.com
 -- copyright:
 category:           Web
-build-type:         Simple
+build-type:         Custom
 
 data-files:
     resources/*.cfg
@@ -20,6 +20,11 @@ data-files:
 extra-doc-files:
     CHANGELOG.md
 -- extra-source-files:
+
+custom-setup
+  setup-depends:
+        base ^>=4.19.0.0
+      , Cabal
 
 source-repository head
     type: git
@@ -64,6 +69,7 @@ library
       , DB
       , GlobalMonad
       , Import
+      , MIME
       , PaperApp
       , PaperMonad
     -- other-extensions:
@@ -90,8 +96,11 @@ library
       , unliftio
       , unliftio-core
       , http-types
+      , http-media
+      , http-client
       , configurator
       , aeson
+      , aeson-pretty
       , cookie
       , jwt
       , servant
@@ -163,11 +172,14 @@ test-suite paper-auth-test
       , DB
       , GlobalMonad
       , Import
+      , MIME
       , PaperApp
       , PaperMonad
       , Profile.Test
       , Profile.Test.Import
       , Profile.Test.Snippet
+      , Test.JWT
+      , Test.User
     -- other-extensions:
     autogen-modules:
         Paths_paper_auth
@@ -194,9 +206,9 @@ test-suite paper-auth-test
       , monad-logger
       , unliftio
       , unliftio-core
-      , http-types
       , configurator
       , aeson
+      , aeson-pretty
       , cookie
       , jwt
       , servant
@@ -210,6 +222,8 @@ test-suite paper-auth-test
       , warp
       , warp-tls
       , http-types
+      , http-media
+      , http-client
       , persistent
       , persistent-template
       , persistent-typed-db

@@ -32,12 +32,12 @@ generateSnippetM context app req sendResponse = do
                 req' = setRequestBodyChunks (bodyChunks' filePath) req
             globalLog profile context $ createDirectoryIfMissing True $ takeDirectory filePath
             globalLog profile context $ Data.ByteString.Char8.writeFile (filePath ++ "-request.adoc") $
-                requestHeaders' req <> "\n\nBody:\n"
+                requestHeaders' req <> "\n\n"
             globalLog profile context $ app req' $ \res -> do
                 responseBody <- globalLog profile context $ responseBody' res
                 globalLog profile context $ createDirectoryIfMissing True $ takeDirectory filePath
                 globalLog profile context $ Data.ByteString.Char8.writeFile (filePath ++ "-response.adoc") $
-                    responseHeaders' res <> "\n\nBody:\n" <> responseBody
+                    responseHeaders' res <> "\n\n" <> responseBody
                 globalLog profile context $ sendResponse res
         Nothing ->
             globalLog profile context $ app req $ \res -> sendResponse res
@@ -58,17 +58,18 @@ showHeader (name, value) = Data.CaseInsensitive.foldedCase name <> ": " <> value
 
 requestHeaders' :: Request -> Data.ByteString.Char8.ByteString
 requestHeaders' req =
+    let headerList = Prelude.filter (\(n, _) -> n /= "Snippet-Path") $ requestHeaders req in
     Data.ByteString.Char8.concat [
         "Method:\t", requestMethod req, "\n"
-      , "Path:\t", rawPathInfo req, "\n"
-      , "Headers:\n\t", Data.ByteString.Char8.intercalate "\n\t" $ showHeader <$> requestHeaders req, "\n"
+      , "Path:\t", rawPathInfo req, "\n\n"
+      , Data.ByteString.Char8.intercalate "\n" $ showHeader <$> headerList
       ]
 
 responseHeaders' :: Response -> Data.ByteString.Char8.ByteString
 responseHeaders' res =
     Data.ByteString.Char8.concat [
-        "Status:\t", Data.ByteString.Char8.pack $ show $ responseStatus res, "\n"
-      , "Headers:\n\t", Data.ByteString.Char8.intercalate "\n\t" $ showHeader <$> responseHeaders res, "\n"
+        "Status:\t", Data.ByteString.Char8.pack $ show $ responseStatus res, "\n\n"
+      , Data.ByteString.Char8.intercalate "\n" $ showHeader <$> responseHeaders res, "\n"
       ]
 
 responseBody' :: Response -> IO Data.ByteString.Char8.ByteString

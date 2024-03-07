@@ -30,10 +30,10 @@ $(deriveJSON defaultOptions ''IssueJWTReqDTO)
 
 data IssueJWTResDTO = IssueJWTResDTO {
     accessToken :: Text
-  }
+  } deriving (Show, Eq)
 $(deriveJSON defaultOptions ''IssueJWTResDTO)
 
 data RefreshJWTResDTO = RefreshJWTResDTO {
     accessToken :: Text
-  }
+  } deriving (Show, Eq)
 $(deriveJSON defaultOptions ''RefreshJWTResDTO)

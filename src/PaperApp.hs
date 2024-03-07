@@ -20,7 +20,6 @@ import Configurator
 import Context
 import Authentication
 import PaperMonad
-import Paths_paper_auth
 
 import Servant
 import Servant.Static.TH.Internal.Mime

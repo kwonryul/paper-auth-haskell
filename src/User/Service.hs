@@ -2,12 +2,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE CPP #-}
 
 module User.Service(
     UserServiceI(
         verifyRequest
       , verifyCheck
       , enroll
+#ifdef TEST
+      , enroll'
+#endif
       )
 ) where
 
@@ -108,7 +112,7 @@ enrollImpl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> Encod
 enrollImpl config encodeSigner paperId password name phoneNumber phoneNumberSecret pool = runSqlPoolOneConnection (enroll' config encodeSigner paperId password name phoneNumber phoneNumberSecret pool) pool
 
 enroll'Impl :: forall p m. (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
-enroll'Impl config encodeSigner paperId password name phoneNumber' phoneNumberSecret pool conn= do
+enroll'Impl config encodeSigner paperId password name phoneNumber' phoneNumberSecret pool conn = do
     profile <- ask
     phoneNumber <- stringToPhoneNumber phoneNumber'
     currentUTC <- paperLiftIOUnliftIO getCurrentTime

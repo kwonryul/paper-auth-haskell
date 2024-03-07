@@ -38,19 +38,19 @@ import Data.Text
 data VerifyRequestReqDTO = VerifyRequestReqDTO {
     phoneNumber :: String
     }
-$(deriveFromJSON defaultOptions ''VerifyRequestReqDTO)
+$(deriveJSON defaultOptions ''VerifyRequestReqDTO)
 
 data VerifyCheckReqDTO = VerifyCheckReqDTO {
     phoneNumber :: String
   , phoneNumberSecret :: String
   }
-$(deriveFromJSON defaultOptions ''VerifyCheckReqDTO)
+$(deriveJSON defaultOptions ''VerifyCheckReqDTO)
 
 data VerifyCheckResDTO = VerifyCheckResDTO {
     result :: Bool
   , failCount :: Int
-  }
-$(deriveToJSON defaultOptions ''VerifyCheckResDTO)
+  } deriving (Show, Eq)
+$(deriveJSON defaultOptions ''VerifyCheckResDTO)
 
 data EnrollReqDTO = EnrollReqDTO {
     paperId :: String
@@ -59,9 +59,9 @@ data EnrollReqDTO = EnrollReqDTO {
   , phoneNumber :: String
   , phoneNumberSecret :: String
   }
-$(deriveFromJSON defaultOptions ''EnrollReqDTO)
+$(deriveJSON defaultOptions ''EnrollReqDTO)
 
 data EnrollResDTO = EnrollResDTO {
     accessToken :: Text
-  }
-$(deriveToJSON defaultOptions ''EnrollResDTO)
+  } deriving (Show, Eq)
+$(deriveJSON defaultOptions ''EnrollResDTO)

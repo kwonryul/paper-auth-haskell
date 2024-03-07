@@ -9,20 +9,23 @@ module JWT.Controller(
       )
   , API
 #ifdef TEST
-  , API2
-  , IssueJWTReqDTO
-  , IssueJWTResDTO
+  , IssueJWT
+  , RefreshJWT
+  , InvalidateJWT
+  , IndirectRequestJWT
+  , IndirectIssueJWT
 #endif
 ) where
 
 import qualified JWT.Service
 import JWT.Service (JWTServiceI)
 
-import Authentication ()
+import Authentication()
 import JWT.Model
 import JWT.DTO
 import Context
 import PaperMonad
+import MIME
 
 import Servant
 import Web.Cookie
@@ -30,20 +33,18 @@ import Web.Cookie
 import GHC.Stack
 
 type API = IssueJWT
-    :<|> RefreshJWT
-    :<|> InvalidateJWT
+    :<|> AuthProtect "jwt-auth-refresh" :> RefreshJWT
+    :<|> AuthProtect "jwt-auth" :> InvalidateJWT
     :<|> "indirect" :> (
         IndirectRequestJWT
         :<|> IndirectIssueJWT
         )
 
-type API2 = IssueJWT
-
-type IssueJWT = "issue" :> ReqBody '[JSON] IssueJWTReqDTO :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)
-type RefreshJWT = "refresh" :> AuthProtect "jwt-auth-refresh" :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie] RefreshJWTResDTO)
-type InvalidateJWT = "invalidate" :> AuthProtect "jwt-auth" :> Delete '[PlainText] NoContent
-type IndirectRequestJWT = "request" :> Get '[JSON] NoContent
-type IndirectIssueJWT = "issue" :> Get '[JSON] NoContent
+type IssueJWT = "issue" :> ReqBody '[PrettyJSON] IssueJWTReqDTO :> Post '[PrettyJSON] (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)
+type RefreshJWT = "refresh" :> Post '[PrettyJSON] (Headers '[Header "Set-Cookie" SetCookie] RefreshJWTResDTO)
+type InvalidateJWT = "invalidate" :> Delete '[PlainText] NoContent
+type IndirectRequestJWT = "request" :> Get '[PrettyJSON] NoContent
+type IndirectIssueJWT = "issue" :> Get '[PlainText] NoContent
 
 class JWTServiceI p => JWTControllerI p where
     issueJWT :: HasCallStack => Proxy p -> Context.Context -> IssueJWTReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)

@@ -69,12 +69,12 @@ This api is only for frontend user experience.
 ==== {major-index}.{minor-index}.2. Example
 [source]
 ----
-include::{docfile}/../../generated/snippets/user/verifyCheck-request.adoc[]
+include::{snippetsDir}user/verifyCheck-request.adoc[]
 ----
 
 [source]
 ----
-include::{docfile}/../../generated/snippets/user/verifyCheck-response.adoc[]
+include::{snippetsDir}user/verifyCheck-response.adoc[]
 ----
 
 :minor-index: 3
@@ -116,12 +116,12 @@ For all user enrolled by this api, authenticationType becomes Paper.
 ==== {major-index}.{minor-index}.2. Example
 [source]
 ----
-include::{docfile}/../../generated/snippets/user/enroll-request.adoc[]
+include::{snippetsDir}user/enroll-request.adoc[]
 ----
 
 [source]
 ----
-include::{docfile}/../../generated/snippets/user/enroll-response.adoc[]
+include::{snippetsDir}user/enroll-response.adoc[]
 ----
 
 ==== {major-index}.{minor-index}.3. Exceptions

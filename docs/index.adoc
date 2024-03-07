@@ -1,4 +1,4 @@
-= PaperAuth API document
+= PaperAuth API Document
 :doctype: book
 :icons: font
 :toc: left

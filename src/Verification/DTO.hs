@@ -21,7 +21,7 @@ data PhoneNumberSecretWrongDTO = PhoneNumberSecretWrongDTO {
     msg :: String
   , failCount :: Int
   }
-$(deriveToJSON defaultOptions ''PhoneNumberSecretWrongDTO)
+$(deriveJSON defaultOptions ''PhoneNumberSecretWrongDTO)
 
 class Profile p => VerificationDTOI p where
     phoneNumberSecretWrongDTO :: Proxy p -> Int -> PhoneNumberSecretWrongDTO
