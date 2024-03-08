@@ -17,6 +17,7 @@ module Import(
       )
 ) where
 
+import Definition
 
 import Database.Persist.Typed
 import Database.Persist.TH
@@ -37,6 +38,5 @@ instance DB PaperAuthDB
 type PaperAuthConn = SqlFor PaperAuthDB
 type PaperAuthPool = ConnectionPoolFor PaperAuthDB
 
-data AuthenticationType = Paper
-  deriving (Show, Read, Eq)
+$(defineEnum "import/authenticationType.enum")
 $(derivePersistField "AuthenticationType")

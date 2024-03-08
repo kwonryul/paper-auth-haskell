@@ -23,15 +23,15 @@ import Web.Cookie
 import GHC.Stack
 
 type API =
-    "verify" :> (
-        VerifyRequest
-        :<|> VerifyCheck
-        )
-    :<|> Enroll
+        "verify" :> (
+                "request" :> VerifyRequest
+            :<|> "check" :> VerifyCheck
+            )
+    :<|> "enroll" :> Enroll
 
-type VerifyRequest = "request" :> ReqBody '[PrettyJSON] VerifyRequestReqDTO :> Post '[PlainText] NoContent
-type VerifyCheck = "check" :> ReqBody '[PrettyJSON] VerifyCheckReqDTO :> Post '[PrettyJSON] VerifyCheckResDTO
-type Enroll = "enroll" :> ReqBody '[PrettyJSON] EnrollReqDTO :> Post '[PrettyJSON] (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
+type VerifyRequest = ReqBody '[PrettyJSON] VerifyRequestReqDTO :> Post '[PlainText] NoContent
+type VerifyCheck = ReqBody '[PrettyJSON] VerifyCheckReqDTO :> Post '[PrettyJSON] VerifyCheckResDTO
+type Enroll = ReqBody '[PrettyJSON] EnrollReqDTO :> Post '[PrettyJSON] (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 
 class UserServiceI p => UserControllerI p where
     verifyRequest :: HasCallStack => Proxy p -> Context.Context -> VerifyRequestReqDTO -> Handler NoContent
@@ -60,8 +60,9 @@ enrollImpl _  context (EnrollReqDTO { paperId, password, name, phoneNumber, phon
         (config context) encodeSigner paperId password name phoneNumber phoneNumberSecret (paperAuthPool context)
 
 serverImpl :: (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> Server API
-serverImpl p context = (
-        verifyRequest p context
-        :<|> verifyCheck p context
-        )
+serverImpl p context =
+            (
+                verifyRequest p context
+            :<|> verifyCheck p context
+            )
     :<|> enroll p context

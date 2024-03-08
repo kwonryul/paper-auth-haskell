@@ -62,13 +62,13 @@ class JWTRepositoryI p => VerificationServiceI p where
     accessTokenSub' = accessTokenSub'Impl
     refreshTokenSub' :: Proxy p -> UserId -> Maybe StringOrURI
     refreshTokenSub' = refreshTokenSub'Impl
-    stringOrURI' :: (HasCallStack, MonadUnliftIO m) => Maybe Text -> PaperMonad p m (Maybe StringOrURI)
+    stringOrURI' :: (HasCallStack, Monad m) => Maybe Text -> PaperMonad p m (Maybe StringOrURI)
     stringOrURI' = stringOrURI'Impl
-    stringOrURI'' :: (HasCallStack, MonadUnliftIO m) => Int64 -> PaperMonad p m (Maybe StringOrURI)
+    stringOrURI'' :: (HasCallStack, Monad m) => Int64 -> PaperMonad p m (Maybe StringOrURI)
     stringOrURI'' = stringOrURI''Impl
-    stringOrURIList :: (HasCallStack, MonadUnliftIO m) => Maybe Text -> PaperMonad p m (Maybe [StringOrURI])
+    stringOrURIList :: (HasCallStack, Monad m) => Maybe Text -> PaperMonad p m (Maybe [StringOrURI])
     stringOrURIList = stringOrURIListImpl
-    formattedDateToNumericDate :: (HasCallStack, MonadUnliftIO m) => Maybe Text -> PaperMonad p m (Maybe NumericDate)
+    formattedDateToNumericDate :: (HasCallStack, Monad m) => Maybe Text -> PaperMonad p m (Maybe NumericDate)
     formattedDateToNumericDate = formattedDateToNumericDateImpl
     accessTokenClaimsSet' :: (HasCallStack, MonadUnliftIO m) => Config -> AccessTokenId -> UTCTime -> Maybe NominalDiffTime -> UserId -> Set Role -> PaperMonad p m JWTClaimsSet
     accessTokenClaimsSet' = accessTokenClaimsSet'Impl
@@ -162,7 +162,7 @@ refreshTokenSub'Impl :: VerificationServiceI p => Proxy p -> UserId -> Maybe Str
 refreshTokenSub'Impl _ userId =
     stringOrURI $ pack $ show $ fromSqlKeyFor userId
 
-stringOrURI'Impl :: forall p m. (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Maybe Text -> PaperMonad p m (Maybe StringOrURI)
+stringOrURI'Impl :: forall p m. (HasCallStack, VerificationServiceI p, Monad m) => Maybe Text -> PaperMonad p m (Maybe StringOrURI)
 stringOrURI'Impl mt = case mt of
     Just t -> case stringOrURI t of
         Just s -> return $ Just s
@@ -172,7 +172,7 @@ stringOrURI'Impl mt = case mt of
         profile :: Proxy p
         profile = Proxy
 
-stringOrURI''Impl :: forall p m. (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Int64 -> PaperMonad p m (Maybe StringOrURI)
+stringOrURI''Impl :: forall p m. (HasCallStack, VerificationServiceI p, Monad m) => Int64 -> PaperMonad p m (Maybe StringOrURI)
 stringOrURI''Impl i = do
     case stringOrURI $ pack . show $ i of
         Just s -> return $ Just s
@@ -181,12 +181,12 @@ stringOrURI''Impl i = do
         profile :: Proxy p
         profile = Proxy
 
-stringOrURIListImpl :: forall p m. (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Maybe Text -> PaperMonad p m (Maybe [StringOrURI])
+stringOrURIListImpl :: forall p m. (HasCallStack, VerificationServiceI p, Monad m) => Maybe Text -> PaperMonad p m (Maybe [StringOrURI])
 stringOrURIListImpl mt = case mt of
     Just t -> Just <$> stringOrURIList' t
     Nothing -> return Nothing
     where
-        stringOrURIList' :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Text -> PaperMonad p m [StringOrURI]
+        stringOrURIList' :: (HasCallStack, VerificationServiceI p, Monad m) => Text -> PaperMonad p m [StringOrURI]
         stringOrURIList' t = do
             Data.Traversable.mapM (\t' -> do
                     case stringOrURI t' of
@@ -197,12 +197,12 @@ stringOrURIListImpl mt = case mt of
         profile :: Proxy p
         profile = Proxy
 
-formattedDateToNumericDateImpl :: forall p m. (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Maybe Text -> PaperMonad p m (Maybe NumericDate)
+formattedDateToNumericDateImpl :: forall p m. (HasCallStack, VerificationServiceI p, Monad m) => Maybe Text -> PaperMonad p m (Maybe NumericDate)
 formattedDateToNumericDateImpl t' = case t' of
     Just t -> Just <$> formattedDateToIntDate' t
     Nothing -> return Nothing
     where
-        formattedDateToIntDate' :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => Text -> PaperMonad p m NumericDate
+        formattedDateToIntDate' :: (HasCallStack, VerificationServiceI p, Monad m) => Text -> PaperMonad p m NumericDate
         formattedDateToIntDate' t = do
             case parseTimeM True defaultTimeLocale "%Y-%m-%d %H:%M:%S" (show t) of
                 Just utc -> do

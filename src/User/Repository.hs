@@ -35,7 +35,7 @@ newUserImpl authenticationType paperId password name phoneNumber' registerDate c
             case phoneNumber' of
                 Just (PhoneNumber p) -> Just p
                 Nothing -> Nothing
-    paperLiftUnliftIO $ runReaderT (insert $ User authenticationType paperId password name phoneNumber registerDate) conn
+    paperLiftUnliftIO $ runReaderT (insert $ User authenticationType paperId (Just password) name phoneNumber registerDate) conn
 
 findByPaperIdImpl :: (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m (Maybe (Entity User))
 findByPaperIdImpl paperId conn = do

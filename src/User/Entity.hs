@@ -21,7 +21,7 @@ share [mkPersist (mkSqlSettingsFor ''PaperAuthDB), mkMigrate "migrateUser"] [per
 User
     authenticationType AuthenticationType
     paperId String
-    password ByteString
+    password ByteString Maybe
     name String
     phoneNumber String Maybe
     registerDate UTCTime

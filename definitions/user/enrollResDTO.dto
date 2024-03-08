@@ -1,0 +1,5 @@
+EnrollResDTO
+
+accessToken Text
+접근토큰 발급
+-

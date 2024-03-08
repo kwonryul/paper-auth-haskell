@@ -30,38 +30,24 @@ module User.DTO(
       )
 ) where
 
+import Definition
+
 import Data.Aeson
 import Data.Aeson.TH
 
 import Data.Text
 
-data VerifyRequestReqDTO = VerifyRequestReqDTO {
-    phoneNumber :: String
-    }
+$(defineDTO "user/verifyRequestReqDTO.dto")
 $(deriveJSON defaultOptions ''VerifyRequestReqDTO)
 
-data VerifyCheckReqDTO = VerifyCheckReqDTO {
-    phoneNumber :: String
-  , phoneNumberSecret :: String
-  }
+$(defineDTO "user/verifyCheckReqDTO.dto")
 $(deriveJSON defaultOptions ''VerifyCheckReqDTO)
 
-data VerifyCheckResDTO = VerifyCheckResDTO {
-    result :: Bool
-  , failCount :: Int
-  } deriving (Show, Eq)
+$(defineDTO "user/verifyCheckResDTO.dto")
 $(deriveJSON defaultOptions ''VerifyCheckResDTO)
 
-data EnrollReqDTO = EnrollReqDTO {
-    paperId :: String
-  , password :: String
-  , name :: String
-  , phoneNumber :: String
-  , phoneNumberSecret :: String
-  }
+$(defineDTO "user/enrollReqDTO.dto")
 $(deriveJSON defaultOptions ''EnrollReqDTO)
 
-data EnrollResDTO = EnrollResDTO {
-    accessToken :: Text
-  } deriving (Show, Eq)
+$(defineDTO "user/enrollResDTO.dto")
 $(deriveJSON defaultOptions ''EnrollResDTO)

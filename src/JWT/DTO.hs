@@ -22,18 +22,13 @@ import Data.Aeson.TH
 
 import Data.Text
 
-data IssueJWTReqDTO = IssueJWTReqDTO {
-    paperId :: String
-  , password :: String
-  }
+import Definition
+
+$(defineDTO "jwt/issueJWTReqDTO.dto")
 $(deriveJSON defaultOptions ''IssueJWTReqDTO)
 
-data IssueJWTResDTO = IssueJWTResDTO {
-    accessToken :: Text
-  } deriving (Show, Eq)
+$(defineDTO "jwt/issueJWTResDTO.dto")
 $(deriveJSON defaultOptions ''IssueJWTResDTO)
 
-data RefreshJWTResDTO = RefreshJWTResDTO {
-    accessToken :: Text
-  } deriving (Show, Eq)
+$(defineDTO "jwt/refreshJWTResDTO.dto")
 $(deriveJSON defaultOptions ''RefreshJWTResDTO)

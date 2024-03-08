@@ -6,22 +6,21 @@
 :sectlinks:
 :docinfo: shared-head
 
-== Commons
+== Route
 |===
 |Key |Value |Description
 
 |Domain |43.200.64.248 |-
-|Port |80 |http port
-|Port |443 |https port
+|Port |80 |Http port
+|Port |443 |Https port
 |===
 
 |===
 |Url |Description
 
-|/favicon.ico |favicon
-|/static/docs/index.html |api docs
-|/static/** |other static files
-|/** |inner apis
+|/favicon.ico |-
+|/docs/index.html |백엔드 문서
+|/static/** |정적 파일
 |===
 
 == Authentication
@@ -29,15 +28,29 @@
 |===
 |Method |Name |TokenType |Description
 
-|Header |Authorization |Bearer |paper accessToken
-|Cookie |Paper-Refresh-Token |- |paper refreshToken
+|Header |Authorization |Bearer |Paper accessToken
+|Cookie |Paper-Refresh-Token |- |Paper refreshToken
 |===
 
 === JWT-AUTH-REFRESH
 |===
 |Path |Name |TokenType |Description
 
-|Cookie |Paper-Refresh-Token |- |paper refreshToken
+|Cookie |Paper-Refresh-Token |- |Paper refreshToken
+|===
+
+== Type
+*타입은 기본적으로 하스켈의 타입으로 표기합니다*
+
+|===
+|Type |Description
+
+|?T |타입이 T이지만, 값이 없을수도 있음
+|[T] |T타입 값들의 리스트
+|Bool |true / false
+|Int |정수
+|String |문자열
+|Text |문자열
 |===
 
 include::{docfile}/../jwt.adoc[]

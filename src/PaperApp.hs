@@ -6,9 +6,6 @@ module PaperApp (
     PaperAppI(
         app
       )
-#ifdef TEST
-  , appImpl
-#endif
   ) where
 
 import qualified JWT.Controller
@@ -16,7 +13,6 @@ import JWT.Controller (JWTControllerI)
 import qualified User.Controller
 import User.Controller (UserControllerI)
 
-import Configurator
 import Context
 import Authentication
 import PaperMonad
@@ -27,14 +23,16 @@ import Servant.Static.TH.Internal.Mime
 import System.IO
 import Data.ByteString
 import Control.Monad.Catch
+import System.Environment
 import GHC.Stack
 
-type API = "favicon.ico" :> Get '[ICO] ByteString
+type API =
+        "favicon.ico" :> Get '[ICO] ByteString
     :<|> "docs" :> Raw
     :<|> "static" :> Raw
     :<|> "jwt" :> JWT.Controller.API
---    :<|> "oauth2" :> OAuth2.API
     :<|> "user" :> User.Controller.API
+--    :<|> "oauth2" :> OAuth2.API
 
 class (AuthenticationI p, UserControllerI p, JWTControllerI p) => PaperAppI p where
     server :: HasCallStack => Proxy p -> Context.Context -> FilePath -> FilePath -> Server API
@@ -56,8 +54,9 @@ serverImpl p context docsFilePath staticFilePath = faviconServer p context
 
 faviconServerImpl :: forall p. (HasCallStack, PaperAppI p) => Proxy p -> Context.Context -> Servant.Handler ByteString
 faviconServerImpl profile context = do
-    projectDir <- runPaperMonad @p context $ lookupRequired (config context) "projectDir"
-    let filePath = projectDir ++ "static/favicon.ico"
+    homeDir <- paperLog profile context $ getEnv "HOME"
+    projectDir <- paperLog profile context $ Prelude.readFile $ homeDir ++ "/.paper-auth/project-directory"
+    let filePath = projectDir ++ "resources/static/favicon.ico"
     Control.Monad.Catch.bracket
         (paperLog profile context $ openFile filePath ReadMode)
         (paperLog profile context . hClose)

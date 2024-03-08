@@ -11,16 +11,14 @@ module Verification.DTO(
 ) where
 
 import Monad.ProfileT
+import Definition
 
 import Data.Aeson
 import Data.Aeson.TH
 
 import Data.Proxy
 
-data PhoneNumberSecretWrongDTO = PhoneNumberSecretWrongDTO {
-    msg :: String
-  , failCount :: Int
-  }
+$(defineDTO "verification/phoneNumberSecretWrongDTO.dto")
 $(deriveJSON defaultOptions ''PhoneNumberSecretWrongDTO)
 
 class Profile p => VerificationDTOI p where

@@ -20,12 +20,12 @@ import GHC.Stack
 newtype PhoneNumber = PhoneNumber String
 
 class PaperMonadI p => VerificationUtilI p where
-    stringToPhoneNumber :: (HasCallStack, MonadUnliftIO m) => String -> PaperMonad p m PhoneNumber
+    stringToPhoneNumber :: (HasCallStack, Monad m) => String -> PaperMonad p m PhoneNumber
     stringToPhoneNumber = stringToPhoneNumberImpl
     generatePhoneNumberSecret :: (HasCallStack, MonadUnliftIO m) => PaperMonad p m String
     generatePhoneNumberSecret = generatePhoneNumberSecretImpl
 
-stringToPhoneNumberImpl :: forall p m. (HasCallStack, VerificationUtilI p, MonadUnliftIO m) => String -> PaperMonad p m PhoneNumber
+stringToPhoneNumberImpl :: forall p m. (HasCallStack, VerificationUtilI p, Monad m) => String -> PaperMonad p m PhoneNumber
 stringToPhoneNumberImpl phoneNumber = do
     if phoneNumber =~ ("^[0-9]{3}-[0-9]{4}-[0-9]{4}$" :: String) :: Bool then
         return $ PhoneNumber phoneNumber

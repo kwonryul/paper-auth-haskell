@@ -9,39 +9,28 @@
 ==== {major-index}.{minor-index}.1. Specifications
 ===== Request
 ====== Body
-[IssueJWTReqDTO]
-|===
-|Path |Type |Description
-
-|paperId |String |-
-|password |String |must not be hashed
-|===
+include::{definitionsDir}jwt/issueJWTReqDTO.adoc[]
 
 ===== Response
 ====== Cookie
 |===
 |Name |Type |Description
 
-|Paper-Refresh-Token |paper |refreshToken
+|Paper-Refresh-Token |paper |리프레쉬토큰 발급
 |===
 
 ====== Body
-[IssueJWTResDTO]
-|===
-|Path |Type |Description
-
-|accessToken |Text |paper accessToken
-|===
+include::{definitionsDir}jwt/issueJWTResDTO.adoc[]
 
 ==== {major-index}.{minor-index}.2. Example
 [source]
 ----
-include::{snippetsDir}jwt/issueJWT-request.adoc[]
+include::{examplesDir}jwt/issueJWT-request.adoc[]
 ----
 
 [source]
 ----
-include::{snippetsDir}jwt/issueJWT-response.adoc[]
+include::{examplesDir}jwt/issueJWT-response.adoc[]
 ----
 
 :minor-index: 2
@@ -57,22 +46,24 @@ include::{snippetsDir}jwt/issueJWT-response.adoc[]
 
 ===== Response
 ====== Body
-[RefreshJWTResDTO]
+====== Cookie
 |===
-|Path |Type |Description
+|Name |Type |Description
 
-|accessToken |Text |paper accessToken
+|Paper-Refresh-Token |paper |리프레쉬토큰 발급
 |===
+
+include::{definitionsDir}jwt/refreshJWTResDTO.adoc[]
 
 ==== {major-index}.{minor-index}.2. Example
 [source]
 ----
-include::{snippetsDir}jwt/refreshJWT-request.adoc[]
+include::{examplesDir}jwt/refreshJWT-request.adoc[]
 ----
 
 [source]
 ----
-include::{snippetsDir}jwt/refreshJWT-response.adoc[]
+include::{examplesDir}jwt/refreshJWT-response.adoc[]
 ----
 
 :minor-index: 3
@@ -80,7 +71,7 @@ include::{snippetsDir}jwt/refreshJWT-response.adoc[]
 *DELETE /jwt/invalidate* +
 
 |===
-|Authentication |JWT_AUTH
+|Authentication |JWT-AUTH
 |===
 
 ==== {major-index}.{minor-index}.1. Specifications
@@ -92,10 +83,10 @@ include::{snippetsDir}jwt/refreshJWT-response.adoc[]
 ==== {major-index}.{minor-index}.2. Example
 [source]
 ----
-include::{snippetsDir}jwt/invalidateJWT-request.adoc[]
+include::{examplesDir}jwt/invalidateJWT-request.adoc[]
 ----
 
 [source]
 ----
-include::{snippetsDir}jwt/invalidateJWT-response.adoc[]
+include::{examplesDir}jwt/invalidateJWT-response.adoc[]
 ----

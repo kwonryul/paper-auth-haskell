@@ -1,0 +1,6 @@
+AuthenticationType
+
+Paper
+페이퍼 자체 회원가입 +
+paperId 와 password 를 통해 인증합니다
+-

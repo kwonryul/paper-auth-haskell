@@ -30,7 +30,6 @@ module PaperMonad(
       , maybeTToPaperMonad
       , maybeTToPaperMonadUnliftIO
       , paperAssert
-      , paperThrow
       )
 ) where
 
@@ -144,9 +143,6 @@ class (ErrorTI profile, ErrorTProfile profile PaperErrorP) => PaperMonadI profil
     maybeTToPaperMonadUnliftIO = maybeTToPaperMonadUnliftIOImpl
     paperAssert :: (ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => Bool -> e -> PaperMonad profile m ()
     paperAssert = paperAssertImpl
-    paperThrow :: (ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => e -> PaperMonad profile m ()
-    paperThrow = paperThrowImpl
-
 
 toPaperMonadImpl :: forall e profile m a. (PaperMonadI profile, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => e -> PaperMonad profile m a
 toPaperMonadImpl = PaperMonad . lift . toSafeErrorT (Proxy :: Proxy e). toInnerError
@@ -186,7 +182,3 @@ maybeTToPaperMonadUnliftIOImpl m ex = PaperMonad $ lift $ maybeTToErrorTUnliftIO
 
 paperAssertImpl :: (PaperMonadI profile, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => Bool -> e -> PaperMonad profile m ()
 paperAssertImpl b ex = PaperMonad $ lift $ errorAssert b ex
-
-paperThrowImpl :: forall profile e m. (PaperMonadI profile, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => e -> PaperMonad profile m ()
-paperThrowImpl ex =
-    PaperMonad $ lift $ toSafeErrorT (Proxy :: Proxy e) $ toInnerError ex

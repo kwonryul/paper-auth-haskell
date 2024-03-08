@@ -20,7 +20,6 @@ import DB
 import GlobalMonad
 import CallStack
 import Import
-import Paths_paper_auth
 
 import Data.Configurator
 import Data.Configurator.Types
@@ -30,6 +29,7 @@ import Control.Monad.IO.Unlift
 import Control.Concurrent
 import Data.ByteString
 import Data.Proxy
+import System.Environment
 import GHC.Stack
 
 class DBI p => ContextI p where
@@ -45,7 +45,9 @@ class DBI p => ContextI p where
 
 getConfig'Impl :: (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m (Config, ThreadId)
 getConfig'Impl = do
-    filePath <- globalLiftIOUnliftIO $ getDataFileName "resources/application.cfg"
+    homeDir <- globalLiftIOUnliftIO $ getEnv "HOME"
+    projectDir <- globalLiftIOUnliftIO $ Prelude.readFile $ homeDir ++ "/.paper-auth/project-directory"
+    let filePath = projectDir ++ "resources/application.cfg"
     globalLiftIOUnliftIO $ autoReload autoConfig [Required filePath]
 
 getContextImpl :: (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m Context
@@ -63,7 +65,9 @@ getContextImpl = do
 
 getPaperEncodeSigner'Impl :: forall p m. (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m EncodeSigner
 getPaperEncodeSigner'Impl = do
-    filePath <- globalLiftIOUnliftIO $ getDataFileName "resources/jwt/paper-auth.pem"
+    homeDir <- globalLiftIOUnliftIO $ getEnv "HOME"
+    projectDir <- globalLiftIOUnliftIO $ Prelude.readFile $ homeDir ++ "/.paper-auth/project-directory"
+    let filePath = projectDir ++ "resources/jwt/paper-auth.pem"
     content <- globalLiftIOUnliftIO $ Data.ByteString.readFile filePath
     case readRsaSecret content of
         Just privateKey -> return $ EncodeRSAPrivateKey privateKey
@@ -74,7 +78,9 @@ getPaperEncodeSigner'Impl = do
 
 getPaperVerifySigner'Impl :: forall p m. (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m VerifySigner
 getPaperVerifySigner'Impl = do
-    filePath <- globalLiftIOUnliftIO $ getDataFileName "resources/jwt/paper-auth.pub"
+    homeDir <- globalLiftIOUnliftIO $ getEnv "HOME"
+    projectDir <- globalLiftIOUnliftIO $ Prelude.readFile $ homeDir ++ "/.paper-auth/project-directory"
+    let filePath = projectDir ++ "resources/jwt/paper-auth.pub"
     content <- globalLiftIOUnliftIO $ Data.ByteString.readFile filePath
     case readRsaPublicKey content of
         Just publicKey -> return $ VerifyRSAPublicKey publicKey

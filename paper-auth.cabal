@@ -11,12 +11,6 @@ maintainer:         pkr08205@gmail.com
 category:           Web
 build-type:         Custom
 
-data-files:
-    resources/*.cfg
-    resources/tls/cert.pem
-    resources/tls/secret-key.pem
-    resources/jwt/paper-auth.pem
-    resources/jwt/paper-auth.pub
 extra-doc-files:
     CHANGELOG.md
 -- extra-source-files:
@@ -67,6 +61,7 @@ library
       , Configurator
       , Context
       , DB
+      , Definition
       , GlobalMonad
       , Import
       , MIME
@@ -170,14 +165,15 @@ test-suite paper-auth-test
       , Configurator
       , Context
       , DB
+      , Definition
       , GlobalMonad
       , Import
       , MIME
       , PaperApp
       , PaperMonad
-      , Profile.Test
       , Profile.Test.Import
       , Profile.Test.Snippet
+      , Profile.Test
       , Test.JWT
       , Test.User
     -- other-extensions:

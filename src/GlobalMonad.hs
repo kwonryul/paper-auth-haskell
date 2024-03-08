@@ -30,7 +30,6 @@ module GlobalMonad(
       , maybeTToGlobalMonad
       , maybeTToGlobalMonadUnliftIO
       , globalAssert
-      , globalThrow
       )
 ) where
 
@@ -132,8 +131,6 @@ class (ErrorTI profile, ErrorTProfile profile GlobalErrorP) => GlobalMonadI prof
     maybeTToGlobalMonadUnliftIO = maybeTToGlobalMonadUnliftIOImpl
     globalAssert :: (ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => Bool -> e -> GlobalMonad profile m ()
     globalAssert = globalAssertImpl
-    globalThrow :: (ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => e -> GlobalMonad profile m ()
-    globalThrow = globalThrowImpl
 
 toGlobalMonadImpl :: forall e profile m a. (GlobalMonadI profile, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => e -> GlobalMonad profile m a
 toGlobalMonadImpl = GlobalMonad . lift . toSafeErrorT (Proxy :: Proxy e) . toInnerError
@@ -176,7 +173,3 @@ maybeTToGlobalMonadUnliftIOImpl m ex = GlobalMonad $ lift $ maybeTToErrorTUnlift
 
 globalAssertImpl :: (GlobalMonadI profile, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => Bool -> e -> GlobalMonad profile m ()
 globalAssertImpl b ex = GlobalMonad $ lift $ errorAssert b ex
-
-globalThrowImpl :: forall profile e m. (GlobalMonadI profile, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => e -> GlobalMonad profile m ()
-globalThrowImpl ex =
-    GlobalMonad $ lift $ toSafeErrorT (Proxy :: Proxy e) $ toInnerError ex

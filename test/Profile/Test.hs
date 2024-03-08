@@ -24,7 +24,6 @@ import GlobalMonad
 import PaperApp
 import Lib
 
-import Paths_paper_auth
 import Import
 import Monad.ErrorT
 import Monad.ProfileT
@@ -34,7 +33,6 @@ import CallStack
 import User.DTO
 
 import Profile.Test.Import
-import Profile.Test.Snippet
 
 import Data.Configurator
 
@@ -55,6 +53,7 @@ import Data.Text
 import Data.Text.Encoding
 import Data.ByteString.Char8
 import Text.Regex.TDFA
+import System.Environment
 
 instance JWTControllerI Test
 instance JWTRepositoryI Test
@@ -72,15 +71,14 @@ instance VerificationUtilI Test
 --instance ContextI Test
 --instance DBI Test
 instance LibI Test
---instance PaperAppI Test
+instance PaperAppI Test
 
 instance ContextI Test where
     getConfig' = do
-        filePath <- globalLiftIOUnliftIO $ getDataFileName "resources/application-test.cfg"
+        homeDir <- globalLiftIOUnliftIO $ getEnv "HOME"
+        projectDir <- globalLiftIOUnliftIO $ Prelude.readFile $ homeDir ++ "/.paper-auth/project-directory"
+        let filePath = projectDir ++ "resources/application-test.cfg"
         globalLiftIOUnliftIO $ autoReload autoConfig [Required filePath]
-
-instance PaperAppI Test where
-    app p context docsFilePath staticFilePath = generateSnippetM context $ appImpl p context docsFilePath staticFilePath
 
 instance DBI Test where
     runSqlPoolOneConnection inner pool = do
@@ -132,7 +130,7 @@ instance AuthenticationI Test where
         let userId = toSqlKeyFor $ read $ Data.Text.unpack $  Data.Text.Encoding.decodeUtf8 refreshToken =~ ("([0-9])+" :: String)
         user' <- paperLiftUnliftIO $ runReaderT (get userId) conn
         case user' of
-            Nothing -> paperThrow $ PaperError "user not found" (err401 { errBody = "user not found" }) (callStack' profile)
+            Nothing -> toPaperMonad $ PaperError "user not found" (err401 { errBody = "user not found" }) (callStack' profile)
             _ -> return ()
         refreshTokenId <- JWT.Repository.newRefreshToken conn userId currentUTC Nothing
         JWT.Repository.saveRefreshToken conn refreshTokenId (Data.Text.Encoding.decodeUtf8 refreshToken)

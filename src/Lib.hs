@@ -33,7 +33,6 @@ import Context
 import Configurator
 import GlobalMonad
 import DB
-import Paths_paper_auth
 
 import Database.Persist.Sql
 import Database.Persist.Typed
@@ -44,6 +43,7 @@ import Control.Monad.Trans.Reader
 import Control.Monad.IO.Unlift
 import Control.Concurrent
 import Data.Proxy
+import System.Environment
 import GHC.Stack
 
 data Resources = Resources {
@@ -74,8 +74,10 @@ getAllResourcesImpl _ = runGlobalMonadWithoutLog $ getAllResources' @p
 getAllResources'Impl :: forall p m. (HasCallStack, LibI p, MonadUnliftIO m) => GlobalMonad p m Resources
 getAllResources'Impl = do
     context <- getContext @p
-    certPath <- globalLiftIOUnliftIO $ getDataFileName "resources/tls/cert.pem"
-    secretKeyPath <- globalLiftIOUnliftIO $ getDataFileName "resources/tls/secret-key.pem"
+    homeDir <- globalLiftIOUnliftIO $ getEnv "HOME"
+    projectDir <- globalLiftIOUnliftIO $ readFile $ homeDir ++ "/.paper-auth/project-directory"
+    let certPath = projectDir ++ "resources/tls/cert.pem"
+        secretKeyPath = projectDir ++ "resources/tls/secret-key.pem"
     return $ Resources {
         context, certPath, secretKeyPath
         }
@@ -86,11 +88,12 @@ startAppImpl _ context certPath secretKeyPath =
 
 startApp'Impl :: forall p m. (HasCallStack, LibI p, MonadUnliftIO m) => Context -> FilePath -> FilePath -> GlobalMonad p m ()
 startApp'Impl context certPath secretKeyPath = do
-    projectDir <- lookupRequiredGlobal (config context) "projectDir"
+    homeDir <- globalLiftIOUnliftIO $ getEnv "HOME"
+    projectDir <- globalLiftIOUnliftIO $ readFile $ homeDir ++ "/.paper-auth/project-directory"
     httpPort <- lookupRequiredGlobal (config context) "port.http"
     httpsPort <- lookupRequiredGlobal (config context) "port.https"
     let docsFilePath = projectDir ++ "generated/docs"
-        staticFilePath = projectDir ++ "static"
+        staticFilePath = projectDir ++ "resources/static"
     _ <- globalLiftIOUnliftIO $ forkIO $ (globalLog profile context $ run httpPort (app (Proxy :: Proxy p) context docsFilePath staticFilePath))
     globalLiftIOUnliftIO $ runTLS
         (tlsSettings certPath secretKeyPath)

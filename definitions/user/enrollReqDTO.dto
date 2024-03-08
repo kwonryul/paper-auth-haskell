@@ -1,0 +1,19 @@
+EnrollReqDTO
+
+paperId String
+-
+
+password String
+해쉬하지 않은 상태 +
+DB에는 해쉬되어 저장됨
+-
+
+name String
+-
+
+phoneNumber String
+-
+
+phoneNumberSecret String
+/user/verify/check 를 통과했더라도 다시 보내야함
+-

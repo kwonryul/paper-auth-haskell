@@ -63,9 +63,12 @@ verifyIdPwImpl conn paperId password = do
         Just userEntity -> return userEntity
         Nothing ->
             toPaperMonad $ PaperError "user not found" (err401 { errBody = "user not found" }) (callStack' profile)
-    paperAssert
-        (validatePassword (userPassword user) (Data.ByteString.Char8.pack password))
-        (PaperError "password invalid" (err401 { errBody = "password invalid" }) (callStack' profile))
+    case userPassword user of
+        Just userPassword' -> 
+            paperAssert
+                (validatePassword userPassword' (Data.ByteString.Char8.pack password))
+                (PaperError "password invalid" (err401 { errBody = "password invalid" }) (callStack' profile))
+        Nothing -> toPaperMonad $ PaperError "user not having password" (err401 { errBody = "try another authentication method. user not having password" }) (callStack' profile)
     return rt
     where
         profile :: Proxy p

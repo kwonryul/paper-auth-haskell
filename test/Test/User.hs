@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Test.User(
     userSpec
@@ -9,6 +10,7 @@ import qualified User.Controller
 import Lib
 import Import
 import User.DTO
+import MIME
 
 import Profile.Test.Snippet
 
@@ -16,16 +18,34 @@ import Servant
 import Servant.Client
 import Network.Wai.Handler.Warp
 import Network.HTTP.Client
+import Web.Cookie
 
 import Test.Hspec
 
 import Control.Exception
+import Data.ByteString.Char8
+import Data.Text
 
-type APIC = "user" :> Header "Snippet-Path" String :> User.Controller.API
+type VerifyRequestC = "user" :> "verify" :> "request" :> Header "Snippet-Path" String :>
+    ReqBody '[PrettyJSON] VerifyRequestReqDTO :> Post '[PlainText] NoContent
+type VerifyCheckC = "user" :> "verify" :> "check" :> Header "Snippet-Path" String :>
+    ReqBody '[PrettyJSON] VerifyCheckReqDTO :> Post '[PrettyJSON] VerifyCheckResDTO
+type EnrollC = "user" :> "enroll" :> Header "Snippet-Path" String :>
+    ReqBody '[PrettyJSON] EnrollReqDTO :> Post '[PrettyJSON] (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
+
+verifyRequestC :: Client ClientM VerifyRequestC
+verifyRequestC = client (Servant.Proxy :: Servant.Proxy VerifyRequestC)
+
+verifyCheckC :: Client ClientM VerifyCheckC
+verifyCheckC = client (Servant.Proxy :: Servant.Proxy VerifyCheckC)
+
+enrollC :: Client ClientM EnrollC
+enrollC = client (Servant.Proxy :: Servant.Proxy EnrollC)
+
 type APIS = "user" :> User.Controller.API
 
 userApp :: LibI profile => Servant.Proxy profile -> Import.Context -> Application
-userApp profile ctx = generateSnippetM ctx $ serve (Servant.Proxy :: Servant.Proxy APIS) $ userServer profile ctx
+userApp profile ctx = generateExampleSnippetM ctx $ serve (Servant.Proxy :: Servant.Proxy APIS) $ userServer profile ctx
 
 userServer :: LibI profile => Servant.Proxy profile -> Import.Context -> Server APIS
 userServer profile ctx = User.Controller.server profile ctx
@@ -37,33 +57,44 @@ withUserApp profile action = do
 
 userSpec :: LibI profile => Servant.Proxy profile -> Spec
 userSpec profile = around (withUserApp profile) $ do
-    let clients = client (Servant.Proxy :: Servant.Proxy APIC)
     baseUrl <- runIO $ parseBaseUrl "http://localhost"
     manager <- runIO $ newManager defaultManagerSettings
     let clientEnv port = mkClientEnv manager (baseUrl { baseUrlPort = port })
     describe "user/verify" $ do
-        it "verifyRequest" $ \port -> do
-            result <- runClientM (verifyRequestC clients) (clientEnv port)
-            evaluate result `shouldReturn` result
-        it "verifyCheck" $ \port -> do
-            result <- runClientM (verifyCheckC clients) (clientEnv port)
-            evaluate result `shouldReturn` result
+        it "verifyRequest" $ \port -> verifyRequestTest $ clientEnv port
+        it "verifyCheck" $ \port -> verifyCheckTest $ clientEnv port
     describe "user" $ do
-        it "enroll" $ \port -> do
-            result <- runClientM (enrollC clients) (clientEnv port)
-            evaluate result `shouldReturn` result
+        it "enroll" $ \port -> enrollTest $ clientEnv port
 
-verifyRequestC :: Client ClientM APIC -> ClientM NoContent
-verifyRequestC clients =
-    let (f :<|> _) :<|> _ = clients $ Just "user/verifyRequest" in
-    f $ VerifyRequestReqDTO "010-5432-7890"
+verifyRequestTest :: ClientEnv -> IO ()
+verifyRequestTest clientEnv = do
+    result <- runClientM (verifyRequestC (Just "user/verifyRequest")
+        (VerifyRequestReqDTO "010-5432-7890")
+        ) clientEnv
+    case result of
+        Left err -> throwIO err
+        Right dto -> dto `shouldBe` NoContent
 
-verifyCheckC :: Client ClientM APIC -> ClientM VerifyCheckResDTO
-verifyCheckC clients =
-    let (_ :<|> f) :<|> _ = clients $ Just "user/verifyCheck" in
-    f $ VerifyCheckReqDTO "010-5432-7890" "123456"
+verifyCheckTest :: ClientEnv -> IO ()
+verifyCheckTest clientEnv = do
+    result <- runClientM (verifyCheckC (Just "user/verifyCheck")
+        (VerifyCheckReqDTO "010-5432-7890" "123456")
+        ) clientEnv
+    case result of
+        Left err -> throwIO err
+        Right dto -> dto `shouldBe` VerifyCheckResDTO False 0
 
-enrollC :: Client ClientM APIC -> ClientM EnrollResDTO
-enrollC clients =
-    let (_ :<|> _) :<|> f = clients $ Just "user/enroll" in
-    getResponse <$> (f $ EnrollReqDTO "test0id" "test0pw" "test0name" "010-5432-7890" "123456")
+enrollTest :: ClientEnv -> IO ()
+enrollTest clientEnv = do
+    result <- runClientM (enrollC (Just "user/enroll")
+        (EnrollReqDTO "test0id" "test0pw" "test0name" "010-5432-7890" "123456")
+        ) clientEnv
+    case result of
+        Left err -> throwIO err
+        Right dto -> do
+            let EnrollResDTO { accessToken } = getResponse dto
+            Data.Text.isPrefixOf "this is dummy accessToken: " accessToken `shouldBe` True
+            Prelude.any (\(name, value) ->
+                    name == "Set-Cookie" &&
+                    Data.ByteString.Char8.isInfixOf "Paper-Refresh-Token" value
+                ) (getHeaders dto) `shouldBe` True

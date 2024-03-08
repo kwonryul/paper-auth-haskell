@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Test.JWT(
     jwtSpec
@@ -11,6 +12,7 @@ import Authentication
 import Lib
 import Import
 import JWT.DTO
+import MIME
 
 import Profile.Test.Snippet
 
@@ -18,23 +20,33 @@ import Servant
 import Servant.Client
 import Network.Wai.Handler.Warp
 import Network.HTTP.Client
+import Web.Cookie
 
 import Test.Hspec
 
+import Data.ByteString.Char8
 import Control.Exception
 
-type APIC = "jwt" :> Header "Snippet-Path" String :> JWTAPI'
-type JWTAPI' = IssueJWT
-    :<|> Header "Cookie" String :> RefreshJWT
-    :<|> Header "Cookie" String :> Header "Authorization" String :> InvalidateJWT
-    :<|> "indirect" :> (
-        IndirectRequestJWT
-        :<|> IndirectIssueJWT
-    )
+type IssueJWTC = "jwt" :> "issue" :> Header "Snippet-Path" String :>
+    ReqBody '[PrettyJSON] IssueJWTReqDTO :> Post '[PrettyJSON] (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)
+type RefreshJWTC = "jwt" :> "refresh" :> Header "Snippet-Path" String :>
+    Header "Cookie" String :> Post '[PrettyJSON] (Headers '[Header "Set-Cookie" SetCookie] RefreshJWTResDTO)
+type InvalidateJWTC = "jwt" :> "invalidate" :> Header "Snippet-Path" String :>
+    Header "Cookie" String :> Header "Authorization" String :> Delete '[PlainText] NoContent
+
+issueJWTC :: Client ClientM IssueJWTC
+issueJWTC = client (Servant.Proxy :: Servant.Proxy IssueJWTC)
+
+refreshJWTC :: Client ClientM RefreshJWTC
+refreshJWTC = client (Servant.Proxy :: Servant.Proxy RefreshJWTC)
+
+invalidateJWTC :: Client ClientM InvalidateJWTC
+invalidateJWTC = client (Servant.Proxy :: Servant.Proxy InvalidateJWTC)
+
 type APIS = "jwt" :> JWT.Controller.API
 
 jwtApp :: forall profile. LibI profile => Servant.Proxy profile -> Import.Context -> Application
-jwtApp profile ctx = generateSnippetM ctx $ serveWithContext (Servant.Proxy :: Servant.Proxy APIS)
+jwtApp profile ctx = generateExampleSnippetM ctx $ serveWithContext (Servant.Proxy :: Servant.Proxy APIS)
     (authContext (Servant.Proxy :: Servant.Proxy profile) ctx) $ jwtServer profile ctx
 
 jwtServer :: LibI profile => Servant.Proxy profile -> Import.Context -> Server APIS
@@ -47,32 +59,47 @@ withJWTApp profile action = do
 
 jwtSpec :: LibI profile => Servant.Proxy profile -> Spec
 jwtSpec profile = around (withJWTApp profile) $ do
-    let clients = client (Servant.Proxy :: Servant.Proxy APIC)
     baseUrl <- runIO $ parseBaseUrl "http://localhost"
     manager <- runIO $ newManager defaultManagerSettings
     let clientEnv port = mkClientEnv manager (baseUrl { baseUrlPort = port })
     describe "jwt" $ do
-        it "issueJWT" $ \port -> do
-            result <- runClientM (issueJWTC clients) (clientEnv port)
-            evaluate result `shouldReturn` result
-        it "refreshJWT" $ \port -> do
-            result <- runClientM (refreshJWTC clients) (clientEnv port)
-            evaluate result `shouldReturn` result
-        it "invalidateJWT" $ \port -> do
-            result <- runClientM (invalidateJWTC clients) (clientEnv port)
-            evaluate result `shouldReturn` result
+        it "issueJWT" $ \port -> issueJWTTest $ clientEnv port
+        it "refreshJWT" $ \port -> refreshJWTTest $ clientEnv port
+        it "invalidateJWT" $ \port -> invalidateJWTTest $ clientEnv port
 
-issueJWTC :: Client ClientM APIC -> ClientM IssueJWTResDTO
-issueJWTC clients =
-    let f :<|> _ = clients $ Just "jwt/issueJWT" in
-    getResponse <$> (f $ IssueJWTReqDTO "id12345" "pw12345")
+issueJWTTest :: ClientEnv -> IO ()
+issueJWTTest clientEnv = do
+    result <- runClientM (issueJWTC (Just "jwt/issueJWT") $
+        IssueJWTReqDTO "id12345" "pw12345") clientEnv
+    case result of
+        Left err -> throwIO err
+        Right dto -> do
+            getResponse dto `shouldBe` IssueJWTResDTO "this is dummy accessToken: 7"
+            Prelude.any (\(name, value) ->
+                    name == "Set-Cookie" &&
+                    Data.ByteString.Char8.isInfixOf "Paper-Refresh-Token" value
+                ) (getHeaders dto) `shouldBe` True
 
-refreshJWTC :: Client ClientM APIC -> ClientM RefreshJWTResDTO
-refreshJWTC clients =
-    let _ :<|> f :<|> _ = clients $ Just "jwt/refreshJWT" in
-    getResponse <$> f (Just "Paper-Refresh-Token=this is dummy refreshToken: 7")
+refreshJWTTest :: ClientEnv -> IO ()
+refreshJWTTest clientEnv = do
+    result <- runClientM (refreshJWTC (Just "jwt/refreshJWT")
+        (Just "Paper-Refresh-Token=this is dummy refreshToken: 7")
+        ) clientEnv
+    case result of
+        Left err -> throwIO err
+        Right dto -> do
+            getResponse dto `shouldBe` RefreshJWTResDTO "this is dummy accessToken: 7"
+            Prelude.any (\(name, value) ->
+                    name == "Set-Cookie" &&
+                    Data.ByteString.Char8.isInfixOf "Paper-Refresh-Token" value
+                ) (getHeaders dto) `shouldBe` True
 
-invalidateJWTC :: Client ClientM APIC -> ClientM NoContent
-invalidateJWTC clients =
-    let _ :<|> _ :<|> f :<|> _ = clients $ Just "jwt/invalidateJWT" in
-    f (Just "Paper-Refresh-Token=this is dummy refreshToken: 7") (Just "Bearer this is dummy accessToken: 7")
+invalidateJWTTest :: ClientEnv -> IO ()
+invalidateJWTTest clientEnv= do
+    result <- runClientM (invalidateJWTC (Just "jwt/invalidateJWT")
+        (Just "Paper-Refresh-Token=this is dummy refreshToken: 7")
+        (Just "Bearer this is dummy accessToken: 7")
+        ) clientEnv
+    case result of
+        Left err -> throwIO err
+        Right dto -> dto `shouldBe` NoContent

@@ -1,20 +1,12 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE CPP #-}
 
 module JWT.Controller(
     JWTControllerI(
         server
       )
   , API
-#ifdef TEST
-  , IssueJWT
-  , RefreshJWT
-  , InvalidateJWT
-  , IndirectRequestJWT
-  , IndirectIssueJWT
-#endif
 ) where
 
 import qualified JWT.Service
@@ -32,17 +24,18 @@ import Web.Cookie
 
 import GHC.Stack
 
-type API = IssueJWT
-    :<|> AuthProtect "jwt-auth-refresh" :> RefreshJWT
-    :<|> AuthProtect "jwt-auth" :> InvalidateJWT
+type API =
+        "issue" :> IssueJWT
+    :<|> "refresh" :> RefreshJWT
+    :<|> "invalidate" :> InvalidateJWT
     :<|> "indirect" :> (
-        IndirectRequestJWT
-        :<|> IndirectIssueJWT
-        )
+                "request" :> IndirectRequestJWT
+            :<|> "issue" :> IndirectIssueJWT
+            )
 
-type IssueJWT = "issue" :> ReqBody '[PrettyJSON] IssueJWTReqDTO :> Post '[PrettyJSON] (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)
-type RefreshJWT = "refresh" :> Post '[PrettyJSON] (Headers '[Header "Set-Cookie" SetCookie] RefreshJWTResDTO)
-type InvalidateJWT = "invalidate" :> Delete '[PlainText] NoContent
+type IssueJWT = ReqBody '[PrettyJSON] IssueJWTReqDTO :> Post '[PrettyJSON] (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)
+type RefreshJWT = AuthProtect "jwt-auth-refresh" :> Post '[PrettyJSON] (Headers '[Header "Set-Cookie" SetCookie] RefreshJWTResDTO)
+type InvalidateJWT = AuthProtect "jwt-auth" :> Delete '[PlainText] NoContent
 type IndirectRequestJWT = "request" :> Get '[PrettyJSON] NoContent
 type IndirectIssueJWT = "issue" :> Get '[PlainText] NoContent
 
@@ -74,10 +67,11 @@ invalidateJWTImpl _ context (AuthenticatedUser { userId }) = do
         userId (paperAuthPool context)
 
 serverImpl :: (HasCallStack, JWTControllerI p) => Proxy p -> Context.Context -> Server API
-serverImpl p context = issueJWT p context
+serverImpl p context =
+        issueJWT p context
     :<|> refreshJWT p context
     :<|> invalidateJWT p context
     :<|> (
-        undefined
+            undefined
         :<|> undefined
         )
