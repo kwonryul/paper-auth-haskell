@@ -33,12 +33,17 @@ generateExampleSnippetM ctx app req sendResponse = do
             let filePath = exampleSnippetsDir ++ Data.ByteString.Char8.unpack fp
                 req' = setRequestBodyChunks (bodyChunks' filePath) req
             globalLog profile ctx $ createDirectoryIfMissing True $ takeDirectory filePath
-            globalLog profile ctx $ Data.ByteString.Char8.writeFile (filePath ++ "-request.adoc") $ requestHeaders' req
+            globalLog profile ctx $ Data.ByteString.Char8.writeFile (filePath ++ "-request.adoc") $
+                Data.ByteString.Char8.concat [
+                    "[source,http,options=\"nowrap\"]\n----\n"
+                  , requestHeaders' req
+                  ]
             globalLog profile ctx $ app req' $ \res -> do
                 responseBody' <- globalLog profile ctx $ getResponseBody res
                 let responseBody = if responseBody' == "" then "" else "\n\n" <> responseBody'
                 globalLog profile ctx $ createDirectoryIfMissing True $ takeDirectory filePath
-                globalLog profile ctx $ Data.ByteString.Char8.writeFile (filePath ++ "-response.adoc") $ responseHeaders' res <> responseBody
+                globalLog profile ctx $ Data.ByteString.Char8.writeFile (filePath ++ "-response.adoc") $
+                    "[source,http,options=\"nowrap\"]\n----\n" <> responseHeaders' res <> responseBody <> "\n----\n"
                 globalLog profile ctx $ sendResponse res
         Nothing ->
             globalLog profile ctx $ app req $ \res -> sendResponse res
@@ -47,9 +52,11 @@ generateExampleSnippetM ctx app req sendResponse = do
         profile = Proxy
         bodyChunks' :: FilePath -> IO Data.ByteString.Char8.ByteString
         bodyChunks' filePath = do
-            globalLog profile ctx $ createDirectoryIfMissing True $ takeDirectory filePath
             chunk <- globalLog profile ctx $ getRequestBodyChunk req
-            globalLog profile ctx $ Data.ByteString.Char8.appendFile (filePath ++ "-request.adoc") chunk
+            if chunk == "" then
+                globalLog profile ctx $ Data.ByteString.Char8.appendFile (filePath ++ "-request.adoc") "\n----\n"
+            else
+                globalLog profile ctx $ Data.ByteString.Char8.appendFile (filePath ++ "-request.adoc") chunk
             return chunk
 
             
@@ -69,7 +76,7 @@ requestHeaders' req =
         trailingNewLines =
             case contentLength of
                 Nothing -> "\n\n"
-                Just x -> if x == 0 then "" else "\n\n"
+                Just x -> if x == 0 then "\n----\n" else "\n\n"
     in
     Data.ByteString.Char8.concat [
         requestMethod req, "\t"

@@ -23,15 +23,8 @@ include::{definitionsDir}jwt/issueJWTReqDTO.adoc[]
 include::{definitionsDir}jwt/issueJWTResDTO.adoc[]
 
 ==== {major-index}.{minor-index}.2. Example
-[source]
-----
 include::{examplesDir}jwt/issueJWT-request.adoc[]
-----
-
-[source]
-----
 include::{examplesDir}jwt/issueJWT-response.adoc[]
-----
 
 :minor-index: 2
 === {major-index}.{minor-index}. JWT Token Refresh
@@ -56,15 +49,8 @@ include::{examplesDir}jwt/issueJWT-response.adoc[]
 include::{definitionsDir}jwt/refreshJWTResDTO.adoc[]
 
 ==== {major-index}.{minor-index}.2. Example
-[source]
-----
 include::{examplesDir}jwt/refreshJWT-request.adoc[]
-----
-
-[source]
-----
 include::{examplesDir}jwt/refreshJWT-response.adoc[]
-----
 
 :minor-index: 3
 === {major-index}.{minor-index}. JWT Token Invalidation
@@ -81,12 +67,5 @@ include::{examplesDir}jwt/refreshJWT-response.adoc[]
 ====== Body
 
 ==== {major-index}.{minor-index}.2. Example
-[source]
-----
 include::{examplesDir}jwt/invalidateJWT-request.adoc[]
-----
-
-[source]
-----
 include::{examplesDir}jwt/invalidateJWT-response.adoc[]
-----

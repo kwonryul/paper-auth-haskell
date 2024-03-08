@@ -18,15 +18,8 @@ include::{definitionsDir}user/verifyRequestReqDTO.adoc[]
 ====== Body
 
 ==== {major-index}.{minor-index}.2. Example
-[source]
-----
 include::{examplesDir}user/verifyRequest-request.adoc[]
-----
-
-[source]
-----
 include::{examplesDir}user/verifyRequest-response.adoc[]
-----
 
 :minor-index: 2
 === {major-index}.{minor-index}. Verification Check
@@ -45,15 +38,8 @@ include::{definitionsDir}user/verifyCheckReqDTO.adoc[]
 include::{definitionsDir}user/verifyCheckResDTO.adoc[]
 
 ==== {major-index}.{minor-index}.2. Example
-[source]
-----
 include::{examplesDir}user/verifyCheck-request.adoc[]
-----
-
-[source]
-----
 include::{examplesDir}user/verifyCheck-response.adoc[]
-----
 
 :minor-index: 3
 === {major-index}.{minor-index}. Enroll
@@ -83,15 +69,8 @@ include::{definitionsDir}user/verifyRequestReqDTO.adoc[]
 include::{definitionsDir}user/enrollResDTO.adoc[]
 
 ==== {major-index}.{minor-index}.2. Example
-[source]
-----
 include::{examplesDir}user/enroll-request.adoc[]
-----
-
-[source]
-----
 include::{examplesDir}user/enroll-response.adoc[]
-----
 
 ==== {major-index}.{minor-index}.3. Exceptions
 include::{definitionsDir}verification/phoneNumberSecretWrongDTO.adoc[]

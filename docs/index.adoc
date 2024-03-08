@@ -4,7 +4,6 @@
 :toc: left
 :toclevels: 2
 :sectlinks:
-:docinfo: shared-head
 
 == Route
 |===
@@ -40,8 +39,6 @@
 |===
 
 == Type
-*타입은 기본적으로 하스켈의 타입으로 표기합니다*
-
 |===
 |Type |Description
 
