@@ -9,7 +9,9 @@ import JWT.Controller
 import JWT.Repository
 import JWT.Service
 import JWT.Util
+import Monad.ErrorT
 import Role.Repository
+import SMS.Profile
 import User.Controller
 import User.Repository
 import User.Service
@@ -18,18 +20,19 @@ import Verification.Repository
 import Verification.Service
 import Verification.Util
 import Authentication
+import CallStack
 import Context
 import DB
 import GlobalMonad
-import PaperApp
 import Lib
+import PaperMonad
+import Util
+
+import SMS.Profile.None
 
 import Import
-import Monad.ErrorT
 import Monad.ProfileT
-import PaperMonad
 import JWT.Model
-import CallStack
 import User.DTO
 
 import Profile.Test.Import
@@ -72,6 +75,7 @@ instance VerificationUtilI Test
 --instance DBI Test
 instance LibI Test
 instance PaperAppI Test
+instance UtilI Test
 
 instance ContextI Test where
     getConfig' = do
@@ -173,3 +177,6 @@ instance UserServiceI Test where
         JWTDTO { accessToken, refreshToken } <- Verification.Service.issueJWT config conn encodeSigner preAuthenticatedUser currentUTC
         let cookie = generateRefreshTokenCookie (Proxy :: Proxy Test) refreshToken
         return $ addHeader cookie $ EnrollResDTO { accessToken }
+
+instance SMSProfileC Test where
+    type SMSProfileF Test = SMSNone

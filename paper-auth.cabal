@@ -45,6 +45,11 @@ library
       , Monad.ProfileT
       , Role.Entity
       , Role.Repository
+      , SMS.Profile.NaverCloud
+      , SMS.Profile.None
+      , SMS.Profile
+      , SMS.Service
+      , ThirdParties.NaverCloud.Service
       , User.Controller
       , User.DTO
       , User.Entity
@@ -67,11 +72,13 @@ library
       , MIME
       , PaperApp
       , PaperMonad
+      , Util
     -- other-extensions:
     autogen-modules:
         Paths_paper_auth
     build-depends:
         base ^>=4.19.0.0
+      , tls == 1.9.0
       , template-haskell
       , raw-strings-qq
       , directory
@@ -82,7 +89,9 @@ library
       , text
       , case-insensitive
       , time
+      , memory
       , bcrypt
+      , cryptonite
       , regex-tdfa
       , exceptions
       , transformers
@@ -93,6 +102,8 @@ library
       , http-types
       , http-media
       , http-client
+      , http-client-tls
+      , network-uri
       , configurator
       , aeson
       , aeson-pretty
@@ -149,6 +160,11 @@ test-suite paper-auth-test
       , Monad.ProfileT
       , Role.Entity
       , Role.Repository
+      , SMS.Profile.NaverCloud
+      , SMS.Profile.None
+      , SMS.Profile
+      , SMS.Service
+      , ThirdParties.NaverCloud.Service
       , User.Controller
       , User.DTO
       , User.Entity
@@ -171,6 +187,7 @@ test-suite paper-auth-test
       , MIME
       , PaperApp
       , PaperMonad
+      , Util
       , Profile.Test.Import
       , Profile.Test.Snippet
       , Profile.Test
@@ -184,6 +201,7 @@ test-suite paper-auth-test
     main-is:          Spec.hs
     build-depends:
         base ^>=4.19.0.0
+      , tls == 1.9.0
       , template-haskell
       , raw-strings-qq
       , directory
@@ -194,7 +212,9 @@ test-suite paper-auth-test
       , text
       , case-insensitive
       , time
+      , memory
       , bcrypt
+      , cryptonite
       , regex-tdfa
       , exceptions
       , transformers
@@ -220,6 +240,8 @@ test-suite paper-auth-test
       , http-types
       , http-media
       , http-client
+      , http-client-tls
+      , network-uri
       , persistent
       , persistent-template
       , persistent-typed-db

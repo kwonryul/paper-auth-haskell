@@ -36,9 +36,9 @@ include::{examplesDir}jwt/issueJWT-response.adoc[]
 
 ==== {major-index}.{minor-index}.1. Specifications
 ===== Request
+-
 
 ===== Response
-====== Body
 ====== Cookie
 |===
 |Name |Type |Description
@@ -46,6 +46,7 @@ include::{examplesDir}jwt/issueJWT-response.adoc[]
 |Paper-Refresh-Token |paper |리프레쉬토큰 발급
 |===
 
+====== Body
 include::{definitionsDir}jwt/refreshJWTResDTO.adoc[]
 
 ==== {major-index}.{minor-index}.2. Example
@@ -62,9 +63,10 @@ include::{examplesDir}jwt/refreshJWT-response.adoc[]
 
 ==== {major-index}.{minor-index}.1. Specifications
 ===== Request
+-
 
 ===== Response
-====== Body
+-
 
 ==== {major-index}.{minor-index}.2. Example
 include::{examplesDir}jwt/invalidateJWT-request.adoc[]

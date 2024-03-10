@@ -1,4 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE DataKinds #-}
@@ -28,6 +27,7 @@ import JWT.Model
 import Verification.Util
 import Verification.DTO
 import Verification.Entity
+import SMS.Service
 import DB
 import PaperMonad
 import Import
@@ -49,10 +49,10 @@ import Data.Time
 import Data.ByteString.Char8
 import GHC.Stack
 
-class (DBI p, JWTUtilI p, UserRepositoryI p, VerificationDTOI p, VerificationRepositoryI p, VerificationServiceI p, VerificationUtilI p) => UserServiceI p where
-    verifyRequest :: (HasCallStack, MonadUnliftIO m) => String -> PaperAuthPool -> PaperMonad p m NoContent
+class (DBI p, JWTUtilI p, UserRepositoryI p, VerificationDTOI p, VerificationRepositoryI p, VerificationServiceI p, VerificationUtilI p, SMSServiceI p) => UserServiceI p where
+    verifyRequest :: (HasCallStack, MonadUnliftIO m) => Config -> String -> PaperAuthPool -> PaperMonad p m NoContent
     verifyRequest = verifyRequestImpl
-    verifyRequest' :: (HasCallStack, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m NoContent
+    verifyRequest' :: (HasCallStack, MonadUnliftIO m) => Config -> String -> PaperAuthConn -> PaperMonad p m NoContent
     verifyRequest' = verifyRequest'Impl
     verifyCheck :: (HasCallStack, MonadUnliftIO m) => String -> String -> PaperAuthPool -> PaperMonad p m VerifyCheckResDTO
     verifyCheck = verifyCheckImpl
@@ -63,11 +63,11 @@ class (DBI p, JWTUtilI p, UserRepositoryI p, VerificationDTOI p, VerificationRep
     enroll' :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
     enroll' = enroll'Impl
 
-verifyRequestImpl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => String -> PaperAuthPool -> PaperMonad p m NoContent
-verifyRequestImpl phoneNumber pool = runSqlPoolOneConnection (verifyRequest' phoneNumber) pool
+verifyRequestImpl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> String -> PaperAuthPool -> PaperMonad p m NoContent
+verifyRequestImpl cfg phoneNumber pool = runSqlPoolOneConnection (verifyRequest' cfg phoneNumber) pool
 
-verifyRequest'Impl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m NoContent
-verifyRequest'Impl phoneNumber' conn = do
+verifyRequest'Impl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> String -> PaperAuthConn -> PaperMonad p m NoContent
+verifyRequest'Impl cfg phoneNumber' conn = do
     phoneNumber <- stringToPhoneNumber phoneNumber'
     phoneNumberSecret <- generatePhoneNumberSecret
     iat <- paperLiftIOUnliftIO getCurrentTime
@@ -75,7 +75,7 @@ verifyRequest'Impl phoneNumber' conn = do
     let deleteAt = addUTCTime (fromInteger 1800) iat
     Verification.Repository.deleteByPhoneNumber conn phoneNumber
     _ <- Verification.Repository.newVerification conn phoneNumber phoneNumberSecret iat expire deleteAt
-    -- send message
+    smsNotify cfg phoneNumber phoneNumberSecret
     return NoContent
 
 verifyCheckImpl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => String -> String -> PaperAuthPool -> PaperMonad p m VerifyCheckResDTO

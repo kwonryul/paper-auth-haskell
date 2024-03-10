@@ -46,7 +46,7 @@ class UserServiceI p => UserControllerI p where
 verifyRequestImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> VerifyRequestReqDTO -> Handler NoContent
 verifyRequestImpl _ context (VerifyRequestReqDTO { phoneNumber }) =
     runPaperMonad context $ User.Service.verifyRequest @p
-        phoneNumber (paperAuthPool context)
+        (config context) phoneNumber (paperAuthPool context)
 
 verifyCheckImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> VerifyCheckReqDTO -> Handler VerifyCheckResDTO
 verifyCheckImpl _ context (VerifyCheckReqDTO { phoneNumber, phoneNumberSecret }) =

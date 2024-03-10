@@ -13,6 +13,7 @@ import JWT.Service
 import JWT.Util
 import Monad.ErrorT
 import Role.Repository
+import SMS.Profile
 import User.Controller
 import User.Repository
 import User.Service
@@ -28,6 +29,11 @@ import DB
 import GlobalMonad
 import Lib
 import PaperMonad
+import Util
+
+import SMS.Profile.NaverCloud
+
+import ThirdParties.NaverCloud.Service
 
 import Control.Monad.Logger
 import Data.Text
@@ -62,6 +68,7 @@ instance GlobalMonadI Prod
 instance LibI Prod
 instance PaperAppI Prod
 instance PaperMonadI Prod
+instance UtilI Prod
 
 instance ErrorTProfile Prod PaperErrorP where
     defaultError _ _ = PaperDefaultError
@@ -121,3 +128,8 @@ instance ErrorTProfile Prod GlobalErrorP where
         )
     defaultErrorLog _ _ ie =
         (defaultLoc, "GlobalErrorP", LevelError, toLogStr $ show ie)
+
+instance SMSProfileC Prod where
+    type SMSProfileF Prod = SMSNaverCloud
+
+instance NaverCloudServiceI Prod

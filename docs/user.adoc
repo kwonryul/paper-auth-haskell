@@ -15,7 +15,7 @@
 include::{definitionsDir}user/verifyRequestReqDTO.adoc[]
 
 ===== Response
-====== Body
+-
 
 ==== {major-index}.{minor-index}.2. Example
 include::{examplesDir}user/verifyRequest-request.adoc[]
