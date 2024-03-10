@@ -38,6 +38,7 @@ module Monad.ErrorT(
       , maybeTToErrorT
       , maybeTToErrorTUnliftIO
       , errorAssert
+      , errorCatch
     )
 ) where
 
@@ -129,9 +130,9 @@ instance (ErrorTProfile profile p, MonadIO m) => MonadLogger (SafeErrorT profile
     monadLoggerLog loc logSource logLevel msg = SafeErrorT $ monadLoggerLog loc logSource logLevel msg
 
 class CallStackI profile => ErrorTI profile where
-    unsafeToSafe :: forall p m a. (HasCallStack, ErrorTProfile profile p, MonadCatch m) => ErrorT profile p m a -> SafeErrorT profile p m a
+    unsafeToSafe :: (HasCallStack, ErrorTProfile profile p, MonadCatch m) => ErrorT profile p m a -> SafeErrorT profile p m a
     unsafeToSafe = unsafeToSafeImpl
-    unsafeToSafeUnliftIO :: forall p m a. (HasCallStack, ErrorTProfile profile p, MonadUnliftIO m) => ErrorT profile p m a -> SafeErrorT profile p m a
+    unsafeToSafeUnliftIO :: (HasCallStack, ErrorTProfile profile p, MonadUnliftIO m) => ErrorT profile p m a -> SafeErrorT profile p m a
     unsafeToSafeUnliftIO = unsafeToSafeUnliftIOImpl
     liftSafe :: (HasCallStack, ErrorTProfile profile p, MonadCatch m) => m a -> SafeErrorT profile p m a
     liftSafe = liftSafeImpl
@@ -141,24 +142,26 @@ class CallStackI profile => ErrorTI profile where
     liftIOSafe = liftIOSafeImpl
     liftIOSafeUnliftIO :: (HasCallStack, ErrorTProfile profile p, MonadUnliftIO m) => IO a -> SafeErrorT profile p m a
     liftIOSafeUnliftIO = liftIOSafeUnliftIOImpl
-    errorLog :: forall p m a. (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Context -> IO a -> m a
+    errorLog :: (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Context -> IO a -> m a
     errorLog = errorLogImpl
-    runErrorEither :: forall p m a. (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Context -> Either (InnerError (DefaultError p)) a -> m a
+    runErrorEither :: (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Context -> Either (InnerError (DefaultError p)) a -> m a
     runErrorEither = runErrorEitherImpl
-    runErrorEitherWithoutLog :: forall p m a. (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Either (InnerError (DefaultError p)) a -> m a
+    runErrorEitherWithoutLog :: (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Either (InnerError (DefaultError p)) a -> m a
     runErrorEitherWithoutLog = runErrorEitherWithoutLogImpl
-    runErrorT :: forall p m a. (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Context -> SafeErrorT profile p IO a -> m a
+    runErrorT :: (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Context -> SafeErrorT profile p IO a -> m a
     runErrorT = runErrorTImpl
-    runErrorTWithoutLog :: forall p m a. (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => SafeErrorT profile p IO a -> m a
+    runErrorTWithoutLog :: (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => SafeErrorT profile p IO a -> m a
     runErrorTWithoutLog = runErrorTWithoutLogImpl
-    maybeToErrorT :: forall e p m a. (ErrorTError e, ErrorTProfile profile p, InnerError e ~ InnerError (DefaultError p), OuterError e ~ OuterError (DefaultError p), Monad m) => Maybe a -> e -> SafeErrorT profile p m a
+    maybeToErrorT :: (ErrorTError e, ErrorTProfile profile p, InnerError e ~ InnerError (DefaultError p), OuterError e ~ OuterError (DefaultError p), Monad m) => Maybe a -> e -> SafeErrorT profile p m a
     maybeToErrorT = maybeToErrorTImpl
-    maybeTToErrorT :: forall e p m a. (HasCallStack, ErrorTError e, ErrorTProfile profile p, InnerError e ~ InnerError (DefaultError p), OuterError e ~ OuterError (DefaultError p), MonadIO m, MonadCatch m) => MaybeT IO a -> e -> SafeErrorT profile p m a
+    maybeTToErrorT :: (HasCallStack, ErrorTError e, ErrorTProfile profile p, InnerError e ~ InnerError (DefaultError p), OuterError e ~ OuterError (DefaultError p), MonadIO m, MonadCatch m) => MaybeT IO a -> e -> SafeErrorT profile p m a
     maybeTToErrorT = maybeTToErrorTImpl
-    maybeTToErrorTUnliftIO :: forall e p m a. (HasCallStack, ErrorTError e, ErrorTProfile profile p, InnerError e ~ InnerError (DefaultError p), OuterError e ~ OuterError (DefaultError p), MonadUnliftIO m) => MaybeT IO a -> e -> SafeErrorT profile p m a
+    maybeTToErrorTUnliftIO :: (HasCallStack, ErrorTError e, ErrorTProfile profile p, InnerError e ~ InnerError (DefaultError p), OuterError e ~ OuterError (DefaultError p), MonadUnliftIO m) => MaybeT IO a -> e -> SafeErrorT profile p m a
     maybeTToErrorTUnliftIO = maybeTToErrorTUnliftIOImpl
-    errorAssert :: forall e p m. (ErrorTError e, ErrorTProfile profile p, InnerError e ~ InnerError (DefaultError p), OuterError e ~ OuterError (DefaultError p), Monad m) => Bool -> e -> SafeErrorT profile p m ()
+    errorAssert :: (ErrorTError e, ErrorTProfile profile p, InnerError e ~ InnerError (DefaultError p), OuterError e ~ OuterError (DefaultError p), Monad m) => Bool -> e -> SafeErrorT profile p m ()
     errorAssert = errorAssertImpl
+    errorCatch :: (HasCallStack, ErrorTProfile profile p, Monad m) => SafeErrorT profile p m a -> (InnerError (DefaultError p) -> SafeErrorT profile p m a) -> SafeErrorT profile p m a
+    errorCatch = errorCatchImpl
 
 unsafeToSafeImpl :: forall profile p m a. (HasCallStack, ErrorTI profile, ErrorTProfile profile p, MonadCatch m) => ErrorT profile p m a -> SafeErrorT profile p m a
 unsafeToSafeImpl x = SafeErrorT $ Control.Monad.Catch.catch x (\(e :: SomeException) ->
@@ -273,3 +276,10 @@ errorAssertImpl b ex =
         return ()
     else
         toSafeErrorT (Proxy :: Proxy e) $ toInnerError ex
+
+errorCatchImpl :: (HasCallStack, ErrorTI profile, ErrorTProfile profile p, Monad m) => SafeErrorT profile p m a -> (InnerError (DefaultError p) -> SafeErrorT profile p m a) -> SafeErrorT profile p m a
+errorCatchImpl (SafeErrorT (ErrorT (LoggingT f))) g =
+    SafeErrorT $ ErrorT $ LoggingT $ (\logger ->
+        catchE (f logger) (\ie ->
+            (runLoggingT $ unErrorT $ unSafeErrorT $ g ie) logger
+        ))

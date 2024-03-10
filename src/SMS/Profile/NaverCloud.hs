@@ -74,7 +74,7 @@ smsNotifyImpl cfg phoneNumber msg = do
     let clientEnv = mkClientEnv manager baseUrl'
     result <- paperLiftIOUnliftIO $ runClientM (smsMessageCWithHeaders body) clientEnv
     case result of
-        Left err -> toPaperMonad $ PaperDefaultError err (callStack' profile)
+        Left err -> toPaperMonad $ PaperCatchError err (err500 { errBody = "naver cloud connection error" }) (callStack' profile)
         Right NoContent -> return ()
     where
         profile :: Servant.Proxy p

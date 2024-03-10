@@ -10,6 +10,9 @@ module GlobalMonad(
   , GlobalDefaultError(
         GlobalDefaultError
       )
+  , GlobalCatchError(
+        GlobalCatchError
+      )
   , GlobalInnerError
   , GlobalErrorP
   , GlobalMonad(
@@ -30,6 +33,7 @@ module GlobalMonad(
       , maybeTToGlobalMonad
       , maybeTToGlobalMonadUnliftIO
       , globalAssert
+      , globalCatch
       )
 ) where
 
@@ -59,6 +63,11 @@ data GlobalDefaultError where
     GlobalDefaultError :: Exception e => e -> CallStack -> GlobalDefaultError
 instance Show GlobalDefaultError where
     show (GlobalDefaultError ex cs) = "[GlobalDefaultError]\n" ++ show ex ++ "\n" ++ prettyCallStack cs
+
+data GlobalCatchError where
+    GlobalCatchError :: Show e => e -> CallStack -> GlobalCatchError
+instance Show GlobalCatchError where
+    show (GlobalCatchError ex cs) = "[GlobalCatchError]\n" ++ show ex ++ "\n" ++ prettyCallStack cs
 
 data GlobalInnerError where
     GlobalInnerError :: Show e => e -> GlobalInnerError
@@ -131,6 +140,8 @@ class (ErrorTI profile, ErrorTProfile profile GlobalErrorP) => GlobalMonadI prof
     maybeTToGlobalMonadUnliftIO = maybeTToGlobalMonadUnliftIOImpl
     globalAssert :: (ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => Bool -> e -> GlobalMonad profile m ()
     globalAssert = globalAssertImpl
+    globalCatch :: (HasCallStack, Monad m) => GlobalMonad profile m a -> (GlobalInnerError -> GlobalMonad profile m a) -> GlobalMonad profile m a
+    globalCatch = globalCatchImpl
 
 toGlobalMonadImpl :: forall e profile m a. (GlobalMonadI profile, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => e -> GlobalMonad profile m a
 toGlobalMonadImpl = GlobalMonad . lift . toSafeErrorT (Proxy :: Proxy e) . toInnerError
@@ -173,3 +184,10 @@ maybeTToGlobalMonadUnliftIOImpl m ex = GlobalMonad $ lift $ maybeTToErrorTUnlift
 
 globalAssertImpl :: (GlobalMonadI profile, ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => Bool -> e -> GlobalMonad profile m ()
 globalAssertImpl b ex = GlobalMonad $ lift $ errorAssert b ex
+
+globalCatchImpl :: (HasCallStack, GlobalMonadI profile, Monad m) => GlobalMonad profile m a -> (GlobalInnerError -> GlobalMonad profile m a) -> GlobalMonad profile m a
+globalCatchImpl (GlobalMonad (ProfileT (ReaderT f))) g =
+    GlobalMonad $ ProfileT $ ReaderT $ (\profile ->
+        errorCatch (f profile) (\ie ->
+            (runReaderT $ unProfileT $ unGlobalMonad $ g ie) profile
+        ))

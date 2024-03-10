@@ -11,6 +11,9 @@ module PaperMonad(
   , PaperDefaultError(
         PaperDefaultError
       )
+  , PaperCatchError(
+        PaperCatchError
+      )
   , PaperInnerError
   , PaperErrorP
   , PaperMonad(
@@ -30,6 +33,7 @@ module PaperMonad(
       , maybeTToPaperMonad
       , maybeTToPaperMonadUnliftIO
       , paperAssert
+      , paperCatch
       )
 ) where
 
@@ -61,6 +65,11 @@ data PaperDefaultError where
 instance Show PaperDefaultError where
     show (PaperDefaultError ex cs) = "[PaperDefaultError]\n" ++ show ex ++ "\n" ++ prettyCallStack cs
 
+data PaperCatchError where
+    PaperCatchError :: Show e => e -> ServerError -> CallStack -> PaperCatchError
+instance Show PaperCatchError where
+    show (PaperCatchError ex _ cs) = "[PaperCatchError]\n" ++ show ex ++ "\n" ++ prettyCallStack cs
+
 data PaperInnerError where
     PaperInnerError :: Show e => {
         paperInnerServerError :: ServerError
@@ -74,8 +83,10 @@ data PaperErrorP
 
 type instance InnerError PaperError = PaperInnerError
 type instance InnerError PaperDefaultError = PaperInnerError
+type instance InnerError PaperCatchError = PaperInnerError
 type instance OuterError PaperError = ServerError
 type instance OuterError PaperDefaultError = ServerError
+type instance OuterError PaperCatchError = ServerError
 type instance DefaultError PaperErrorP = PaperDefaultError
 
 instance ErrorTError PaperError where
@@ -88,8 +99,15 @@ instance ErrorTError PaperError where
 instance ErrorTError PaperDefaultError where
     toOuterError _ (PaperInnerError { paperInnerServerError }) = paperInnerServerError
     toInnerError e = PaperInnerError {
-        paperInnerServerError = err500 { errBody = "Unexpected server exception" }
+        paperInnerServerError = err500 { errBody = "unexpected server exception" }
       , paperInnerLogError = e
+      }
+
+instance ErrorTError PaperCatchError where
+    toOuterError _ (PaperInnerError { paperInnerServerError }) = paperInnerServerError
+    toInnerError ce@(PaperCatchError _ se _) = PaperInnerError {
+        paperInnerServerError = se
+      , paperInnerLogError = ce
       }
 
 type PaperMonad :: Type -> (Type -> Type) -> Type -> Type
@@ -117,7 +135,7 @@ instance (Profile profile, ErrorTProfile profile PaperErrorP, MonadIO m) => Mona
     monadLoggerLog loc logSource logLevel msg = PaperMonad $ ProfileT $ ReaderT $ const $ monadLoggerLog loc logSource logLevel msg
 
 class (ErrorTI profile, ErrorTProfile profile PaperErrorP) => PaperMonadI profile where
-    toPaperMonad :: forall e m a. (ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => e -> PaperMonad profile m a
+    toPaperMonad :: (ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => e -> PaperMonad profile m a
     toPaperMonad = toPaperMonadImpl
     safeErrorTToPaperMonad :: HasCallStack => SafeErrorT profile PaperErrorP m a -> PaperMonad profile m a
     safeErrorTToPaperMonad = safeErrorTToPaperMonadImpl
@@ -143,6 +161,8 @@ class (ErrorTI profile, ErrorTProfile profile PaperErrorP) => PaperMonadI profil
     maybeTToPaperMonadUnliftIO = maybeTToPaperMonadUnliftIOImpl
     paperAssert :: (ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => Bool -> e -> PaperMonad profile m ()
     paperAssert = paperAssertImpl
+    paperCatch :: (HasCallStack, Monad m) => PaperMonad profile m a -> (PaperInnerError -> PaperMonad profile m a) -> PaperMonad profile m a
+    paperCatch = paperCatchImpl
 
 toPaperMonadImpl :: forall e profile m a. (PaperMonadI profile, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => e -> PaperMonad profile m a
 toPaperMonadImpl = PaperMonad . lift . toSafeErrorT (Proxy :: Proxy e). toInnerError
@@ -182,3 +202,10 @@ maybeTToPaperMonadUnliftIOImpl m ex = PaperMonad $ lift $ maybeTToErrorTUnliftIO
 
 paperAssertImpl :: (PaperMonadI profile, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => Bool -> e -> PaperMonad profile m ()
 paperAssertImpl b ex = PaperMonad $ lift $ errorAssert b ex
+
+paperCatchImpl :: (HasCallStack, PaperMonadI profile, Monad m) => PaperMonad profile m a -> (PaperInnerError -> PaperMonad profile m a) -> PaperMonad profile m a
+paperCatchImpl (PaperMonad (ProfileT (ReaderT f))) g =
+    PaperMonad $ ProfileT $ ReaderT $ (\profile ->
+        errorCatch (f profile) (\ie ->
+            (runReaderT $ unProfileT $ unPaperMonad $ g ie) profile
+        ))
