@@ -1,16 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE CPP #-}
 
 module User.Service(
     UserServiceI(
         verifyRequest
       , verifyCheck
       , enroll
-#ifdef TEST
       , enroll'
-#endif
       )
 ) where
 

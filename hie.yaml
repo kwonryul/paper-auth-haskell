@@ -12,8 +12,11 @@ cradle:
       config:
         cradle:
           cabal:
-            - path: "./test"
-              component: "paper-auth:test:paper-auth-test"
-            
             - path: "./src"
+              component: "lib:paper-auth"
+
+            - path: "./app"
+              component: "paper-auth:exe:paper-auth-exe"
+
+            - path: "./test"
               component: "paper-auth:test:paper-auth-test"

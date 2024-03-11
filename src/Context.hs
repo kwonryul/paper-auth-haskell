@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Context(
@@ -10,9 +9,7 @@ module Context(
     )
   , ContextI(
         getContext
-#ifdef TEST
       , getConfig'
-#endif
       )
 ) where
 

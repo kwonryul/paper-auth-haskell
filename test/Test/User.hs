@@ -7,12 +7,12 @@ module Test.User(
 
 import qualified User.Controller
 
-import Lib
-import Import
+import Profile.Test.Snippet
 import User.DTO
+import Import
+import Lib
 import MIME
 
-import Profile.Test.Snippet
 
 import Servant
 import Servant.Client

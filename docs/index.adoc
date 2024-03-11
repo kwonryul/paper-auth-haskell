@@ -7,6 +7,8 @@
 |*Host Name* |43.200.64.248 |-
 |*Port* |80 |Http port
 |*Port* |443 |Https port
+|*Port* |8080 |Http port (Test)
+|*Port* |3000 |Https port (Test)
 |===
 
 |===
@@ -14,6 +16,14 @@
 |/docs/index.html |백엔드 문서
 |/static/** |정적 파일
 |===
+
+=== Manual
+좌측의 사이드바를 통해 쉽게 원하는 항목으로 이동할 수 있습니다 +
+우측의 사이드바를 열면 테스트용 api를 쏴볼 수 있습니다 +
+
+테스트용 api는 기본적으로 테스트 포트에 요청하십시오 +
+테스트용 api는 데이터베이스 출력, 결제, 문자 등을 포함한 각종 외부작용을 발생시키지 않습니다 +
+이러한 작용을 테스트하고 싶으신 경우에는 일반 포트에 요청하십시오
 
 === Type
 |===
@@ -32,17 +42,14 @@
 == Authentication
 === JWT-AUTH
 |===
-|*Header* |Authorization |JWT 혹은 User쪽 API를 통해 발급받은 Paper 자체 accessToken을 +
-                            Bearer 형식으로 담아 보내십시오
-|*Cookie* |Paper-Refresh-Token |JWT 혹은 User쪽 API를 통해 발급받은 Paper 자체 refreshToken을 +
-                                쿠키에 담아 보내십시오 +
+|*Header* |Authorization |JWT 혹은 User쪽 API를 통해 발급받은 Paper 자체 accessToken을 Bearer 형식으로 담아 보내십시오
+|*Cookie* |Paper-Refresh-Token |JWT 혹은 User쪽 API를 통해 발급받은 Paper 자체 refreshToken을 쿠키에 담아 보내십시오 +
                                 refreshToken은 발급될 때에 Set-Cookie로 발급되어 전송되므로, 따로 신경쓰지 않으셔도 됩니다
 |===
 
 === JWT-AUTH-REFRESH
 |===
-|*Cookie* |Paper-Refresh-Token |JWT 혹은 User쪽 API를 통해 발급받은 Paper 자체 refreshToken을 +
-                                쿠키에 담아 보내십시오 +
+|*Cookie* |Paper-Refresh-Token |JWT 혹은 User쪽 API를 통해 발급받은 Paper 자체 refreshToken을 쿠키에 담아 보내십시오 +
                                 refreshToken은 발급될 때에 Set-Cookie로 발급되어 전송되므로, 따로 신경쓰지 않으셔도 됩니다
 |===
 

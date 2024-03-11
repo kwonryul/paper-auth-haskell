@@ -30,12 +30,21 @@ common warnings
 library
     import:           warnings
     exposed-modules:
-        Lib
+        JWT.Controller
+      , JWT.DTO
+      , Profile.Test.Import
+      , Profile.Test.Snippet
       , Profile.Prod
+      , Profile.Test
+      , User.Controller
+      , User.DTO
+      , Verification.DTO
+      , Authentication
+      , Import
+      , Lib
+      , MIME
     other-modules:
         Paths_paper_auth
-      , JWT.Controller
-      , JWT.DTO
       , JWT.Entity
       , JWT.Model
       , JWT.Repository
@@ -50,26 +59,20 @@ library
       , SMS.Profile
       , SMS.Service
       , ThirdParties.NaverCloud.Service
-      , User.Controller
-      , User.DTO
       , User.Entity
       , User.Repository
       , User.Service
       , UserRole.Entity
-      , Verification.DTO
       , Verification.Entity
       , Verification.Repository
       , Verification.Service
       , Verification.Util
-      , Authentication
       , CallStack
       , Configurator
       , Context
       , DB
       , Definition
       , GlobalMonad
-      , Import
-      , MIME
       , PaperApp
       , PaperMonad
       , Util
@@ -82,6 +85,7 @@ library
       , template-haskell
       , raw-strings-qq
       , directory
+      , filepath
       , random
       , containers
       , vector
@@ -138,116 +142,37 @@ executable paper-auth-exe
     build-depends:
         base ^>=4.19.0.0
       , paper-auth
-
     hs-source-dirs:   app
     default-language: GHC2021
+    ghc-options: -threaded
 
 test-suite paper-auth-test
     import:           warnings
     default-language: GHC2021
     other-modules:
         Paths_paper_auth
-      , Lib
-      , Profile.Prod
-      , JWT.Controller
-      , JWT.DTO
-      , JWT.Entity
-      , JWT.Model
-      , JWT.Repository
-      , JWT.Service
-      , JWT.Util
-      , Monad.ErrorT
-      , Monad.ProfileT
-      , Role.Entity
-      , Role.Repository
-      , SMS.Profile.NaverCloud
-      , SMS.Profile.None
-      , SMS.Profile
-      , SMS.Service
-      , ThirdParties.NaverCloud.Service
-      , User.Controller
-      , User.DTO
-      , User.Entity
-      , User.Repository
-      , User.Service
-      , UserRole.Entity
-      , Verification.DTO
-      , Verification.Entity
-      , Verification.Repository
-      , Verification.Service
-      , Verification.Util
-      , Authentication
-      , CallStack
-      , Configurator
-      , Context
-      , DB
-      , Definition
-      , GlobalMonad
-      , Import
-      , MIME
-      , PaperApp
-      , PaperMonad
-      , Util
-      , Profile.Test.Import
-      , Profile.Test.Snippet
-      , Profile.Test
       , Test.JWT
       , Test.User
     -- other-extensions:
     autogen-modules:
         Paths_paper_auth
     type:             exitcode-stdio-1.0
-    hs-source-dirs:   test, src
+    hs-source-dirs:   test
     main-is:          Spec.hs
     build-depends:
         base ^>=4.19.0.0
-      , tls == 1.9.0
-      , template-haskell
-      , raw-strings-qq
-      , directory
-      , random
-      , containers
-      , vector
+      , paper-auth
       , bytestring
       , text
-      , case-insensitive
-      , time
-      , memory
-      , bcrypt
-      , cryptonite
-      , regex-tdfa
-      , exceptions
-      , transformers
-      , mtl
-      , monad-logger
-      , unliftio
-      , unliftio-core
-      , configurator
-      , aeson
-      , aeson-pretty
+      , http-client
+      , http-client-tls
       , cookie
-      , jwt
       , servant
       , servant-server
       , servant-client-core
       , servant-client
-      , servant-static-th
-      , servant-auth-server
-      , wai
-      , wai-cors
       , warp
-      , warp-tls
-      , http-types
-      , http-media
-      , http-client
-      , http-client-tls
-      , network-uri
-      , persistent
-      , persistent-template
-      , persistent-typed-db
-      , persistent-mysql
       , hspec
       , hspec-wai
       , hspec-wai-json
-      , filepath
-    cpp-options: -DTEST
+    ghc-options: -threaded

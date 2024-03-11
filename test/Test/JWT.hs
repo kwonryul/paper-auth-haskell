@@ -8,13 +8,13 @@ module Test.JWT(
 import qualified JWT.Controller
 import JWT.Controller hiding (API)
 
-import Authentication
-import Lib
-import Import
 import JWT.DTO
+import Profile.Test.Snippet
+import Authentication
+import Import
+import Lib
 import MIME
 
-import Profile.Test.Snippet
 
 import Servant
 import Servant.Client
