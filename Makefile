@@ -1,4 +1,5 @@
 current_dir := $(shell pwd)
+current_time := $(shell date)
 ghc_version := $(shell ghc --version | head -n 1 | grep -oP '\d+\.\d+\.\d+')
 project_version := ${shell grep -E '^version:' paper-auth.cabal | grep -oP '\d+\.\d+\.\d+\.\d+'}
 
@@ -52,14 +53,17 @@ build_definitions: clean_definitions
 	~/.cabal/bin/asciidoc-gen ${current_dir}/definitions ${current_dir}/generated/snippets/definitions
 
 .PHONY: asciidoctor_no_test
-asciidoctor_no_test: build_definitions
-	echo "Generating HTML files..."
-	asciidoctor --attribute examplesDir=../generated/snippets/examples/ --attribute definitionsDir=../generated/snippets/definitions/ -R docs -D generated/docs 'docs/**/*.adoc'
+asciidoctor_no_test: clean_docs build_definitions
+	echo "Replacing template..."
+	cat "templates/html5/document-raw.html.slim" | sed "s/{current_time}/${current_time}/g" > "templates/html5/document.html.slim"
 	echo "Building generated files..."
-	asciidoctor -R generated/snippets/definitions -D generated/docs 'generated/snippets/definitions/**/*.adoc'
+	asciidoctor -R generated/snippets/definitions -D generated/docs/definitions 'generated/snippets/definitions/**/*.adoc' -T templates -E slim
+	echo "Generating index.html..."
+	asciidoctor --attribute examplesDir=../generated/snippets/examples/ --attribute definitionsDir=/docs/definitions/ -R docs -D generated/docs 'docs/index.adoc' -T templates -E slim
+	-rm templates/html5/document.html.slim
 
 .PHONY: asciidoctor
-asciidoctor: clean_docs test
+asciidoctor: test
 	make asciidoctor_no_test
 
 .PHONY: deploy
@@ -69,4 +73,4 @@ deploy:
 	git reset --hard origin/master
 	make install
 	-sudo pkill paper-auth-exe
-	sudo nohup ~/.cabal/bin/paper-auth-exe > /dev/null 2>&1 &
+	sudo nohup ~/.cabal/bin/paper-auth-exe &

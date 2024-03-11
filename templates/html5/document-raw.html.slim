@@ -1,0 +1,41 @@
+doctype html
+html
+  - if document.attr 'index'
+    head
+      title =title
+      meta charset="utf-8"
+      script src="/static/docs/js/toc.js"
+      script src="/static/docs/js/pop-up.js"
+      script src="/static/docs/js/h3-toggle.js"
+      link rel="stylesheet" href="/static/docs/css/asciidoctor-index.css"
+    body class="book toc2 toc-left"
+      div id="header"
+        h1 =title
+        div id="toc" class="toc2"
+          div id="toctitle" ="Table of Contents"
+          ul id='toc-ul' class="sectlevel1"
+      div id="content" =content
+      div id="footer"
+        div id="footer-text" ="Last updated {current_time}"
+  - else
+    - if document.attr 'dto'
+      head
+        title =title
+        meta charset="utf-8"
+        script src="/static/docs/js/pop-up.js"
+        link rel="stylesheet" href="/static/docs/css/asciidoctor-type.css"
+      body
+        div id="content" =content
+        div id="footer"
+          div id="footer-text" ="Last updated {current_time}"
+    - else
+      - if document.attr 'enum'
+        head
+          title =title
+          meta charset="utf-8"
+          script src="/static/docs/js/pop-up.js"
+          link rel="stylesheet" href="/static/docs/css/asciidoctor-type.css"
+        body
+          div id="content" =content
+          div id="footer"
+            div id="footer-text" ="Last updated {current_time}"

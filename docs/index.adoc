@@ -1,53 +1,49 @@
+:index:
 = PaperAuth API Document
-:doctype: book
-:icons: font
-:toc: left
-:toclevels: 2
-:sectlinks:
 
-== Route
+== Common
+=== Domain
 |===
-|Key |Value |Description
-
-|Domain |43.200.64.248 |-
-|Port |80 |Http port
-|Port |443 |Https port
+|*Host Name* |43.200.64.248 |-
+|*Port* |80 |Http port
+|*Port* |443 |Https port
 |===
 
 |===
-|Url |Description
-
 |/favicon.ico |-
 |/docs/index.html |백엔드 문서
 |/static/** |정적 파일
 |===
 
-== Authentication
-=== JWT-AUTH
-|===
-|Method |Name |TokenType |Description
-
-|Header |Authorization |Bearer |Paper accessToken
-|Cookie |Paper-Refresh-Token |- |Paper refreshToken
-|===
-
-=== JWT-AUTH-REFRESH
-|===
-|Path |Name |TokenType |Description
-
-|Cookie |Paper-Refresh-Token |- |Paper refreshToken
-|===
-
-== Type
+=== Type
 |===
 |Type |Description
 
 |?T |타입이 T이지만, 값이 없을수도 있음
 |[T] |T타입 값들의 리스트
+|T |Object 타입 +
+    링크를 통해 상세 정보를 볼 수 있다
 |Bool |true / false
 |Int |정수
 |String |문자열
 |Text |문자열
+|===
+
+== Authentication
+=== JWT-AUTH
+|===
+|*Header* |Authorization |JWT 혹은 User쪽 API를 통해 발급받은 Paper 자체 accessToken을 +
+                            Bearer 형식으로 담아 보내십시오
+|*Cookie* |Paper-Refresh-Token |JWT 혹은 User쪽 API를 통해 발급받은 Paper 자체 refreshToken을 +
+                                쿠키에 담아 보내십시오 +
+                                refreshToken은 발급될 때에 Set-Cookie로 발급되어 전송되므로, 따로 신경쓰지 않으셔도 됩니다
+|===
+
+=== JWT-AUTH-REFRESH
+|===
+|*Cookie* |Paper-Refresh-Token |JWT 혹은 User쪽 API를 통해 발급받은 Paper 자체 refreshToken을 +
+                                쿠키에 담아 보내십시오 +
+                                refreshToken은 발급될 때에 Set-Cookie로 발급되어 전송되므로, 따로 신경쓰지 않으셔도 됩니다
 |===
 
 include::{docfile}/../jwt.adoc[]

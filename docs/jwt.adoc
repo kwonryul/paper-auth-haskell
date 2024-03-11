@@ -1,73 +1,60 @@
-:major-index: 1
-:minor-index: 0
+== JWT
+=== POST /jwt/issue
 
-== {major-index}. JWT
-:minor-index: 1
-=== {major-index}.{minor-index}. JWT Token Issue
-*POST /jwt/issue*
-
-==== {major-index}.{minor-index}.1. Specifications
-===== Request
-====== Body
-include::{definitionsDir}jwt/issueJWTReqDTO.adoc[]
-
-===== Response
-====== Cookie
+==== Request
 |===
-|Name |Type |Description
-
-|Paper-Refresh-Token |paper |리프레쉬토큰 발급
+|*Body* |link:{definitionsDir}jwt/issueJWTReqDTO.html[IssueJWTReqDTO,role="popUp"]
 |===
 
-====== Body
-include::{definitionsDir}jwt/issueJWTResDTO.adoc[]
+==== Response
+|===
+|*Cookie* |Paper-Refresh-Token |리프레쉬 토큰 발급
+|*Body* |link:{definitionsDir}jwt/issueJWTResDTO.html[IssueJWTResDTO,role="popUp"] |-
+|===
 
-==== {major-index}.{minor-index}.2. Example
+==== Examples
 include::{examplesDir}jwt/issueJWT-request.adoc[]
 include::{examplesDir}jwt/issueJWT-response.adoc[]
 
-:minor-index: 2
-=== {major-index}.{minor-index}. JWT Token Refresh
-*POST /jwt/refresh* +
+=== POST /jwt/refresh
 
+==== Authentication
 |===
-|Authentication |JWT-AUTH-REFRESH
-|===
-
-==== {major-index}.{minor-index}.1. Specifications
-===== Request
--
-
-===== Response
-====== Cookie
-|===
-|Name |Type |Description
-
-|Paper-Refresh-Token |paper |리프레쉬토큰 발급
+|JWT-AUTH-REFRESH
 |===
 
-====== Body
-include::{definitionsDir}jwt/refreshJWTResDTO.adoc[]
+==== Request
+|===
+|-
+|===
 
-==== {major-index}.{minor-index}.2. Example
+==== Response
+|===
+|*Cookie* |Paper-Refresh-Token |리프레쉬토큰 재발급
+|*Body* |link:{definitionsDir}jwt/refreshJWTResDTO.html[RefreshJWTResDTO,role="popUp"] |-
+|===
+
+==== Examples
 include::{examplesDir}jwt/refreshJWT-request.adoc[]
 include::{examplesDir}jwt/refreshJWT-response.adoc[]
 
-:minor-index: 3
-=== {major-index}.{minor-index}. JWT Token Invalidation
-*DELETE /jwt/invalidate* +
+=== DELETE /jwt/invalidate
 
+==== Authentication
 |===
-|Authentication |JWT-AUTH
+|JWT-AUTH
 |===
 
-==== {major-index}.{minor-index}.1. Specifications
-===== Request
--
+==== Request
+|===
+|-
+|===
 
-===== Response
--
+==== Response
+|===
+|-
+|===
 
-==== {major-index}.{minor-index}.2. Example
+==== Example
 include::{examplesDir}jwt/invalidateJWT-request.adoc[]
 include::{examplesDir}jwt/invalidateJWT-response.adoc[]
