@@ -8,6 +8,7 @@ module Profile.Prod(
 import Monad.ProfileT
 
 import JWT.Controller
+import JWT.ExService
 import JWT.Repository
 import JWT.Service
 import JWT.Util
@@ -17,7 +18,8 @@ import SMS.Profile
 import User.Controller
 import User.Repository
 import User.Service
-import Verification.DTO
+import Verification.Controller
+import Verification.ExDTO
 import Verification.Repository
 import Verification.Service
 import Verification.Util
@@ -34,7 +36,7 @@ import Util
 
 import SMS.Profile.NaverCloud
 
-import ThirdParties.NaverCloud.Service
+import ThirdParties.NaverCloud.ExService
 
 import Control.Monad.Logger
 import Data.Text
@@ -48,6 +50,7 @@ data Prod
 instance Profile Prod
 
 instance JWTControllerI Prod
+instance JWTExServiceI Prod
 instance JWTRepositoryI Prod
 instance JWTServiceI Prod
 instance JWTUtilI Prod
@@ -56,7 +59,8 @@ instance RoleRepositoryI Prod
 instance UserControllerI Prod
 instance UserRepositoryI Prod
 instance UserServiceI Prod
-instance VerificationDTOI Prod
+instance VerificationControllerI Prod
+instance VerificationExDTOI Prod
 instance VerificationRepositoryI Prod
 instance VerificationServiceI Prod
 instance VerificationUtilI Prod
@@ -134,4 +138,4 @@ instance ErrorTProfile Prod GlobalErrorP where
 instance SMSProfileC Prod where
     type SMSProfileF Prod = SMSNaverCloud
 
-instance NaverCloudServiceI Prod
+instance NaverCloudExServiceI Prod

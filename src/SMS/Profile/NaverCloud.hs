@@ -13,9 +13,9 @@ import Verification.Util
 import PaperMonad
 import Configurator
 import CallStack
+import SMS.ExService
 import SMS.Profile
-import SMS.Service
-import ThirdParties.NaverCloud.Service
+import ThirdParties.NaverCloud.ExService
 
 import Servant
 import Servant.Client
@@ -44,7 +44,7 @@ data SMSMessageRequestDTO = SMSMessageRequestDTO {
   } deriving Show
 $(deriveJSON defaultOptions { fieldLabelModifier = (\name -> if name == "type'" then "type" else name) } ''SMSMessageRequestDTO)
 
-instance (SMSProfileC p, SMSProfileF p ~ SMSNaverCloud, ConfiguratorI p, NaverCloudServiceI p) => SMSServiceI p where
+instance (SMSProfileC p, SMSProfileF p ~ SMSNaverCloud, ConfiguratorI p, NaverCloudExServiceI p) => SMSExServiceI p where
     smsNotify = smsNotifyImpl
 
 type SMSMessageC = "sms" :> "v2" :> "services" :> Capture "serviceId" String :> "messages" :>
@@ -54,7 +54,7 @@ type SMSMessageC = "sms" :> "v2" :> "services" :> Capture "serviceId" String :> 
 smsMessageC :: Client ClientM SMSMessageC
 smsMessageC = client (Servant.Proxy :: Servant.Proxy SMSMessageC)
 
-smsNotifyImpl :: forall p m. (HasCallStack, SMSServiceI p, SMSProfileF p ~ SMSNaverCloud, ConfiguratorI p, NaverCloudServiceI p, MonadUnliftIO m) => Config -> PhoneNumber -> String -> PaperMonad p m ()
+smsNotifyImpl :: forall p m. (HasCallStack, SMSExServiceI p, SMSProfileF p ~ SMSNaverCloud, ConfiguratorI p, NaverCloudExServiceI p, MonadUnliftIO m) => Config -> PhoneNumber -> String -> PaperMonad p m ()
 smsNotifyImpl cfg phoneNumber msg = do
     currentUTC <- paperLiftIOUnliftIO getCurrentTime
     accessKey <- lookupRequired cfg "third-parties.naver-cloud.access-key"
@@ -80,8 +80,8 @@ smsNotifyImpl cfg phoneNumber msg = do
         profile :: Servant.Proxy p
         profile = Servant.Proxy
 
-toContent :: (SMSServiceI p, SMSProfileF p ~ SMSNaverCloud) => Servant.Proxy p -> String -> String
+toContent :: (SMSExServiceI p, SMSProfileF p ~ SMSNaverCloud) => Servant.Proxy p -> String -> String
 toContent _ msg = "[Paper]\n" ++ (Data.Text.unpack $ Data.Text.pack msg)
 
-toTo :: (SMSServiceI p, SMSProfileF p ~ SMSNaverCloud) => Servant.Proxy p -> PhoneNumber -> String
+toTo :: (SMSExServiceI p, SMSProfileF p ~ SMSNaverCloud) => Servant.Proxy p -> PhoneNumber -> String
 toTo _ (PhoneNumber phoneNumber) = Prelude.filter (\x -> x /= '-') phoneNumber

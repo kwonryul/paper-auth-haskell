@@ -1,5 +1,5 @@
-module SMS.Service(
-    SMSServiceI(
+module SMS.ExService(
+    SMSExServiceI(
         smsNotify
       )
 ) where
@@ -14,5 +14,5 @@ import Control.Monad.IO.Unlift
 import GHC.Stack
 
 
-class (SMSProfileC p) => SMSServiceI p where
+class (SMSProfileC p) => SMSExServiceI p where
     smsNotify :: (HasCallStack, MonadUnliftIO m) => Config -> PhoneNumber -> String -> PaperMonad p m ()

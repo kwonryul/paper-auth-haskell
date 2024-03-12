@@ -1,48 +1,9 @@
 == User
-=== POST /user/verify/request
-
-회원가입을 위한 전화번호 인증 +
-문자메세지로 인증메세지가 전달됩니다
-
-==== Request
-|===
-|*Body* |link:{definitionsDir}user/verifyRequestReqDTO.html[Object,role="popUp"]
-|===
-
-==== Response
-|===
-|-
-|===
-
-==== Examples
-include::{examplesDir}user/verifyRequest-request.adoc[]
-include::{examplesDir}user/verifyRequest-response.adoc[]
-
-=== POST /user/verify/check
-
-/user/verify/request 이후 3분의 기간 내에 해당 휴대번호의 인증번호가 정확하고 유효한지 확인 +
-5번의 실패 이후, 인증번호는 더이상 유효하지 않게 됨
-
-==== Request
-|===
-|*Body* |link:{definitionsDir}user/verifyCheckReqDTO.html[Object,role="popUp"]
-|===
-
-==== Response
-|===
-|*Body* |link:{definitionsDir}user/verifyCheckResDTO.html[Object,role="popUp"]
-|===
-
-==== Examples
-include::{examplesDir}user/verifyCheck-request.adoc[]
-include::{examplesDir}user/verifyCheck-response.adoc[]
-
 === POST /user/enroll
-
-회원가입 이전에 /user/verify/request를 통해 인증번호를 받아와야함 +
-단, /user/verify/check 는 진행하지 않아도 됨 +
-/user/verify/check 가 가능한 유효기간은 3분이지만, +
-/user/verify/check 이후의 유예기간을 두기 위해, enroll를 위한 인증번호 유효기간은 30분으로 설정됨 +
+회원가입 이전에 /verification/request를 통해 인증번호를 받아와야함 +
+단, /verification/check 는 진행하지 않아도 됨 +
+/verification/check 가 가능한 유효기간은 3분이지만, +
+/verification/check 이후의 유예기간을 두기 위해, enroll를 위한 인증번호 유효기간은 30분으로 설정됨 +
 
 paperId 와 phoneNumber는 각각 중복이 불가능함
 
@@ -63,5 +24,5 @@ include::{examplesDir}user/enroll-response.adoc[]
 
 ==== Exceptions
 |===
-|*Body* |link:{definitionsDir}verification/phoneNumberSecretWrongDTO.html[Object,role="popUp"]
+|*Body* |link:{definitionsDir}verification-ex/phoneNumberSecretWrongDTO.html[Object,role="popUp"]
 |===

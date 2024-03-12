@@ -4,9 +4,7 @@
 
 module User.Service(
     UserServiceI(
-        verifyRequest
-      , verifyCheck
-      , enroll
+        enroll
       , enroll'
       )
 ) where
@@ -15,16 +13,15 @@ import qualified User.Repository
 import User.Repository(UserRepositoryI)
 import qualified Verification.Repository
 import Verification.Repository(VerificationRepositoryI)
-import qualified Verification.Service
-import Verification.Service(VerificationServiceI)
+import qualified JWT.ExService
+import JWT.ExService(JWTExServiceI)
 
 import User.DTO
 import JWT.Util
 import JWT.Model
 import Verification.Util
-import Verification.DTO
+import Verification.ExDTO
 import Verification.Entity
-import SMS.Service
 import DB
 import PaperMonad
 import Import
@@ -46,64 +43,11 @@ import Data.Time
 import Data.ByteString.Char8
 import GHC.Stack
 
-class (DBI p, JWTUtilI p, UserRepositoryI p, VerificationDTOI p, VerificationRepositoryI p, VerificationServiceI p, VerificationUtilI p, SMSServiceI p) => UserServiceI p where
-    verifyRequest :: (HasCallStack, MonadUnliftIO m) => Config -> String -> PaperAuthPool -> PaperMonad p m NoContent
-    verifyRequest = verifyRequestImpl
-    verifyRequest' :: (HasCallStack, MonadUnliftIO m) => Config -> String -> PaperAuthConn -> PaperMonad p m NoContent
-    verifyRequest' = verifyRequest'Impl
-    verifyCheck :: (HasCallStack, MonadUnliftIO m) => String -> String -> PaperAuthPool -> PaperMonad p m VerifyCheckResDTO
-    verifyCheck = verifyCheckImpl
-    verifyCheck' :: (HasCallStack, MonadUnliftIO m) => String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m VerifyCheckResDTO
-    verifyCheck' = verifyCheck'Impl
+class (DBI p, JWTUtilI p, UserRepositoryI p, VerificationExDTOI p, VerificationRepositoryI p, JWTExServiceI p, VerificationUtilI p) => UserServiceI p where
     enroll :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> String -> PaperAuthPool -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
     enroll = enrollImpl
     enroll' :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
     enroll' = enroll'Impl
-
-verifyRequestImpl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> String -> PaperAuthPool -> PaperMonad p m NoContent
-verifyRequestImpl cfg phoneNumber pool = runSqlPoolOneConnection (verifyRequest' cfg phoneNumber) pool
-
-verifyRequest'Impl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> String -> PaperAuthConn -> PaperMonad p m NoContent
-verifyRequest'Impl cfg phoneNumber' conn = do
-    phoneNumber <- stringToPhoneNumber phoneNumber'
-    phoneNumberSecret <- generatePhoneNumberSecret
-    iat <- paperLiftIOUnliftIO getCurrentTime
-    let expire = addUTCTime (fromInteger 180) iat
-    let deleteAt = addUTCTime (fromInteger 1800) iat
-    Verification.Repository.deleteByPhoneNumber conn phoneNumber
-    _ <- Verification.Repository.newVerification conn phoneNumber phoneNumberSecret iat expire deleteAt
-    smsNotify cfg phoneNumber phoneNumberSecret
-    return NoContent
-
-verifyCheckImpl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => String -> String -> PaperAuthPool -> PaperMonad p m VerifyCheckResDTO
-verifyCheckImpl phoneNumber phoneNumberSecret pool = runSqlPoolOneConnection (verifyCheck' phoneNumber phoneNumberSecret pool) pool
-
-verifyCheck'Impl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m VerifyCheckResDTO
-verifyCheck'Impl phoneNumber' phoneNumberSecret pool conn = do
-    phoneNumber <- stringToPhoneNumber phoneNumber'
-    currentUTC <- paperLiftIOUnliftIO getCurrentTime
-    verificationEntity' <- Verification.Repository.findByPhoneNumber conn phoneNumber
-    case verificationEntity' of
-        Just (Entity verificationId Verification {
-            verificationPhoneNumberSecret
-          , verificationExpire
-          , verificationFailCount
-        }) ->
-            if diffUTCTime currentUTC verificationExpire > 0 then
-                return $ VerifyCheckResDTO False 0
-            else if phoneNumberSecret /= verificationPhoneNumberSecret then do
-                runSqlPoolOneConnection (inner verificationId verificationFailCount) pool
-                return $ VerifyCheckResDTO False $ verificationFailCount + 1
-            else
-                return $ VerifyCheckResDTO True verificationFailCount
-        Nothing -> return $ VerifyCheckResDTO False 0
-    where
-        inner :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => VerificationId -> Int -> PaperAuthConn -> PaperMonad p m ()
-        inner verificationId failCount innerConn =
-                if failCount == 4 then
-                    Verification.Repository.deleteById innerConn verificationId
-                else
-                    Verification.Repository.increaseFailCount innerConn verificationId
 
 enrollImpl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> String -> PaperAuthPool -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 enrollImpl config encodeSigner paperId password name phoneNumber phoneNumberSecret pool = runSqlPoolOneConnection (enroll' config encodeSigner paperId password name phoneNumber phoneNumberSecret pool) pool
@@ -143,7 +87,7 @@ enroll'Impl config encodeSigner paperId password name phoneNumber' phoneNumberSe
     userId <- User.Repository.newUser Paper paperId hashedPassword name (Just phoneNumber) currentUTC conn
     let roleSet = Data.Set.empty
         preAuthenticatedUser = PreAuthenticatedUser { userId, roleSet }
-    JWTDTO { accessToken, refreshToken } <- Verification.Service.issueJWT config conn encodeSigner preAuthenticatedUser currentUTC
+    JWTDTO { accessToken, refreshToken } <- JWT.ExService.issueJWT config conn encodeSigner preAuthenticatedUser currentUTC
     let cookie = generateRefreshTokenCookie (Proxy :: Proxy p) refreshToken
     return $ addHeader cookie $ EnrollResDTO { accessToken }
     where

@@ -15,5 +15,5 @@ phoneNumber String
 -
 
 phoneNumberSecret String
-/user/verify/check 를 통과했더라도 다시 보내야함
+/verification/check 를 통과했더라도 다시 보내야함
 -

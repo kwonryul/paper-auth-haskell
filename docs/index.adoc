@@ -56,5 +56,6 @@ https를 테스트하고 싶은 경우 가급적 해당 도메인의 문서에�
                                 refreshToken은 발급될 때에 Set-Cookie로 발급되어 전송되므로, 따로 신경쓰지 않으셔도 됩니다
 |===
 
+include::{docfile}/../verification.adoc[]
 include::{docfile}/../jwt.adoc[]
 include::{docfile}/../user.adoc[]

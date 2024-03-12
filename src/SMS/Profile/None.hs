@@ -5,11 +5,11 @@ module SMS.Profile.None(
 ) where
 
 import PaperMonad
+import SMS.ExService
 import SMS.Profile
-import SMS.Service
 
 data SMSNone
 instance SMSProfile SMSNone
 
-instance (SMSProfileC p, SMSProfileF p ~ SMSNone, PaperMonadI p) => SMSServiceI p where
+instance (SMSProfileC p, SMSProfileF p ~ SMSNone, PaperMonadI p) => SMSExServiceI p where
     smsNotify _ _ _ = return ()

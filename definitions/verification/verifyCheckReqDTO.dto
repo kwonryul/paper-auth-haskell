@@ -4,5 +4,5 @@ phoneNumber String
 -
 
 phoneNumberSecret String
-/user/verify/request에서 받은 인증번호
+/verification/request에서 받은 인증번호
 -

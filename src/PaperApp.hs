@@ -1,16 +1,18 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module PaperApp (
+module PaperApp(
     PaperAppI(
         app
       )
   ) where
 
 import qualified JWT.Controller
-import JWT.Controller (JWTControllerI)
+import JWT.Controller(JWTControllerI)
 import qualified User.Controller
-import User.Controller (UserControllerI)
+import User.Controller(UserControllerI)
+import qualified Verification.Controller
+import Verification.Controller(VerificationControllerI)
 
 import Authentication
 import Context
@@ -32,9 +34,9 @@ type API =
     :<|> "static" :> Raw
     :<|> "jwt" :> JWT.Controller.API
     :<|> "user" :> User.Controller.API
---    :<|> "oauth2" :> OAuth2.API
+    :<|> "verification" :> Verification.Controller.API
 
-class (AuthenticationI p, UserControllerI p, JWTControllerI p, CORSI p) => PaperAppI p where
+class (AuthenticationI p, JWTControllerI p, UserControllerI p, VerificationControllerI p, CORSI p) => PaperAppI p where
     server :: HasCallStack => Proxy p -> Context.Context -> FilePath -> FilePath -> Server API
     server = serverImpl
     faviconServer :: HasCallStack => Proxy p -> Context.Context -> Servant.Handler ByteString
@@ -49,8 +51,8 @@ serverImpl p context docsFilePath staticFilePath = faviconServer p context
     :<|> serveDirectoryWebApp docsFilePath
     :<|> serveDirectoryWebApp staticFilePath
     :<|> JWT.Controller.server p context
---    :<|> (OAuth2.server context)
     :<|> User.Controller.server p context
+    :<|> Verification.Controller.server p context
 
 faviconServerImpl :: forall p. (HasCallStack, PaperAppI p) => Proxy p -> Context.Context -> Servant.Handler ByteString
 faviconServerImpl profile context = do

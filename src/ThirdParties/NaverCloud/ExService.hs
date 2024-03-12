@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module ThirdParties.NaverCloud.Service(
-    NaverCloudServiceI(
+module ThirdParties.NaverCloud.ExService(
+    NaverCloudExServiceI(
         getNaverCloudSignature
       , applyNaverCloudHeaders
       )
@@ -19,13 +19,13 @@ import Data.Time
 import Data.Proxy
 import Data.ByteString.Char8
 
-class (UtilI p, ConfiguratorI p) => NaverCloudServiceI p where
+class (UtilI p, ConfiguratorI p) => NaverCloudExServiceI p where
     getNaverCloudSignature :: Proxy p -> String -> String -> StdMethod -> String -> Int -> String
     getNaverCloudSignature = getNaverCloudSignatureImpl
     applyNaverCloudHeaders :: Proxy p -> String -> String -> StdMethod -> String -> UTCTime -> (Maybe String -> Maybe String -> Maybe String -> a) -> a
     applyNaverCloudHeaders = applyNaverCloudHeadersImpl
 
-getNaverCloudSignatureImpl :: NaverCloudServiceI p => Proxy p -> String -> String -> StdMethod -> String -> Int -> String
+getNaverCloudSignatureImpl :: NaverCloudExServiceI p => Proxy p -> String -> String -> StdMethod -> String -> Int -> String
 getNaverCloudSignatureImpl _ accessKey secretKey method urlPath currentTimeMillis =
     let raw = show method ++ " " ++ urlPath ++ "\n" ++ show currentTimeMillis ++ "\n" ++ accessKey
         hmacDigest = hmacGetDigest $ (hmac (Data.ByteString.Char8.pack secretKey) $ Data.ByteString.Char8.pack raw :: HMAC SHA256) in
@@ -36,7 +36,7 @@ First argument: X-NCP-APIGW-TIMESTAMP
 Second argument: X-NCP-IAM-ACCESS-KEY
 Third argument: X-NCP-APIGW-SIGNATURE-V2
 -}
-applyNaverCloudHeadersImpl :: NaverCloudServiceI p => Proxy p -> String -> String -> StdMethod -> String -> UTCTime -> (Maybe String -> Maybe String -> Maybe String -> a) -> a
+applyNaverCloudHeadersImpl :: NaverCloudExServiceI p => Proxy p -> String -> String -> StdMethod -> String -> UTCTime -> (Maybe String -> Maybe String -> Maybe String -> a) -> a
 applyNaverCloudHeadersImpl profile accessKey secretKey method urlPath currentUTC f = do
     let currentTimeMillis = toCurrentTimeMillis profile currentUTC
         signature = getNaverCloudSignature profile accessKey secretKey method urlPath currentTimeMillis

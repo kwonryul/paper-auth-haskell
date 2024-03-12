@@ -38,7 +38,9 @@ library
       , Profile.Test
       , User.Controller
       , User.DTO
+      , Verification.Controller
       , Verification.DTO
+      , Verification.ExDTO
       , Authentication
       , Import
       , Lib
@@ -46,6 +48,7 @@ library
     other-modules:
         Paths_paper_auth
       , JWT.Entity
+      , JWT.ExService
       , JWT.Model
       , JWT.Repository
       , JWT.Service
@@ -56,9 +59,9 @@ library
       , Role.Repository
       , SMS.Profile.NaverCloud
       , SMS.Profile.None
+      , SMS.ExService
       , SMS.Profile
-      , SMS.Service
-      , ThirdParties.NaverCloud.Service
+      , ThirdParties.NaverCloud.ExService
       , User.Entity
       , User.Repository
       , User.Service
@@ -154,6 +157,7 @@ test-suite paper-auth-test
         Paths_paper_auth
       , Test.JWT
       , Test.User
+      , Test.Verification
     -- other-extensions:
     autogen-modules:
         Paths_paper_auth

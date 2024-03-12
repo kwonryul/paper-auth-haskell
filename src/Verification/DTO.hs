@@ -1,32 +1,33 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+
 module Verification.DTO(
-    PhoneNumberSecretWrongDTO(
-        PhoneNumberSecretWrongDTO
-      , msg
-      , failCount
+    VerifyRequestReqDTO(
+        VerifyRequestReqDTO
+      , phoneNumber
       )
-  , VerificationDTOI(
-        phoneNumberSecretWrongDTO
+  , VerifyCheckReqDTO(
+        VerifyCheckReqDTO
+      , phoneNumber
+      , phoneNumberSecret
+      )
+  , VerifyCheckResDTO(
+        VerifyCheckResDTO
+      , result
+      , failCount
       )
 ) where
 
-import Monad.ProfileT
 import Definition
 
 import Data.Aeson
 import Data.Aeson.TH
 
-import Data.Proxy
+$(defineDTO "verification/verifyRequestReqDTO.dto")
+$(deriveJSON defaultOptions ''VerifyRequestReqDTO)
 
-$(defineDTO "verification/phoneNumberSecretWrongDTO.dto")
-$(deriveJSON defaultOptions ''PhoneNumberSecretWrongDTO)
+$(defineDTO "verification/verifyCheckReqDTO.dto")
+$(deriveJSON defaultOptions ''VerifyCheckReqDTO)
 
-class Profile p => VerificationDTOI p where
-    phoneNumberSecretWrongDTO :: Proxy p -> Int -> PhoneNumberSecretWrongDTO
-    phoneNumberSecretWrongDTO = phoneNumberSecretWrongDTOImpl
-
-phoneNumberSecretWrongDTOImpl :: VerificationDTOI p => Proxy p -> Int -> PhoneNumberSecretWrongDTO
-phoneNumberSecretWrongDTOImpl _ failCount = PhoneNumberSecretWrongDTO {
-    msg = "phoneNumberSecret wrong"
-  , failCount
-  }
+$(defineDTO "verification/verifyCheckResDTO.dto")
+$(deriveJSON defaultOptions ''VerifyCheckResDTO)

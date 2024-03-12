@@ -26,18 +26,8 @@ import Control.Exception
 import Data.ByteString.Char8
 import Data.Text
 
-type VerifyRequestC = "user" :> "verify" :> "request" :> Header "Snippet-Path" String :>
-    ReqBody '[PrettyJSON] VerifyRequestReqDTO :> Post '[PlainText] NoContent
-type VerifyCheckC = "user" :> "verify" :> "check" :> Header "Snippet-Path" String :>
-    ReqBody '[PrettyJSON] VerifyCheckReqDTO :> Post '[PrettyJSON] VerifyCheckResDTO
 type EnrollC = "user" :> "enroll" :> Header "Snippet-Path" String :>
     ReqBody '[PrettyJSON] EnrollReqDTO :> Post '[PrettyJSON] (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
-
-verifyRequestC :: Client ClientM VerifyRequestC
-verifyRequestC = client (Servant.Proxy :: Servant.Proxy VerifyRequestC)
-
-verifyCheckC :: Client ClientM VerifyCheckC
-verifyCheckC = client (Servant.Proxy :: Servant.Proxy VerifyCheckC)
 
 enrollC :: Client ClientM EnrollC
 enrollC = client (Servant.Proxy :: Servant.Proxy EnrollC)
@@ -60,34 +50,13 @@ userSpec profile = around (withUserApp profile) $ do
     baseUrl <- runIO $ parseBaseUrl "http://localhost"
     manager <- runIO $ newManager defaultManagerSettings
     let clientEnv port = mkClientEnv manager (baseUrl { baseUrlPort = port })
-    describe "user/verify" $ do
-        it "verifyRequest" $ \port -> verifyRequestTest $ clientEnv port
-        it "verifyCheck" $ \port -> verifyCheckTest $ clientEnv port
     describe "user" $ do
         it "enroll" $ \port -> enrollTest $ clientEnv port
-
-verifyRequestTest :: ClientEnv -> IO ()
-verifyRequestTest clientEnv = do
-    result <- runClientM (verifyRequestC (Just "user/verifyRequest")
-        (VerifyRequestReqDTO "010-5432-7890")
-        ) clientEnv
-    case result of
-        Left err -> throwIO err
-        Right dto -> dto `shouldBe` NoContent
-
-verifyCheckTest :: ClientEnv -> IO ()
-verifyCheckTest clientEnv = do
-    result <- runClientM (verifyCheckC (Just "user/verifyCheck")
-        (VerifyCheckReqDTO "010-5432-7890" "123456")
-        ) clientEnv
-    case result of
-        Left err -> throwIO err
-        Right dto -> dto `shouldBe` VerifyCheckResDTO False 0
 
 enrollTest :: ClientEnv -> IO ()
 enrollTest clientEnv = do
     result <- runClientM (enrollC (Just "user/enroll")
-        (EnrollReqDTO "test_id" "test_pw" "dummy_name" "010-5432-7890" "123456")
+        (EnrollReqDTO "test_id" "test_pw" "dummy_name" "010-1234-0987" "123456")
         ) clientEnv
     case result of
         Left err -> throwIO err

@@ -6,6 +6,7 @@
 module Profile.Test() where
 
 import JWT.Controller
+import JWT.ExService
 import JWT.Repository
 import JWT.Service
 import JWT.Util
@@ -15,7 +16,8 @@ import SMS.Profile
 import User.Controller
 import User.Repository
 import User.Service
-import Verification.DTO
+import Verification.Controller
+import Verification.ExDTO
 import Verification.Repository
 import Verification.Service
 import Verification.Util
@@ -60,16 +62,18 @@ import Text.Regex.TDFA
 import System.Environment
 
 instance JWTControllerI Test
+--instance JWTExServiceI Test
 instance JWTRepositoryI Test
 instance JWTServiceI Test
-instance JWTUtilI Test
+--instance JWTUtilI Test
 instance RoleRepositoryI Test
 instance UserControllerI Test
 instance UserRepositoryI Test
 --instance UserServiceI Test
-instance VerificationDTOI Test
+instance VerificationControllerI Test
+instance VerificationExDTOI Test
 instance VerificationRepositoryI Test
---instance VerificationServiceI Test
+instance VerificationServiceI Test
 instance VerificationUtilI Test
 --instance AuthenticationI Test
 --instance ContextI Test
@@ -145,7 +149,7 @@ instance AuthenticationI Test where
             profile :: Proxy Test
             profile = Proxy
 
-instance VerificationServiceI Test where
+instance JWTExServiceI Test where
     issueJWT _ conn _ (PreAuthenticatedUser { userId }) currentUTC = do
         refreshJti <- JWT.Repository.newRefreshToken conn userId currentUTC Nothing
         accessJti <- JWT.Repository.newAccessToken conn userId currentUTC Nothing refreshJti
@@ -176,9 +180,20 @@ instance UserServiceI Test where
         userId <- User.Repository.newUser Paper paperId hashedPassword name (Just phoneNumber) currentUTC conn
         let roleSet = Data.Set.empty
             preAuthenticatedUser = PreAuthenticatedUser { userId, roleSet }
-        JWTDTO { accessToken, refreshToken } <- Verification.Service.issueJWT config conn encodeSigner preAuthenticatedUser currentUTC
+        JWTDTO { accessToken, refreshToken } <- JWT.ExService.issueJWT config conn encodeSigner preAuthenticatedUser currentUTC
         let cookie = generateRefreshTokenCookie (Proxy :: Proxy Test) refreshToken
         return $ addHeader cookie $ EnrollResDTO { accessToken }
+
+instance JWTUtilI Test where
+    generateRefreshTokenCookie _ refreshToken =
+        defaultSetCookie {
+            setCookieName = "Paper-Refresh-Token"
+          , setCookieValue = Data.Text.Encoding.encodeUtf8 refreshToken
+          , setCookiePath = Just "/"
+          , setCookieHttpOnly = False
+          , setCookieSecure = False
+          , setCookieSameSite = Nothing
+          }
 
 instance SMSProfileC Test where
     type SMSProfileF Test = SMSNone

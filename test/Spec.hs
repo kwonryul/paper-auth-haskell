@@ -6,6 +6,7 @@ import Profile.Test.Import
 import Profile.Test()
 import Test.JWT
 import Test.User
+import Test.Verification
 
 import Test.Hspec
 
@@ -21,3 +22,4 @@ spec :: Spec
 spec = do
     jwtSpec profile
     userSpec profile
+    verificationSpec profile

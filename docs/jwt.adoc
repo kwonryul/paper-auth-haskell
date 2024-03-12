@@ -1,6 +1,5 @@
 == JWT
 === POST /jwt/issue
-
 ==== Request
 |===
 |*Body* |link:{definitionsDir}jwt/issueJWTReqDTO.html[Object,role="popUp"]
@@ -17,7 +16,6 @@ include::{examplesDir}jwt/issueJWT-request.adoc[]
 include::{examplesDir}jwt/issueJWT-response.adoc[]
 
 === POST /jwt/refresh
-
 ==== Authentication
 |===
 |JWT-AUTH-REFRESH
@@ -39,7 +37,6 @@ include::{examplesDir}jwt/refreshJWT-request.adoc[]
 include::{examplesDir}jwt/refreshJWT-response.adoc[]
 
 === DELETE /jwt/invalidate
-
 ==== Authentication
 |===
 |JWT-AUTH
