@@ -196,9 +196,6 @@ ready(function () {
     let h3s = document.querySelectorAll('h3');
     h3s.forEach(h3 => {
         h3.addEventListener('click', function() {
-            let tester = document.getElementById('tester');
-            tester.style.right = '';
-            document.getElementById('hide-button').textContent = 'Test';
             setTester(this);
         })
     });
