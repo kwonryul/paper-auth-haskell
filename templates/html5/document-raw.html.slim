@@ -7,7 +7,9 @@ html
       script src="/static/docs/js/toc.js"
       script src="/static/docs/js/pop-up.js"
       script src="/static/docs/js/h3-toggle.js"
+      script src="/static/docs/js/tester.js"
       link rel="stylesheet" href="/static/docs/css/asciidoctor-index.css"
+      link rel="stylesheet" href="/static/docs/css/tester.css"
     body class="book toc2 toc-left"
       div id="header"
         h1 =title
@@ -17,6 +19,14 @@ html
       div id="content" =content
       div id="footer"
         div id="footer-text" ="Last updated {current_time}"
+      div id="tester"
+        div id="testertitle" ="API Tester"
+        div id="testermain"
+          p ="Request"
+          div id="testerrequest"
+          p ="Response"
+          div id="testerresponse"
+      div id="hide-button" onclick="toggleTester();" ="Test"
   - else
     - if document.attr 'dto'
       head

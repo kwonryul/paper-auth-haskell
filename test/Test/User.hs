@@ -87,7 +87,7 @@ verifyCheckTest clientEnv = do
 enrollTest :: ClientEnv -> IO ()
 enrollTest clientEnv = do
     result <- runClientM (enrollC (Just "user/enroll")
-        (EnrollReqDTO "test0id" "test0pw" "test0name" "010-5432-7890" "123456")
+        (EnrollReqDTO "test_id" "test_pw" "dummy_name" "010-5432-7890" "123456")
         ) clientEnv
     case result of
         Left err -> throwIO err

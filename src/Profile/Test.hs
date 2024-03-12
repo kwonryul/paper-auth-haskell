@@ -22,6 +22,7 @@ import Verification.Util
 import Authentication
 import CallStack
 import Context
+import CORS
 import DB
 import GlobalMonad
 import Lib
@@ -72,6 +73,7 @@ instance VerificationRepositoryI Test
 instance VerificationUtilI Test
 --instance AuthenticationI Test
 --instance ContextI Test
+instance CORSI Test
 --instance DBI Test
 instance LibI Test
 instance PaperAppI Test

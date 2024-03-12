@@ -6,7 +6,7 @@
 
 ==== Request
 |===
-|*Body* |link:{definitionsDir}user/verifyRequestReqDTO.html[VerifyRequestReqDTO,role="popUp"]
+|*Body* |link:{definitionsDir}user/verifyRequestReqDTO.html[Object,role="popUp"]
 |===
 
 ==== Response
@@ -25,12 +25,12 @@ include::{examplesDir}user/verifyRequest-response.adoc[]
 
 ==== Request
 |===
-|*Body* |link:{definitionsDir}user/verifyCheckReqDTO.html[VerifyCheckReqDTO,role="popUp"]
+|*Body* |link:{definitionsDir}user/verifyCheckReqDTO.html[Object,role="popUp"]
 |===
 
 ==== Response
 |===
-|*Body* |link:{definitionsDir}user/verifyCheckResDTO.html[VerifyCheckResDTO,role="popUp"]
+|*Body* |link:{definitionsDir}user/verifyCheckResDTO.html[Object,role="popUp"]
 |===
 
 ==== Examples
@@ -54,7 +54,7 @@ paperId 와 phoneNumber는 각각 중복이 불가능함
 ==== Response
 |===
 |*Cookie* |Paper-Refresh-Token |리프레쉬토큰 발급
-|*Body* |link:{definitionsDir}user/enrollResDTO.html[EnrollResDTO,role="popUp"] |-
+|*Body* |link:{definitionsDir}user/enrollResDTO.html[Object,role="popUp"] |-
 |===
 
 ==== Examples
@@ -63,5 +63,5 @@ include::{examplesDir}user/enroll-response.adoc[]
 
 ==== Exceptions
 |===
-|*Body* |link:{definitionsDir}verification/phoneNumberSecretWrongDTO.html[PhoneNumberSecretWrongDTO,role="popUp"]
+|*Body* |link:{definitionsDir}verification/phoneNumberSecretWrongDTO.html[Object,role="popUp"]
 |===

@@ -14,6 +14,7 @@ ready(function () {
         let h2A = document.createElement('a');
         h2A.href = '#' + h2.id;
         h2A.textContent = h2.textContent;
+        h2A.style.fontWeight = "300";
         let h2Ul = document.createElement('ul');
 
         let h3s = h2.nextElementSibling.querySelectorAll('h3');
@@ -30,6 +31,7 @@ ready(function () {
             let h3A = document.createElement('a');
             h3A.href = '#' + h3.id;
             h3A.textContent = h3.textContent;
+            h3A.style.fontWeight = "300";
             h3Li.appendChild(h3A);
             h2Ul.appendChild(h3Li);
         });

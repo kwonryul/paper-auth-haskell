@@ -25,6 +25,7 @@ import Authentication
 import CallStack
 import Configurator
 import Context
+import CORS
 import DB
 import GlobalMonad
 import Lib
@@ -63,6 +64,7 @@ instance AuthenticationI Prod
 instance CallStackI Prod
 instance ConfiguratorI Prod
 instance ContextI Prod
+instance CORSI Prod
 instance DBI Prod
 instance GlobalMonadI Prod
 instance LibI Prod

@@ -65,12 +65,3 @@ asciidoctor_no_test: clean_docs build_definitions
 .PHONY: asciidoctor
 asciidoctor: test
 	make asciidoctor_no_test
-
-.PHONY: deploy
-deploy:
-	sudo -v
-	git fetch origin
-	git reset --hard origin/master
-	make install
-	-sudo pkill paper-auth-exe
-	sudo nohup ~/.cabal/bin/paper-auth-exe &

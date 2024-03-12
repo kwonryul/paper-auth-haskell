@@ -1,0 +1,102 @@
+#tester {
+    margin-top: 0;
+    background: #f8f8f7;
+    position: fixed;
+    width: 30em;
+    top: 0;
+    right: -30em;
+    border-right: 1px solid #e7e7e9;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    z-index: 1000;
+    padding: 1.25em 1em;
+    height: 100%;
+    transition: right 0.3s ease;
+    overflow: auto;
+}
+
+#testertitle {
+    font-family: "Open Sans", "DejaVu Sans", sans-serif;
+    font-weight: 300;
+    font-style: normal;
+    text-rendering: optimizeLegibility;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    line-height: 1.2;
+    word-spacing: -0.05em;
+    color: #7a2518;
+    font-size: 1.2em;
+}
+
+#testermain {
+    font-family: "Open Sans", "DejaVu Sans", sans-serif;
+    font-style: normal;
+    font-weight: 300;
+    text-rendering: optimizeLegibility;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    line-height: 1.2;
+    word-spacing: -0.05em;
+    color: #1d4b8f;
+    font-size: 0.95em;
+}
+
+#hide-button {
+    position: fixed;
+    width: 150px;
+    top: 20px;
+    right: -50px;
+    background-color: #7a2518;
+    color: white;
+    padding: 10px;
+    border-radius: 5px 0 0 5px;
+    cursor: pointer;
+    transition: right 0.3s ease;
+    z-index: 1001;
+}
+
+#hide-button:hover {
+    right: 0;
+}
+
+#requestTable {
+    width: 107%;
+    background: #f8f8f7;
+    border: none;
+}
+
+#requestTable span {
+    font-size: 11pt;
+}
+
+.requestInput {
+    width: 20em;
+}
+
+#requestBodyName {
+    color: rgba(0, 0, 0, 0.8);
+    padding: 0.5625em 0.625em;
+}
+
+.requestTextArea {
+    width: 100%;
+    min-height: 30px;
+    max-height: 120px;
+    margin-top: 0.5625em;
+    margin-right: 0.625em;
+    margin-bottom: 1.25rem;
+    margin-left: 0.625em;
+    resize: none;
+    overflow-y: auto;
+    font-size: 8pt;
+}
+
+#requestSendButtonDiv {
+    text-align: center;
+    margin-bottom: 1.25rem;
+}
+
+#testerresponse div {
+    font-size: 10pt;
+    margin: 0.5625em 0.625em;
+}

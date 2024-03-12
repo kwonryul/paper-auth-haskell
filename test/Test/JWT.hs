@@ -70,11 +70,11 @@ jwtSpec profile = around (withJWTApp profile) $ do
 issueJWTTest :: ClientEnv -> IO ()
 issueJWTTest clientEnv = do
     result <- runClientM (issueJWTC (Just "jwt/issueJWT") $
-        IssueJWTReqDTO "id12345" "pw12345") clientEnv
+        IssueJWTReqDTO "testId" "testPw") clientEnv
     case result of
         Left err -> throwIO err
         Right dto -> do
-            getResponse dto `shouldBe` IssueJWTResDTO "this is dummy accessToken: 7"
+            getResponse dto `shouldBe` IssueJWTResDTO "this is dummy accessToken: 1"
             Prelude.any (\(name, value) ->
                     name == "Set-Cookie" &&
                     Data.ByteString.Char8.isInfixOf "Paper-Refresh-Token" value
@@ -83,12 +83,12 @@ issueJWTTest clientEnv = do
 refreshJWTTest :: ClientEnv -> IO ()
 refreshJWTTest clientEnv = do
     result <- runClientM (refreshJWTC (Just "jwt/refreshJWT")
-        (Just "Paper-Refresh-Token=this is dummy refreshToken: 7")
+        (Just "Paper-Refresh-Token=this is dummy refreshToken: 1")
         ) clientEnv
     case result of
         Left err -> throwIO err
         Right dto -> do
-            getResponse dto `shouldBe` RefreshJWTResDTO "this is dummy accessToken: 7"
+            getResponse dto `shouldBe` RefreshJWTResDTO "this is dummy accessToken: 1"
             Prelude.any (\(name, value) ->
                     name == "Set-Cookie" &&
                     Data.ByteString.Char8.isInfixOf "Paper-Refresh-Token" value
@@ -97,8 +97,8 @@ refreshJWTTest clientEnv = do
 invalidateJWTTest :: ClientEnv -> IO ()
 invalidateJWTTest clientEnv= do
     result <- runClientM (invalidateJWTC (Just "jwt/invalidateJWT")
-        (Just "Paper-Refresh-Token=this is dummy refreshToken: 7")
-        (Just "Bearer this is dummy accessToken: 7")
+        (Just "Paper-Refresh-Token=this is dummy refreshToken: 1")
+        (Just "Bearer this is dummy accessToken: 1")
         ) clientEnv
     case result of
         Left err -> throwIO err

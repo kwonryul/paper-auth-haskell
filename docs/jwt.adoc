@@ -3,13 +3,13 @@
 
 ==== Request
 |===
-|*Body* |link:{definitionsDir}jwt/issueJWTReqDTO.html[IssueJWTReqDTO,role="popUp"]
+|*Body* |link:{definitionsDir}jwt/issueJWTReqDTO.html[Object,role="popUp"]
 |===
 
 ==== Response
 |===
 |*Cookie* |Paper-Refresh-Token |리프레쉬 토큰 발급
-|*Body* |link:{definitionsDir}jwt/issueJWTResDTO.html[IssueJWTResDTO,role="popUp"] |-
+|*Body* |link:{definitionsDir}jwt/issueJWTResDTO.html[Object,role="popUp"] |-
 |===
 
 ==== Examples
@@ -31,7 +31,7 @@ include::{examplesDir}jwt/issueJWT-response.adoc[]
 ==== Response
 |===
 |*Cookie* |Paper-Refresh-Token |리프레쉬토큰 재발급
-|*Body* |link:{definitionsDir}jwt/refreshJWTResDTO.html[RefreshJWTResDTO,role="popUp"] |-
+|*Body* |link:{definitionsDir}jwt/refreshJWTResDTO.html[Object,role="popUp"] |-
 |===
 
 ==== Examples

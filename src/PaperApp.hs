@@ -12,8 +12,9 @@ import JWT.Controller (JWTControllerI)
 import qualified User.Controller
 import User.Controller (UserControllerI)
 
-import Context
 import Authentication
+import Context
+import CORS
 import PaperMonad
 
 import Servant
@@ -33,7 +34,7 @@ type API =
     :<|> "user" :> User.Controller.API
 --    :<|> "oauth2" :> OAuth2.API
 
-class (AuthenticationI p, UserControllerI p, JWTControllerI p) => PaperAppI p where
+class (AuthenticationI p, UserControllerI p, JWTControllerI p, CORSI p) => PaperAppI p where
     server :: HasCallStack => Proxy p -> Context.Context -> FilePath -> FilePath -> Server API
     server = serverImpl
     faviconServer :: HasCallStack => Proxy p -> Context.Context -> Servant.Handler ByteString
@@ -65,7 +66,7 @@ apiImpl :: PaperAppI p => Proxy p -> Proxy API
 apiImpl _ = Proxy
 
 appImpl :: (HasCallStack, PaperAppI p) => Proxy p -> Context.Context -> FilePath -> FilePath -> Application
-appImpl p context docsFilePath staticFilePath = serveWithContext
+appImpl p context docsFilePath staticFilePath = corsMiddleware p $ serveWithContext
     (api p)
     (authContext p context)
     (server p context docsFilePath staticFilePath)
