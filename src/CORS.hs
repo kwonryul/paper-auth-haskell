@@ -73,7 +73,8 @@ corsMiddlewareImpl p ctx app req sendResponse = do
                             Prelude.length headersAllowed == Prelude.length requestingHeaders
                         then do
                             recoveredOriginMatched <- runGlobalMonad @p ctx $ maybeToGlobalMonad (recover modifiedFlag originMatched) $ GlobalError "cors allowed origin not valid" (callStack' p)
-                            globalLog p ctx $ sendResponse $ responseLBS status200 (("Access-Control-Allow-Origin", recoveredOriginMatched) : corsHeaders) ""
+                            globalLog p ctx $ sendResponse $ responseLBS status200
+                                (("Access-Control-Allow-Origin", recoveredOriginMatched) : ("Access-Control-Allow-Credentials", "true") : corsHeaders) ""
                         else
                             globalLog p ctx $ sendResponse $ responseLBS status400 [] "method / headers not allowed"
                     Nothing ->
@@ -89,7 +90,9 @@ corsMiddlewareImpl p ctx app req sendResponse = do
                     Just originMatched ->
                         if  Prelude.any ((Data.ByteString.Char8.map toLower $ requestMethod req) ==) (Data.ByteString.Char8.map toLower <$> allowMethods) then do
                             recoveredOriginMatched <- runGlobalMonad @p ctx $ maybeToGlobalMonad (recover modifiedFlag originMatched) $ GlobalError "cors allowed origin not valid" (callStack' p)
-                            globalLog p ctx $ app req $ \res -> sendResponse $ mapResponseHeaders (\h -> (("Access-Control-Allow-Origin", recoveredOriginMatched) : h)) res
+                            globalLog p ctx $ app req $ \res -> sendResponse $ mapResponseHeaders (\h ->
+                                (("Access-Control-Allow-Origin", recoveredOriginMatched) : ("Access-Control-Allow-Credentials", "true"): h)
+                                ) res
                         else
                             globalLog p ctx $ sendResponse $ responseLBS status400 [] "method not allowed"
                     Nothing ->

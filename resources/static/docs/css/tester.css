@@ -70,7 +70,8 @@
 }
 
 .requestInput {
-    width: 20em;
+    width: 25em;
+    margin-right: 1.4em;
 }
 
 #requestBodyName {
@@ -80,8 +81,8 @@
 
 .requestTextArea {
     width: 100%;
-    min-height: 30px;
-    max-height: 120px;
+    min-height: 50px;
+    max-height: 200px;
     margin-top: 0.5625em;
     margin-right: 0.625em;
     margin-bottom: 1.25rem;
@@ -99,4 +100,9 @@
 #testerresponse div {
     font-size: 10pt;
     margin: 0.5625em 0.625em;
+}
+
+.inputTd {
+    width: 100%;
+    text-align: left;
 }

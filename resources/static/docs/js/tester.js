@@ -1,3 +1,5 @@
+let accessToken;
+
 function toggleTester() {
     let tester = document.getElementById('tester');
     if (tester.style.right === '') {
@@ -42,29 +44,7 @@ function setTester(h3) {
             urlInput.classList.add('requestInput');
             appendTr(table, urlNameElement, urlInput);
 
-            let portNameElement = document.createElement('span');
-            portNameElement.textContent = 'Port';
-            let portInput = document.createElement('input');
-            portInput.value = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
-            portInput.classList.add('requestInput');
-            appendTr(table, portNameElement, portInput);
-
-            let authorizationNameElement = document.createElement('span');
-            authorizationNameElement.textContent = 'Authorization';
-            let authorizationInput = document.createElement('input');
-            authorizationInput.classList.add('requestInput');
-            appendTr(table, authorizationNameElement, authorizationInput);
-
-            let refreshTokenNameElement = document.createElement('span');
-            refreshTokenNameElement.textContent = 'Paper-Refresh-Token';
-            let refreshTokenInput = document.createElement('input');
-            refreshTokenInput.classList.add('requestInput');
-            appendTr(table, refreshTokenNameElement, refreshTokenInput);
-
             let headerInputs = [];
-            headerInputs.push(['Authorization', authorizationInput]);
-            let cookieInputs = [];
-            cookieInputs.push(['Paper-Refresh-Token', refreshTokenInput]);
             let queryParamInputs = [];
             let bodyInput;
 
@@ -79,14 +59,6 @@ function setTester(h3) {
                     headerInputs.push([headerName, headerInput]);
                     headerInput.classList.add('requestInput');
                     appendTr(table, headerNameElement, headerInput);
-                } else if (strong.textContent === 'Cookie') {
-                    let cookieName = strong.parentElement.parentElement.nextElementSibling.firstChild.textContent;
-                    let cookieNameElement = document.createElement('span');
-                    cookieNameElement.textContent = cookieName;
-                    let cookieInput = document.createElement('input');
-                    cookieInput.classList.add('requestInput');
-                    cookieInputs.push([cookieName, cookieInput]);
-                    appendTr(table, cookieNameElement, cookieInput);
                 } else if (strong.textContent === 'QueryParam') {
                     let paramName = strong.parentElement.parentElement.nextElementSibling.firstChild.textContent;
                     let paramNameElement = document.createElement('span');
@@ -100,19 +72,21 @@ function setTester(h3) {
                 }
             });
 
-            let bodyNameElement = document.createElement('span');
-            bodyNameElement.textContent = 'Body';
-            bodyNameElement.id = 'requestBodyName';
-            bodyInput = document.createElement('textarea');
-            bodyInput.classList.add('requestTextArea');
-            bodyInput.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight > parseInt(getComputedStyle(this).getPropertyValue('max-height'))) ? 
-                    getComputedStyle(this).getPropertyValue('max-height') : 
-                    this.scrollHeight + 'px';
-            });
-            req.appendChild(bodyNameElement);
-            req.appendChild(bodyInput);
+            if (bodyFlag) {
+                let bodyNameElement = document.createElement('span');
+                bodyNameElement.textContent = 'Body';
+                bodyNameElement.id = 'requestBodyName';
+                bodyInput = document.createElement('textarea');
+                bodyInput.classList.add('requestTextArea');
+                bodyInput.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight > parseInt(getComputedStyle(this).getPropertyValue('max-height'))) ? 
+                        getComputedStyle(this).getPropertyValue('max-height') : 
+                        this.scrollHeight + 'px';
+                });
+                req.appendChild(bodyNameElement);
+                req.appendChild(bodyInput);
+            }
             let buttonDiv = document.createElement('div');
             let requestButton = document.createElement('button');
             requestButton.textContent = "Send";
@@ -130,20 +104,14 @@ function setTester(h3) {
                 });
                 let queryString = new URLSearchParams(queryParams).toString();
                 let url = urlInput.value + "?" + queryString;
-                let fullUrl;
-                let host = window.location.hostname;
-                let port = portInput.value;
-                if (port === '443' || port === '3000')
-                    fullUrl = 'https://' + host + ':' + port + url;
-                else
-                    fullUrl = 'http://' + host + ':' + port + url;
+                let fullUrl = window.location.origin + url;
                 let headers = new Headers();
+                if (accessToken) {
+                    headers.append("Authorization", "Bearer " + accessToken);
+                }
                 headerInputs.forEach(function(tup) {
                     headers.append(tup[0], tup[1].value);
                 });
-                cookieInputs.forEach(function(tup) {
-                    headers.append('Cookie', tup[0] + "=" + tup[1].value);
-                })
                 let body;
                 if (bodyInput) {
                     headers.append('Content-Type', 'application/json');
@@ -152,26 +120,49 @@ function setTester(h3) {
                 fetch(fullUrl, {
                     method,
                     headers,
-                    body
+                    body,
+                    credentials: 'include'
                 }).then(response => {
                     let status = document.createElement('div');
-                    status.textContent = response.statusText;
+                    status.textContent = response.status + "\t" + response.statusText;
                     if (!response.ok)
                         status.style.color = '#ba3925';
+                    status.style.marginBottom = '1.25rem';
                     res.appendChild(status);
 
-                    let headers = document.createElement('div');
-                    headers.textContent = JSON.stringify(response.headers);
+                    let headers = document.createElement('pre');
+                    let headersObject = {};
+                    response.headers.forEach((value, key) => {
+                        headersObject[key] = value;
+                    });
+                    headers.textContent = JSON.stringify(headersObject, null, 2);
                     if (!response.ok)
                         headers.style.color = '#ba3925';
+                    headers.style.fontFamily = '"Open Sans", "DejaVu Sans", sans-serif';
+                    headers.style.margin = '0.5625em 0.625em';
+                    headers.style.fontSize = '10pt';
+                    headers.style.marginBottom = '1.25rem';
                     res.appendChild(headers);
 
-                    let body = document.createElement('div');
+                    let body = document.createElement('pre');
                     response.text().then(x => {
-                        body.textContent = x;
+                        let j;
+                        try {
+                            j = JSON.parse(x);
+                            if (j.accessToken)
+                                accessToken = j.accessToken;
+                            body.textContent = JSON.stringify(j, null, 2);
+                        } catch (e) {
+                            body.textContent = x;
+                        }
                     });
-                    if (!response.ok)
+                    if (!response.ok) {
                         body.style.color = '#ba3925';
+                    }
+                    body.style.fontFamily = '"Open Sans", "DejaVu Sans", sans-serif';
+                    body.style.margin = '0.5625em 0.625em';
+                    body.style.fontSize = '10pt';
+                    body.style.marginBottom = '1.25rem';
                     res.appendChild(body);
                 });
             })
@@ -184,6 +175,7 @@ function appendTr(table, nameElement, input) {
     let td;
     tr = document.createElement('tr');
     td = document.createElement('td');
+    td.classList.add('inputTd');
     td.appendChild(nameElement);
     tr.appendChild(td);
     td = document.createElement('td');
