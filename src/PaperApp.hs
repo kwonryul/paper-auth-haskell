@@ -66,7 +66,7 @@ apiImpl :: PaperAppI p => Proxy p -> Proxy API
 apiImpl _ = Proxy
 
 appImpl :: (HasCallStack, PaperAppI p) => Proxy p -> Context.Context -> FilePath -> FilePath -> Application
-appImpl p context docsFilePath staticFilePath = corsMiddleware p $ serveWithContext
+appImpl p context docsFilePath staticFilePath = corsMiddleware p context $ serveWithContext
     (api p)
     (authContext p context)
     (server p context docsFilePath staticFilePath)

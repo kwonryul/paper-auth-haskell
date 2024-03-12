@@ -45,7 +45,7 @@ function setTester(h3) {
             let portNameElement = document.createElement('span');
             portNameElement.textContent = 'Port';
             let portInput = document.createElement('input');
-            portInput.value = '8080';
+            portInput.value = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
             portInput.classList.add('requestInput');
             appendTr(table, portNameElement, portInput);
 
