@@ -772,7 +772,7 @@ body > div[id]::after,
   }
 
   #toc.toc2 > ul {
-    font-size: 0.9em;
+    font-size: 0.85em;
     margin-bottom: 0;
   }
 
@@ -815,7 +815,7 @@ body > div[id]::after,
   }
 
   #toc.toc2 > ul {
-    font-size: 0.95em;
+    font-size: 0.85em;
   }
 
   #toc.toc2 ul ul {
