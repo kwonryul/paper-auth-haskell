@@ -21,6 +21,8 @@ import PaperMonad
 
 import Servant
 import Servant.Static.TH.Internal.Mime
+import Network.Wai.Application.Static
+import WaiAppStatic.Types
 
 import System.IO
 import Data.ByteString
@@ -47,9 +49,10 @@ class (AuthenticationI p, JWTControllerI p, UserControllerI p, VerificationContr
     app = appImpl
 
 serverImpl :: (HasCallStack, PaperAppI p) => Proxy p -> Context.Context -> FilePath -> FilePath -> Server API
-serverImpl p context docsFilePath staticFilePath = faviconServer p context
-    :<|> serveDirectoryWebApp docsFilePath
-    :<|> serveDirectoryWebApp staticFilePath
+serverImpl p context docsFilePath staticFilePath =
+        faviconServer p context
+    :<|> serveDirectoryWith ((defaultWebAppSettings docsFilePath) { ssMaxAge = NoMaxAge, ssUseHash = False })
+    :<|> serveDirectoryWith ((defaultWebAppSettings staticFilePath) { ssMaxAge = NoMaxAge, ssUseHash = False })
     :<|> JWT.Controller.server p context
     :<|> User.Controller.server p context
     :<|> Verification.Controller.server p context

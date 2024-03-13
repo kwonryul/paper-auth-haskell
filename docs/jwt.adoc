@@ -1,5 +1,10 @@
 == JWT
 === POST /jwt/issue
+id / pw 를 통한 토큰 발급 +
+
+accessToken의 만료는 30분 +
+refreshToken의 만료는 3시간
+
 ==== Request
 |===
 |*Body* |link:{definitionsDir}jwt/issueJWTReqDTO.html[Object,role="popUp"]
@@ -16,6 +21,12 @@ include::{examplesDir}jwt/issueJWT-request.adoc[]
 include::{examplesDir}jwt/issueJWT-response.adoc[]
 
 === POST /jwt/refresh
+refreshToken을 통한 토큰 재발급 +
+
+accessToken과 refreshToken 모두 갱신되며, +
+accessToken의 만료 30분 +
+refreshToken의 만료 3시간
+
 ==== Authentication
 |===
 |JWT-AUTH-REFRESH
@@ -37,6 +48,8 @@ include::{examplesDir}jwt/refreshJWT-request.adoc[]
 include::{examplesDir}jwt/refreshJWT-response.adoc[]
 
 === DELETE /jwt/invalidate
+해당 userId로 연결된 모든 접속을 비활성화
+
 ==== Authentication
 |===
 |JWT-AUTH

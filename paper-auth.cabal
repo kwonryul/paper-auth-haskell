@@ -124,7 +124,7 @@ library
       , servant-static-th
       , servant-auth-server
       , wai
-      , wai-cors
+      , wai-app-static
       , warp
       , warp-tls
       , http-types
