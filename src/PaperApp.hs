@@ -9,6 +9,8 @@ module PaperApp(
 
 import qualified JWT.Controller
 import JWT.Controller(JWTControllerI)
+import qualified OAuth2.Client.Controller
+import OAuth2.Client.Controller(OAuth2ClientControllerI)
 import qualified User.Controller
 import User.Controller(UserControllerI)
 import qualified Verification.Controller
@@ -35,10 +37,17 @@ type API =
     :<|> "docs" :> Raw
     :<|> "static" :> Raw
     :<|> "jwt" :> JWT.Controller.API
+    :<|> "oauth2" :> "client" :> OAuth2.Client.Controller.API
     :<|> "user" :> User.Controller.API
     :<|> "verification" :> Verification.Controller.API
 
-class (AuthenticationI p, JWTControllerI p, UserControllerI p, VerificationControllerI p, CORSI p) => PaperAppI p where
+class ( AuthenticationI p
+      , JWTControllerI p
+      , OAuth2ClientControllerI p
+      , UserControllerI p
+      , VerificationControllerI p
+      , CORSI p
+      ) => PaperAppI p where
     server :: HasCallStack => Proxy p -> Context.Context -> FilePath -> FilePath -> Server API
     server = serverImpl
     faviconServer :: HasCallStack => Proxy p -> Context.Context -> Servant.Handler ByteString
@@ -54,6 +63,7 @@ serverImpl p context docsFilePath staticFilePath =
     :<|> serveDirectoryWith ((defaultWebAppSettings docsFilePath) { ssMaxAge = NoMaxAge, ssUseHash = False })
     :<|> serveDirectoryWith ((defaultWebAppSettings staticFilePath) { ssMaxAge = NoMaxAge, ssUseHash = False })
     :<|> JWT.Controller.server p context
+    :<|> OAuth2.Client.Controller.server p context
     :<|> User.Controller.server p context
     :<|> Verification.Controller.server p context
 

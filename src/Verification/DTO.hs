@@ -1,22 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 
-module Verification.DTO(
-    VerifyRequestReqDTO(
-        VerifyRequestReqDTO
-      , phoneNumber
-      )
-  , VerifyCheckReqDTO(
-        VerifyCheckReqDTO
-      , phoneNumber
-      , phoneNumberSecret
-      )
-  , VerifyCheckResDTO(
-        VerifyCheckResDTO
-      , result
-      , failCount
-      )
-) where
+module Verification.DTO where
 
 import Definition
 

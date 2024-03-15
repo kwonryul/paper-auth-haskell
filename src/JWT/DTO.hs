@@ -1,21 +1,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module JWT.DTO(
-    IssueJWTReqDTO(
-        IssueJWTReqDTO
-      , paperId
-      , password
-      )
-  , IssueJWTResDTO(
-        IssueJWTResDTO
-      , accessToken
-      )
-  , RefreshJWTResDTO(
-        RefreshJWTResDTO
-      , accessToken
-      )
-) where
+module JWT.DTO where
 
 import Data.Aeson
 import Data.Aeson.TH

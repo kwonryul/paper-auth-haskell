@@ -24,15 +24,16 @@ module Lib(
 ) where
 
 import JWT.Entity
-import Verification.Entity
-import User.Entity
+import OAuth2.Client.Entity
 import Role.Entity
+import User.Entity
 import UserRole.Entity
-import PaperApp
-import Context
+import Verification.Entity
 import Configurator
-import GlobalMonad
+import Context
 import DB
+import GlobalMonad
+import PaperApp
 
 import Database.Persist.Sql
 import Database.Persist.Typed
@@ -116,3 +117,4 @@ migratePaperAuth''Impl conn = do
     globalLiftUnliftIO $ runReaderT (runMigration migrateUser) (generalizeSqlBackend conn)
     globalLiftUnliftIO $ runReaderT (runMigration migrateRole) (generalizeSqlBackend conn)
     globalLiftUnliftIO $ runReaderT (runMigration migrateUserRole) (generalizeSqlBackend conn)
+    globalLiftUnliftIO $ runReaderT (runMigration migrateOAuth2ClientSocket) (generalizeSqlBackend conn)

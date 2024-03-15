@@ -13,6 +13,10 @@ import JWT.Repository
 import JWT.Service
 import JWT.Util
 import Monad.ErrorT
+import OAuth2.Client.Controller
+import OAuth2.Client.Repository
+import OAuth2.Client.Service
+import OAuth2.Client.Util
 import Role.Repository
 import SMS.Profile
 import User.Controller
@@ -31,6 +35,7 @@ import CORS
 import DB
 import GlobalMonad
 import Lib
+import NestedMonad
 import PaperMonad
 import Util
 
@@ -55,6 +60,10 @@ instance JWTRepositoryI Prod
 instance JWTServiceI Prod
 instance JWTUtilI Prod
 instance ErrorTI Prod
+instance OAuth2ClientControllerI Prod
+instance OAuth2ClientRepositoryI Prod
+instance OAuth2ClientServiceI Prod
+instance OAuth2ClientUtilI Prod
 instance RoleRepositoryI Prod
 instance UserControllerI Prod
 instance UserRepositoryI Prod
@@ -72,6 +81,7 @@ instance CORSI Prod
 instance DBI Prod
 instance GlobalMonadI Prod
 instance LibI Prod
+instance NestedMonadI Prod
 instance PaperAppI Prod
 instance PaperMonadI Prod
 instance UtilI Prod
@@ -134,6 +144,35 @@ instance ErrorTProfile Prod GlobalErrorP where
         )
     defaultErrorLog _ _ ie =
         (defaultLoc, "GlobalErrorP", LevelError, toLogStr $ show ie)
+
+instance ErrorTProfile Prod NestedErrorP where
+    defaultError _ _= NestedDefaultError
+    defaultLogger _ _ context = (\_ _ logLevel logStr -> do
+        currentTime <- getCurrentTime
+        let cfg = config context
+            formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
+        logDir :: String <- runNestedMonadWithoutLog $ lookupRequiredNested @Prod cfg "log.nested"
+        let (fileNameList, header) =
+                case logLevel of
+                    LevelDebug -> (["debug.log", "all.log"], "[DEBUG]\t")
+                    LevelInfo -> (["info.log", "info-error.log", "info-warn-error.log", "all.log"], "[INFO]\t")
+                    LevelWarn -> (["warn.log", "info-warn-error.log", "all.log"], "[WARN]\t")
+                    LevelError -> (["error.log", "info-error.log", "info-warn-error.log", "all.log"], "[ERROR]\t")
+                    LevelOther _ -> (["other.log", "all.log"], "[OTHER]\t")
+            dirName = logDir ++ "nested/"
+            filePathList = (\fileName -> dirName ++ fileName) <$> fileNameList
+            content = Data.Text.Encoding.decodeUtf8 $ Data.ByteString.concat
+                [
+                    Data.Text.Encoding.encodeUtf8 $ Data.Text.pack (header ++ formattedDate)
+                  , fromLogStr logStr
+                  , Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "\n"
+                  ]
+        createDirectoryIfMissing True dirName
+        mapM_ (\filePath ->
+            Data.Text.IO.appendFile filePath content) filePathList
+        )
+    defaultErrorLog _ _ ie =
+        (defaultLoc, "NestedErrorP", LevelError, toLogStr $ show ie)
 
 instance SMSProfileC Prod where
     type SMSProfileF Prod = SMSNaverCloud

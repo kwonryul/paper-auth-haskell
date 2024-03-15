@@ -55,7 +55,7 @@ build_definitions: clean_definitions
 .PHONY: asciidoctor_no_test
 asciidoctor_no_test: clean_docs build_definitions
 	echo "Replacing template..."
-	cat "templates/html5/document-raw.html.slim" | sed "s/{current_time}/${current_time}/g" > "templates/html5/document.html.slim"
+	cat "templates/html5/document-raw.html.slim" | sed "s/\$${current_time}/${current_time}/g" > "templates/html5/document.html.slim"
 	echo "Building generated files..."
 	asciidoctor -R generated/snippets/definitions -D generated/docs/definitions 'generated/snippets/definitions/**/*.adoc' -T templates -E slim
 	echo "Generating index.html..."

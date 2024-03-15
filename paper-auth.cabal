@@ -55,6 +55,13 @@ library
       , JWT.Util
       , Monad.ErrorT
       , Monad.ProfileT
+      , OAuth2.Client.Controller
+      , OAuth2.Client.DTO
+      , OAuth2.Client.Entity
+      , OAuth2.Client.Model
+      , OAuth2.Client.Repository
+      , OAuth2.Client.Service
+      , OAuth2.Client.Util
       , Role.Entity
       , Role.Repository
       , SMS.Profile.NaverCloud
@@ -76,7 +83,9 @@ library
       , CORS
       , DB
       , Definition
+      , Enum
       , GlobalMonad
+      , NestedMonad
       , PaperApp
       , PaperMonad
       , Util
@@ -123,10 +132,12 @@ library
       , servant-client
       , servant-static-th
       , servant-auth-server
+      , servant-websockets
       , wai
       , wai-app-static
       , warp
       , warp-tls
+      , websockets
       , http-types
       , persistent
       , persistent-template

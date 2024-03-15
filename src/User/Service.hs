@@ -23,8 +23,8 @@ import Verification.Util
 import Verification.ExDTO
 import Verification.Entity
 import DB
+import Enum
 import PaperMonad
-import Import
 import CallStack
 
 import Servant
@@ -50,7 +50,8 @@ class (DBI p, JWTUtilI p, UserRepositoryI p, VerificationExDTOI p, VerificationR
     enroll' = enroll'Impl
 
 enrollImpl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> String -> PaperAuthPool -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
-enrollImpl config encodeSigner paperId password name phoneNumber phoneNumberSecret pool = runSqlPoolOneConnection (enroll' config encodeSigner paperId password name phoneNumber phoneNumberSecret pool) pool
+enrollImpl config encodeSigner paperId password name phoneNumber phoneNumberSecret pool =
+    runSqlPoolOneConnection (enroll' config encodeSigner paperId password name phoneNumber phoneNumberSecret pool) pool
 
 enroll'Impl :: forall p m. (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 enroll'Impl config encodeSigner paperId password name phoneNumber' phoneNumberSecret pool conn = do

@@ -8,7 +8,7 @@
 module User.Entity where
 
 import DB
-import Import
+import Enum
 
 import Database.Persist.Sql
 import Database.Persist.TH

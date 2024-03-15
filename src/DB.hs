@@ -9,16 +9,19 @@ module DB(
         getPaperAuthPool'
       , runSqlPoolOneConnection
       , runSqlPoolOneConnectionGlobal
+      , runSqlPoolOneConnectionNested
     )
 ) where
 
 import qualified Configurator
 import Configurator(ConfiguratorI)
-import GlobalMonad
-import PaperMonad
-import Monad.ProfileT
+
 import Monad.ErrorT
+import Monad.ProfileT
 import Import
+import GlobalMonad
+import NestedMonad
+import PaperMonad
 
 import Database.Persist.Typed
 import Database.Persist.MySQL
@@ -31,15 +34,17 @@ import Control.Monad.Logger
 import Data.Proxy
 import GHC.Stack
 
-class ConfiguratorI p => DBI p where
+class (NestedMonadI p, ConfiguratorI p) => DBI p where
     paperAuthConnInfo' :: (HasCallStack, MonadUnliftIO m) => Config -> GlobalMonad p m ConnectInfo
     paperAuthConnInfo' = paperAuthConnInfo'Impl
     getPaperAuthPool' :: (HasCallStack, MonadUnliftIO m) => Config -> GlobalMonad p m PaperAuthPool
     getPaperAuthPool' = getPaperAuthPool'Impl
-    runSqlPoolOneConnection :: forall db m a. (HasCallStack, DB db, MonadUnliftIO m) => (SqlFor db -> PaperMonad p m a) -> ConnectionPoolFor db -> PaperMonad p m a
+    runSqlPoolOneConnection :: (HasCallStack, DB db, MonadUnliftIO m) => (SqlFor db -> PaperMonad p m a) -> ConnectionPoolFor db -> PaperMonad p m a
     runSqlPoolOneConnection = runSqlPoolOneConnectionImpl
-    runSqlPoolOneConnectionGlobal :: forall db m a. (HasCallStack, DB db, MonadUnliftIO m) => (SqlFor db -> GlobalMonad p m a) -> ConnectionPoolFor db -> GlobalMonad p m a
+    runSqlPoolOneConnectionGlobal :: (HasCallStack, DB db, MonadUnliftIO m) => (SqlFor db -> GlobalMonad p m a) -> ConnectionPoolFor db -> GlobalMonad p m a
     runSqlPoolOneConnectionGlobal = runSqlPoolOneConnectionGlobalImpl
+    runSqlPoolOneConnectionNested :: (HasCallStack, DB db, MonadUnliftIO m) => (SqlFor db -> NestedMonad p m a) -> ConnectionPoolFor db -> NestedMonad p m a
+    runSqlPoolOneConnectionNested = runSqlPoolOneConnectionNestedImpl
 
 paperAuthConnInfo'Impl :: (HasCallStack, DBI p, MonadUnliftIO m) => Config -> GlobalMonad p m ConnectInfo
 paperAuthConnInfo'Impl config = do
@@ -88,3 +93,17 @@ runSqlPoolOneConnectionGlobalImpl inner pool = do
     where
         inner' :: (HasCallStack, DB db, MonadUnliftIO m) => Proxy p -> (Loc -> LogSource -> LogLevel -> LogStr -> IO ()) -> SqlFor db -> ExceptT GlobalInnerError m a
         inner' profile logger conn = (runLoggingT $ unErrorT $ unSafeErrorT $ runReaderT (unProfileT $ unGlobalMonad $ inner conn) profile) logger
+
+runSqlPoolOneConnectionNestedImpl :: forall db p m a. (HasCallStack, DBI p, DB db, MonadUnliftIO m) => (SqlFor db -> NestedMonad p m a) -> ConnectionPoolFor db -> NestedMonad p m a
+runSqlPoolOneConnectionNestedImpl inner pool = do
+    profile <- ask
+    safeErrorTToNestedMonad $ unsafeToSafeUnliftIO $ ErrorT $ LoggingT $ (\logger ->
+        ExceptT $ runSqlPoolFor (ReaderT (\conn ->
+            runExceptT $ catchE (inner' profile logger conn) (\e -> do
+                runReaderT transactionUndo $ generalizeSqlBackend conn
+                ExceptT $ return $ Left e)
+                )) pool
+                )
+    where
+        inner' :: (HasCallStack, DB db, MonadUnliftIO m) => Proxy p -> (Loc -> LogSource -> LogLevel -> LogStr -> IO ()) -> SqlFor db -> ExceptT NestedInnerError m a
+        inner' profile logger conn = (runLoggingT $ unErrorT $ unSafeErrorT $ runReaderT (unProfileT $ unNestedMonad $ inner conn) profile) logger

@@ -11,6 +11,10 @@ import JWT.Repository
 import JWT.Service
 import JWT.Util
 import Monad.ErrorT
+import OAuth2.Client.Controller
+import OAuth2.Client.Repository
+import OAuth2.Client.Service
+import OAuth2.Client.Util
 import Role.Repository
 import SMS.Profile
 import User.Controller
@@ -33,10 +37,10 @@ import Util
 
 import SMS.Profile.None
 
-import Import
-import Monad.ProfileT
 import JWT.Model
+import Monad.ProfileT
 import User.DTO
+import Enum
 
 import Profile.Test.Import
 
@@ -66,6 +70,10 @@ instance JWTControllerI Test
 instance JWTRepositoryI Test
 instance JWTServiceI Test
 --instance JWTUtilI Test
+instance OAuth2ClientControllerI Test
+instance OAuth2ClientRepositoryI Test
+instance OAuth2ClientServiceI Test
+instance OAuth2ClientUtilI Test
 instance RoleRepositoryI Test
 instance UserControllerI Test
 instance UserRepositoryI Test

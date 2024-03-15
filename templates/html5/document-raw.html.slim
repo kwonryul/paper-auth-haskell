@@ -18,7 +18,7 @@ html
           ul id='toc-ul' class="sectlevel1"
       div id="content" =content
       div id="footer"
-        div id="footer-text" ="Last updated {current_time}"
+        div id="footer-text" ="Last updated ${current_time}"
       div id="tester"
         div id="testertitle" ="API Tester"
         div id="testermain"
@@ -37,7 +37,7 @@ html
       body
         div id="content" =content
         div id="footer"
-          div id="footer-text" ="Last updated {current_time}"
+          div id="footer-text" ="Last updated ${current_time}"
     - else
       - if document.attr 'enum'
         head
@@ -48,4 +48,4 @@ html
         body
           div id="content" =content
           div id="footer"
-            div id="footer-text" ="Last updated {current_time}"
+            div id="footer-text" ="Last updated ${current_time}"

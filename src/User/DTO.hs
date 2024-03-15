@@ -1,20 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 
-module User.DTO(
-    EnrollReqDTO(
-        EnrollReqDTO
-      , paperId
-      , password
-      , name
-      , phoneNumber
-      , phoneNumberSecret
-      )
-  , EnrollResDTO(
-        EnrollResDTO
-      , accessToken
-      )
-) where
+module User.DTO where
 
 import Definition
 

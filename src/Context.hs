@@ -6,6 +6,7 @@ module Context(
       , paperAuthPool
       , paperEncodeSigner
       , paperVerifySigner
+      , oauth2ClientSocketConnections
     )
   , ContextI(
         getContext
@@ -26,6 +27,7 @@ import Control.Monad.IO.Unlift
 import Control.Concurrent
 import Data.ByteString
 import Data.Proxy
+import Data.Map
 import System.Environment
 import GHC.Stack
 
@@ -53,11 +55,13 @@ getContextImpl = do
     paperAuthPool <- getPaperAuthPool' config
     paperEncodeSigner <- getPaperEncodeSigner'
     paperVerifySigner <- getPaperVerifySigner'
+    oauth2ClientSocketConnections <- globalLiftIOUnliftIO $ newMVar Data.Map.empty
     return $ Context {
-        config = config
-      , paperAuthPool = paperAuthPool
-      , paperEncodeSigner = paperEncodeSigner
-      , paperVerifySigner = paperVerifySigner
+        config
+      , paperAuthPool
+      , paperEncodeSigner
+      , paperVerifySigner
+      , oauth2ClientSocketConnections
     }
 
 getPaperEncodeSigner'Impl :: forall p m. (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m EncodeSigner
