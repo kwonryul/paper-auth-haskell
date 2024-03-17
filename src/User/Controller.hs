@@ -34,10 +34,10 @@ class UserServiceI p => UserControllerI p where
     server = serverImpl
 
 enrollImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> EnrollReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
-enrollImpl _  ctx (EnrollReqDTO { paperId, password, name, phoneNumber, phoneNumberSecret }) =
+enrollImpl _  ctx (EnrollReqDTO { paperId, password, phoneNumber, phoneNumberSecret }) =
     let encodeSigner = paperEncodeSigner ctx in
     runPaperMonad ctx $ User.Service.enroll @p
-        (config ctx) encodeSigner paperId password name phoneNumber phoneNumberSecret (paperAuthPool ctx)
+        (config ctx) encodeSigner paperId password phoneNumber phoneNumberSecret (paperAuthPool ctx)
 
 serverImpl :: (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> Server API
 serverImpl p context =

@@ -154,7 +154,7 @@ library
         oauth2_client_socket_client
     --  , oauth2_client_socket_server
     extra-lib-dirs:
-        /home/kwonryul/dev/haskell/paper-auth/c++/out
+        ${project_dir}c++/out
 
 executable paper-auth-exe
     import:           warnings

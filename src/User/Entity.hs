@@ -20,10 +20,10 @@ import Data.Time
 share [mkPersist (mkSqlSettingsFor ''PaperAuthDB), mkMigrate "migrateUser"] [persistLowerCase|
 User
     authenticationType AuthenticationType
-    paperId String
+    paperId String Maybe
     password ByteString Maybe
-    name String
     phoneNumber String Maybe
+    identifier String Maybe
+    name String Maybe
     registerDate UTCTime
-    UniquePaperId paperId
 |]

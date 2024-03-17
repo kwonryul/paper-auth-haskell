@@ -1,14 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Enum(
-    AuthenticationType(
-        Paper
-      )
-  , SocketType(
-        WebSocket
-      , NativeSocket
-      )
-) where
+module Enum where
 
 import Definition
 

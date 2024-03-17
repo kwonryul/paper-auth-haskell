@@ -18,10 +18,12 @@ import Data.Time
 import Data.Text
 
 share [mkPersist (mkSqlSettingsFor ''PaperAuthDB), mkMigrate "migrateOAuth2ClientSocket"] [persistLowerCase|
-OAuth2ClientSocket
+OAuth2ClientSocketConnection
     type SocketType
     host String
     port Int
     state Text Maybe
+    accessToken Text Maybe
+    refreshToken Text Maybe
     iat UTCTime
 |]

@@ -147,7 +147,7 @@ getAccessTokenAndRoleSetImpl conn verifySigner request currentUTC = do
             else
                 return ()
         Nothing -> return ()
-    accessToken' <- JWT.Repository.findByAccessTokenId conn accessTokenId
+    accessToken' <- JWT.Repository.findByAccessTokenId accessTokenId conn
     accessToken@AccessToken { accessTokenExpire } <- maybeToPaperMonad accessToken' $ PaperError "accessToken invalidated" (err401 { errBody = "accessToken invalidated" }) (callStack' profile)
     case accessTokenExpire of
         Just accessTokenExpire' ->
@@ -193,7 +193,7 @@ getRefreshTokenImpl conn verifySigner request currentUTC = do
             else
                 return ()
         Nothing -> return ()
-    refreshToken' <- JWT.Repository.findByRefreshTokenId conn refreshTokenId
+    refreshToken' <- JWT.Repository.findByRefreshTokenId refreshTokenId conn
     refreshToken@RefreshToken { refreshTokenExpire } <- maybeToPaperMonad refreshToken' $ PaperError "refreshToken invalidated" (err401 { errBody = "refreshToken invalidated" }) (callStack' profile)
     case refreshTokenExpire of
         Just refreshTokenExpire' ->

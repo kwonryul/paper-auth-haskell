@@ -40,7 +40,7 @@ import Data.Traversable
 import GHC.Stack
 
 class JWTRepositoryI p => JWTExServiceI p where
-    issueJWT :: (HasCallStack, MonadUnliftIO m) => Config -> PaperAuthConn -> EncodeSigner -> PreAuthenticatedUser -> UTCTime -> PaperMonad p m JWTDTO
+    issueJWT :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> PreAuthenticatedUser -> UTCTime -> PaperAuthConn -> PaperMonad p m JWTDTO
     issueJWT = issueJWTImpl
     accessTokenHeader' :: (HasCallStack, MonadUnliftIO m) => Config -> PaperMonad p m JOSEHeader
     accessTokenHeader' = accessTokenHeader'Impl
@@ -74,17 +74,17 @@ class JWTRepositoryI p => JWTExServiceI p where
     accessTokenClaimsSet' = accessTokenClaimsSet'Impl
     refreshTokenClaimsSet' :: (HasCallStack, MonadUnliftIO m) => Config -> RefreshTokenId -> UTCTime -> Maybe NominalDiffTime -> UserId -> PaperMonad p m JWTClaimsSet
     refreshTokenClaimsSet' = refreshTokenClaimsSet'Impl
-    invalidateJWT :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> UserId -> PaperMonad p m ()
+    invalidateJWT :: (HasCallStack, MonadUnliftIO m) => UserId -> PaperAuthConn -> PaperMonad p m ()
     invalidateJWT = invalidateJWTImpl
 
-issueJWTImpl :: (HasCallStack, JWTExServiceI p, MonadUnliftIO m) => Config -> PaperAuthConn -> EncodeSigner -> PreAuthenticatedUser -> UTCTime -> PaperMonad p m JWTDTO
-issueJWTImpl config conn encodeSigner (PreAuthenticatedUser { userId, roleSet }) currentUTC = do
+issueJWTImpl :: (HasCallStack, JWTExServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> PreAuthenticatedUser -> UTCTime -> PaperAuthConn -> PaperMonad p m JWTDTO
+issueJWTImpl config encodeSigner (PreAuthenticatedUser { userId, roleSet }) currentUTC conn = do
     accessTokenLifetime <- accessTokenLifetime' config
     refreshTokenLifetime <- refreshTokenLifetime' config
     refreshJti <- JWT.Repository.newRefreshToken
-        conn userId currentUTC (addUTCTime <$> refreshTokenLifetime <*> Just currentUTC)
+        userId currentUTC (addUTCTime <$> refreshTokenLifetime <*> Just currentUTC) conn
     accessJti <- JWT.Repository.newAccessToken
-        conn userId currentUTC (addUTCTime <$> accessTokenLifetime <*> Just currentUTC) refreshJti
+        userId currentUTC (addUTCTime <$> accessTokenLifetime <*> Just currentUTC) refreshJti conn
     accessTokenHeader <- accessTokenHeader' config
     refreshTokenHeader <- refreshTokenHeader' config
     accessTokenClaimsSet <- accessTokenClaimsSet'
@@ -93,8 +93,8 @@ issueJWTImpl config conn encodeSigner (PreAuthenticatedUser { userId, roleSet })
         config refreshJti currentUTC refreshTokenLifetime userId
     let accessToken = encodeSigned encodeSigner accessTokenHeader accessTokenClaimsSet
         refreshToken = encodeSigned encodeSigner refreshTokenHeader refreshTokenClaimsSet
-    JWT.Repository.saveAccessToken conn accessJti accessToken
-    JWT.Repository.saveRefreshToken conn refreshJti refreshToken
+    JWT.Repository.saveAccessToken accessJti accessToken conn
+    JWT.Repository.saveRefreshToken refreshJti refreshToken conn
     return $ JWTDTO accessJti accessToken refreshJti refreshToken
 
 accessTokenHeader'Impl :: (HasCallStack, JWTExServiceI p, MonadUnliftIO m) => Config -> PaperMonad p m JOSEHeader
@@ -247,6 +247,6 @@ refreshTokenClaimsSet'Impl config jti' iat' exp' userId = do
     let unregisteredClaims = refreshTokenClaimsMap' proxy
     return $ JWTClaimsSet iss sub aud exp'' nbf iat jti unregisteredClaims
 
-invalidateJWTImpl :: (HasCallStack, JWTExServiceI p, MonadUnliftIO m) => PaperAuthConn -> UserId -> PaperMonad p m ()
-invalidateJWTImpl conn userId = do
-    JWT.Repository.invalidateJWT conn userId
+invalidateJWTImpl :: (HasCallStack, JWTExServiceI p, MonadUnliftIO m) => UserId -> PaperAuthConn -> PaperMonad p m ()
+invalidateJWTImpl userId conn = do
+    JWT.Repository.invalidateJWT userId conn

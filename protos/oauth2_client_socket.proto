@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package oauth2ClientSocket;
+
+service OAuth2ClientSocket {
+    rpc SendTokenAndClose(SocketIdWithToken) returns (Empty) {}
+}
+
+message SocketIdWithToken {
+    int32 socketId = 1;
+    string accessToken = 2;
+    string refreshToken = 3;
+}
+
+message Empty {}

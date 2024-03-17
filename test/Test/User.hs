@@ -56,7 +56,7 @@ userSpec profile = around (withUserApp profile) $ do
 enrollTest :: ClientEnv -> IO ()
 enrollTest clientEnv = do
     result <- runClientM (enrollC (Just "user/enroll")
-        (EnrollReqDTO "test_id" "test_pw" "dummy_name" "010-1234-0987" "123456")
+        (EnrollReqDTO "test_id" "test_pw" "010-1234-0987" "123456")
         ) clientEnv
     case result of
         Left err -> throwIO err

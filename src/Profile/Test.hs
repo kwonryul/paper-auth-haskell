@@ -11,7 +11,11 @@ import JWT.Repository
 import JWT.Service
 import JWT.Util
 import Monad.ErrorT
+import OAuth2.Client.GRpc.ExService
+import OAuth2.Client.ThirdParties.Kakao.ExService
+import OAuth2.Client.ThirdParties.Naver.ExService
 import OAuth2.Client.Controller
+import OAuth2.Client.ExService
 import OAuth2.Client.Repository
 import OAuth2.Client.Service
 import OAuth2.Client.Util
@@ -70,7 +74,11 @@ instance JWTControllerI Test
 instance JWTRepositoryI Test
 instance JWTServiceI Test
 --instance JWTUtilI Test
+instance OAuth2ClientGRpcExServiceI Test
+--instance OAuth2ClientKakaoExServiceI Test
+--instance OAuth2ClientNaverExServiceI Test
 instance OAuth2ClientControllerI Test
+instance OAuth2ClientExServiceI Test
 instance OAuth2ClientRepositoryI Test
 instance OAuth2ClientServiceI Test
 instance OAuth2ClientUtilI Test
@@ -129,12 +137,12 @@ instance AuthenticationI Test where
             PaperError "missing refreshToken" (err401 { errBody = "missing refreshToken" }) (callStack' profile)
         let userId = toSqlKeyFor $ read $ Data.Text.unpack $ Data.Text.Encoding.decodeUtf8 accessToken =~ ("([0-9])+" :: String)
             userId' = toSqlKeyFor $ read $ Data.Text.unpack $  Data.Text.Encoding.decodeUtf8 refreshToken =~ ("([0-9])+" :: String)
-        PreAuthenticatedUser _ roleSet <- getPreAuthenticatedUser conn userId
+        PreAuthenticatedUser _ roleSet <- getPreAuthenticatedUser userId conn
         paperAssert (userId == userId') $ PaperError "userId invalid" (err401 { errBody = "userId invalid" }) (callStack' profile)
-        refreshTokenId <- JWT.Repository.newRefreshToken conn userId currentUTC Nothing
-        accessTokenId <- JWT.Repository.newAccessToken conn userId currentUTC Nothing refreshTokenId
-        JWT.Repository.saveAccessToken conn accessTokenId (Data.Text.Encoding.decodeUtf8 accessToken)
-        JWT.Repository.saveRefreshToken conn refreshTokenId (Data.Text.Encoding.decodeUtf8 refreshToken)
+        refreshTokenId <- JWT.Repository.newRefreshToken userId currentUTC Nothing conn
+        accessTokenId <- JWT.Repository.newAccessToken userId currentUTC Nothing refreshTokenId conn
+        JWT.Repository.saveAccessToken accessTokenId (Data.Text.Encoding.decodeUtf8 accessToken) conn
+        JWT.Repository.saveRefreshToken refreshTokenId (Data.Text.Encoding.decodeUtf8 refreshToken) conn
         return $ AuthenticatedUser accessTokenId refreshTokenId userId roleSet
         where
             profile :: Proxy Test
@@ -150,33 +158,33 @@ instance AuthenticationI Test where
         case user' of
             Nothing -> toPaperMonad $ PaperError "user not found" (err401 { errBody = "user not found" }) (callStack' profile)
             _ -> return ()
-        refreshTokenId <- JWT.Repository.newRefreshToken conn userId currentUTC Nothing
-        JWT.Repository.saveRefreshToken conn refreshTokenId (Data.Text.Encoding.decodeUtf8 refreshToken)
+        refreshTokenId <- JWT.Repository.newRefreshToken userId currentUTC Nothing conn
+        JWT.Repository.saveRefreshToken refreshTokenId (Data.Text.Encoding.decodeUtf8 refreshToken) conn
         return $ AuthenticatedUserRefresh refreshTokenId userId
         where
             profile :: Proxy Test
             profile = Proxy
 
 instance JWTExServiceI Test where
-    issueJWT _ conn _ (PreAuthenticatedUser { userId }) currentUTC = do
-        refreshJti <- JWT.Repository.newRefreshToken conn userId currentUTC Nothing
-        accessJti <- JWT.Repository.newAccessToken conn userId currentUTC Nothing refreshJti
+    issueJWT _ _ (PreAuthenticatedUser { userId }) currentUTC conn = do
+        refreshJti <- JWT.Repository.newRefreshToken userId currentUTC Nothing conn
+        accessJti <- JWT.Repository.newAccessToken userId currentUTC Nothing refreshJti conn
         let accessToken = "this is dummy accessToken: " ++ show (fromSqlKeyFor userId)
             refreshToken = "this is dummy refreshToken: " ++ show (fromSqlKeyFor userId)
-        JWT.Repository.saveAccessToken conn accessJti $ Data.Text.pack accessToken
-        JWT.Repository.saveRefreshToken conn refreshJti $ Data.Text.pack refreshToken
+        JWT.Repository.saveAccessToken accessJti (Data.Text.pack accessToken) conn
+        JWT.Repository.saveRefreshToken refreshJti (Data.Text.pack refreshToken) conn
         return $ JWTDTO accessJti (Data.Text.pack accessToken) refreshJti (Data.Text.pack refreshToken)
 
 instance UserServiceI Test where
-    enroll' config encodeSigner paperId password name phoneNumber' _ _ conn = do
+    enroll' config encodeSigner paperId password phoneNumber' _ _ conn = do
         profile <- ask
         phoneNumber <- stringToPhoneNumber phoneNumber'
         currentUTC <- paperLiftIOUnliftIO getCurrentTime
-        sameUserIdEntity' <- User.Repository.findByPaperId paperId conn
-        case sameUserIdEntity' of
-            Just _ ->
+        sameUserIdEntityList <- User.Repository.findByPaperId paperId conn
+        case sameUserIdEntityList of
+            [] -> return ()
+            _ ->
                 toPaperMonad $ PaperError "paperId duplicate" (err400 { errBody = "paperId duplicate" }) (callStack' profile)
-            Nothing -> return ()
         samePhoneNumberList <- User.Repository.findByPhoneNumber phoneNumber conn
         case samePhoneNumberList of
             [] -> return ()
@@ -185,10 +193,10 @@ instance UserServiceI Test where
         hashedPassword <- maybeTToPaperMonadUnliftIO
             (MaybeT $ hashPasswordUsingPolicy slowerBcryptHashingPolicy (Data.ByteString.Char8.pack password))
             $ PaperError "hashing string error" (err500 { errBody = "Internal server error" }) (callStack' profile)
-        userId <- User.Repository.newUser Paper paperId hashedPassword name (Just phoneNumber) currentUTC conn
+        userId <- User.Repository.newUser Paper (Just paperId) (Just hashedPassword) (Just phoneNumber) Nothing currentUTC conn
         let roleSet = Data.Set.empty
             preAuthenticatedUser = PreAuthenticatedUser { userId, roleSet }
-        JWTDTO { accessToken, refreshToken } <- JWT.ExService.issueJWT config conn encodeSigner preAuthenticatedUser currentUTC
+        JWTDTO { accessToken, refreshToken } <- JWT.ExService.issueJWT config encodeSigner preAuthenticatedUser currentUTC conn
         let cookie = generateRefreshTokenCookie (Proxy :: Proxy Test) refreshToken
         return $ addHeader cookie $ EnrollResDTO { accessToken }
 
@@ -205,3 +213,9 @@ instance JWTUtilI Test where
 
 instance SMSProfileC Test where
     type SMSProfileF Test = SMSNone
+
+instance OAuth2ClientKakaoExServiceI Test where
+    getIdentifier _ _ _ = return "testIdentifier"
+
+instance OAuth2ClientNaverExServiceI Test where
+    getIdentifier _ _ _ = return "testIdentifier"

@@ -47,25 +47,27 @@ class (DBI p, JWTUtilI p, UserRepositoryI p, JWTExServiceI p) => JWTServiceI p w
     invalidateJWT' = invalidateJWT'Impl
 
 issueJWTImpl :: (HasCallStack, JWTServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> PaperAuthPool -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)
-issueJWTImpl config encodeSigner paperId password pool = runSqlPoolOneConnection (issueJWT' config encodeSigner paperId password) pool
+issueJWTImpl config encodeSigner paperId password pool =
+    runSqlPoolOneConnection (issueJWT' config encodeSigner paperId password) pool
 
 issueJWT'Impl :: forall p m. (HasCallStack, JWTServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> PaperAuthConn -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)
 issueJWT'Impl config encodeSigner paperId password conn = do
     currentUTC <- paperLiftIOUnliftIO getCurrentTime
-    Entity userId _ <- User.Repository.verifyIdPw conn paperId password
-    preAuthenticatedUser <- User.Repository.getPreAuthenticatedUser conn userId
-    JWTDTO { accessToken, refreshToken } <- JWT.ExService.issueJWT config conn encodeSigner preAuthenticatedUser currentUTC
+    Entity userId _ <- User.Repository.verifyIdPw paperId password conn
+    preAuthenticatedUser <- User.Repository.getPreAuthenticatedUser userId conn
+    JWTDTO { accessToken, refreshToken } <- JWT.ExService.issueJWT config encodeSigner preAuthenticatedUser currentUTC conn
     let cookie = generateRefreshTokenCookie (Proxy :: Proxy p) refreshToken
     return $ addHeader cookie $ IssueJWTResDTO { accessToken }
 
 refreshJWTImpl :: (HasCallStack, JWTServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> UserId -> PaperAuthPool -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] RefreshJWTResDTO)
-refreshJWTImpl config encodeSigner userId pool = runSqlPoolOneConnection (refreshJWT' config encodeSigner userId) pool
+refreshJWTImpl config encodeSigner userId pool =
+    runSqlPoolOneConnection (refreshJWT' config encodeSigner userId) pool
 
 refreshJWT'Impl :: forall p m. (HasCallStack, JWTServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> UserId -> PaperAuthConn -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] RefreshJWTResDTO)
 refreshJWT'Impl config encodeSigner userId conn = do
     currentUTC <- paperLiftIOUnliftIO getCurrentTime
-    preAuthenticatedUser <- User.Repository.getPreAuthenticatedUser conn userId
-    JWTDTO { accessToken, refreshToken } <- JWT.ExService.issueJWT config conn encodeSigner preAuthenticatedUser currentUTC
+    preAuthenticatedUser <- User.Repository.getPreAuthenticatedUser userId conn
+    JWTDTO { accessToken, refreshToken } <- JWT.ExService.issueJWT config encodeSigner preAuthenticatedUser currentUTC conn
     let cookie = generateRefreshTokenCookie (Proxy :: Proxy p) refreshToken
     return $ addHeader cookie $ RefreshJWTResDTO { accessToken }
 
@@ -74,5 +76,5 @@ invalidateJWTImpl userId pool = runSqlPoolOneConnection (invalidateJWT' userId) 
 
 invalidateJWT'Impl :: (HasCallStack, JWTServiceI p, MonadUnliftIO m) => UserId -> PaperAuthConn -> PaperMonad p m NoContent
 invalidateJWT'Impl userId conn = do
-    JWT.ExService.invalidateJWT conn userId
+    JWT.ExService.invalidateJWT userId conn
     return NoContent

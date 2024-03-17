@@ -7,6 +7,7 @@ module User.Repository(
       , findByPhoneNumber
       , verifyIdPw
       , getPreAuthenticatedUser
+      , findByAuthTypeAndIdentifier
       )
 ) where
 
@@ -33,41 +34,44 @@ import Data.ByteString.Char8
 import GHC.Stack
 
 class PaperMonadI p => UserRepositoryI p where
-    newUser :: (HasCallStack, MonadUnliftIO m) => AuthenticationType -> String -> ByteString -> String -> Maybe PhoneNumber -> UTCTime -> PaperAuthConn -> PaperMonad p m UserId
+    newUser :: (HasCallStack, MonadUnliftIO m) => AuthenticationType -> Maybe String -> Maybe ByteString -> Maybe PhoneNumber -> Maybe String -> UTCTime -> PaperAuthConn -> PaperMonad p m UserId
     newUser = newUserImpl
-    findByPaperId :: (HasCallStack, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m (Maybe (Entity User))
+    findByPaperId :: (HasCallStack, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m [Entity User]
     findByPaperId = findByPaperIdImpl
     findByPhoneNumber :: (HasCallStack, MonadUnliftIO m) => PhoneNumber -> PaperAuthConn -> PaperMonad p m [Entity User]
     findByPhoneNumber = findByPhoneNumberImpl
-    verifyIdPw :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> String -> String -> PaperMonad p m (Entity User)
+    verifyIdPw :: (HasCallStack, MonadUnliftIO m) => String -> String -> PaperAuthConn -> PaperMonad p m (Entity User)
     verifyIdPw = verifyIdPwImpl
-    getPreAuthenticatedUser :: (HasCallStack, MonadUnliftIO m) => PaperAuthConn -> UserId -> PaperMonad p m PreAuthenticatedUser
+    getPreAuthenticatedUser :: (HasCallStack, MonadUnliftIO m) => UserId -> PaperAuthConn -> PaperMonad p m PreAuthenticatedUser
     getPreAuthenticatedUser = getPreAuthenticatedUserImpl
+    findByAuthTypeAndIdentifier :: (HasCallStack, MonadUnliftIO m) => AuthenticationType -> String -> PaperAuthConn -> PaperMonad p m [Entity User]
+    findByAuthTypeAndIdentifier = findByAuthTypeAndIdentifierImpl
 
 
-newUserImpl :: (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => AuthenticationType -> String -> ByteString -> String -> Maybe PhoneNumber -> UTCTime -> PaperAuthConn -> PaperMonad p m UserId
-newUserImpl authenticationType paperId password name phoneNumber' registerDate conn = do
-    let phoneNumber =
-            case phoneNumber' of
-                Just (PhoneNumber p) -> Just p
-                Nothing -> Nothing
-    paperLiftUnliftIO $ runReaderT (Database.Persist.Sql.insert $ User authenticationType paperId (Just password) name phoneNumber registerDate) conn
+newUserImpl :: (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => AuthenticationType -> Maybe String -> Maybe ByteString -> Maybe PhoneNumber -> Maybe String -> UTCTime -> PaperAuthConn -> PaperMonad p m UserId
+newUserImpl authenticationType paperId password phoneNumber' identifier registerDate conn = do
+    let phoneNumber = case phoneNumber' of
+            Just (PhoneNumber phoneNumber'') -> Just phoneNumber''
+            Nothing -> Nothing
+    paperLiftUnliftIO $ runReaderT (Database.Persist.Sql.insert $ User authenticationType paperId password phoneNumber identifier Nothing registerDate) conn
 
-findByPaperIdImpl :: (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m (Maybe (Entity User))
+findByPaperIdImpl :: (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m [Entity User]
 findByPaperIdImpl paperId conn = do
-    paperLiftUnliftIO $ runReaderT (getBy $ UniquePaperId paperId) conn
+    paperLiftUnliftIO $ runReaderT (selectList [UserPaperId ==. Just paperId] []) conn
 
 findByPhoneNumberImpl :: (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => PhoneNumber -> PaperAuthConn -> PaperMonad p m [Entity User]
 findByPhoneNumberImpl (PhoneNumber phoneNumber) conn = do
     paperLiftUnliftIO $ runReaderT (selectList [UserPhoneNumber ==. Just phoneNumber] []) conn
 
-verifyIdPwImpl :: forall p m. (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => PaperAuthConn -> String -> String -> PaperMonad p m (Entity User)
-verifyIdPwImpl conn paperId password = do
-    userEntity' <- paperLiftUnliftIO $ runReaderT (getBy $ UniquePaperId paperId) conn
-    rt@(Entity _ user) <- case userEntity' of
-        Just userEntity -> return userEntity
-        Nothing ->
+verifyIdPwImpl :: forall p m. (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => String -> String -> PaperAuthConn -> PaperMonad p m (Entity User)
+verifyIdPwImpl paperId password conn = do
+    userEntityList <- paperLiftUnliftIO $ runReaderT (selectList [UserPaperId ==. Just paperId] []) conn
+    rt@(Entity _ user) <- case userEntityList of
+        [userEntity] -> return userEntity
+        [] ->
             toPaperMonad $ PaperError "user not found" (err401 { errBody = "user not found" }) (callStack' profile)
+        _ ->
+            toPaperMonad $ PaperError "paperId duplicate" (err401 { errBody = "database error" }) (callStack' profile)
     case userPassword user of
         Just userPassword' -> 
             paperAssert
@@ -79,8 +83,8 @@ verifyIdPwImpl conn paperId password = do
         profile :: Proxy p
         profile = Proxy
 
-getPreAuthenticatedUserImpl :: forall p m. (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => PaperAuthConn -> UserId -> PaperMonad p m PreAuthenticatedUser
-getPreAuthenticatedUserImpl conn userId = do
+getPreAuthenticatedUserImpl :: forall p m. (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => UserId -> PaperAuthConn -> PaperMonad p m PreAuthenticatedUser
+getPreAuthenticatedUserImpl userId conn = do
     userEntity' <- paperLiftUnliftIO $ runReaderT (get userId) conn
     _ <- maybeToPaperMonad userEntity' $ PaperError "user not found" (err500 { errBody = "user not found" }) (callStack' profile)
     userRoleEntityList <- paperLiftUnliftIO $ runReaderT (selectList [UserRoleUserId ==. userId] []) conn
@@ -91,3 +95,7 @@ getPreAuthenticatedUserImpl conn userId = do
     where
         profile :: Proxy p
         profile = Proxy
+
+findByAuthTypeAndIdentifierImpl :: (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => AuthenticationType -> String -> PaperAuthConn -> PaperMonad p m [Entity User]
+findByAuthTypeAndIdentifierImpl authenticationType identifier conn = do
+    paperLiftUnliftIO $ runReaderT (selectList [UserAuthenticationType ==. authenticationType, UserIdentifier ==. Just identifier] []) conn

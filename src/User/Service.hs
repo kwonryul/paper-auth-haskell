@@ -44,17 +44,17 @@ import Data.ByteString.Char8
 import GHC.Stack
 
 class (DBI p, JWTUtilI p, UserRepositoryI p, VerificationExDTOI p, VerificationRepositoryI p, JWTExServiceI p, VerificationUtilI p) => UserServiceI p where
-    enroll :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> String -> PaperAuthPool -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
+    enroll :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> PaperAuthPool -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
     enroll = enrollImpl
-    enroll' :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
+    enroll' :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String ->  String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
     enroll' = enroll'Impl
 
-enrollImpl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> String -> PaperAuthPool -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
-enrollImpl config encodeSigner paperId password name phoneNumber phoneNumberSecret pool =
-    runSqlPoolOneConnection (enroll' config encodeSigner paperId password name phoneNumber phoneNumberSecret pool) pool
+enrollImpl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> PaperAuthPool -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
+enrollImpl config encodeSigner paperId password phoneNumber phoneNumberSecret pool =
+    runSqlPoolOneConnection (enroll' config encodeSigner paperId password phoneNumber phoneNumberSecret pool) pool
 
-enroll'Impl :: forall p m. (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
-enroll'Impl config encodeSigner paperId password name phoneNumber' phoneNumberSecret pool conn = do
+enroll'Impl :: forall p m. (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
+enroll'Impl config encodeSigner paperId password phoneNumber' phoneNumberSecret pool conn = do
     profile <- ask
     phoneNumber <- stringToPhoneNumber phoneNumber'
     currentUTC <- paperLiftIOUnliftIO getCurrentTime
@@ -72,11 +72,11 @@ enroll'Impl config encodeSigner paperId password name phoneNumber' phoneNumberSe
             else
                 return ()
         Nothing -> toPaperMonad $ PaperError "verification missing" (err403 { errBody = "verification missing" }) (callStack' profile)
-    sameUserIdEntity' <- User.Repository.findByPaperId paperId conn
-    case sameUserIdEntity' of
-        Just _ ->
+    sameUserIdEntityList <- User.Repository.findByPaperId paperId conn
+    case sameUserIdEntityList of
+        [] -> return ()
+        _ ->
             toPaperMonad $ PaperError "paperId duplicate" (err400 { errBody = "paperId duplicate" }) (callStack' profile)
-        Nothing -> return ()
     samePhoneNumberList <- User.Repository.findByPhoneNumber phoneNumber conn
     case samePhoneNumberList of
         [] -> return ()
@@ -85,10 +85,10 @@ enroll'Impl config encodeSigner paperId password name phoneNumber' phoneNumberSe
     hashedPassword <- maybeTToPaperMonadUnliftIO
         (MaybeT $ hashPasswordUsingPolicy slowerBcryptHashingPolicy (Data.ByteString.Char8.pack password))
         $ PaperError "hashing string error" (err500 { errBody = "Internal server error" }) (callStack' profile)
-    userId <- User.Repository.newUser Paper paperId hashedPassword name (Just phoneNumber) currentUTC conn
+    userId <- User.Repository.newUser Paper (Just paperId) (Just hashedPassword) (Just phoneNumber) Nothing currentUTC conn
     let roleSet = Data.Set.empty
         preAuthenticatedUser = PreAuthenticatedUser { userId, roleSet }
-    JWTDTO { accessToken, refreshToken } <- JWT.ExService.issueJWT config conn encodeSigner preAuthenticatedUser currentUTC
+    JWTDTO { accessToken, refreshToken } <- JWT.ExService.issueJWT config encodeSigner preAuthenticatedUser currentUTC conn
     let cookie = generateRefreshTokenCookie (Proxy :: Proxy p) refreshToken
     return $ addHeader cookie $ EnrollResDTO { accessToken }
     where

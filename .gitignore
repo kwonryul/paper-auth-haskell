@@ -1,6 +1,7 @@
-dist*
-.vscode/
-log/
+dist-newstyle/*
+.vscode/*
+log/*
+out/*
 resources/application.cfg
 resources/application-test.cfg
 resources/tls/cert.pem
@@ -8,5 +9,9 @@ resources/tls/secret-key.pem
 resources/jwt/encrypted-paper-auth.pem
 resources/jwt/paper-auth.pem
 resources/jwt/paper-auth.pub
-snippets/
-generated/
+snippets/*
+generated/*
+protos/build/*
+c++/build/*
+c++/out/*
+grpc/*

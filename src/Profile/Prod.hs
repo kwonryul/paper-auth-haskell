@@ -13,7 +13,11 @@ import JWT.Repository
 import JWT.Service
 import JWT.Util
 import Monad.ErrorT
+import OAuth2.Client.GRpc.ExService
+import OAuth2.Client.ThirdParties.Kakao.ExService
+import OAuth2.Client.ThirdParties.Naver.ExService
 import OAuth2.Client.Controller
+import OAuth2.Client.ExService
 import OAuth2.Client.Repository
 import OAuth2.Client.Service
 import OAuth2.Client.Util
@@ -60,7 +64,11 @@ instance JWTRepositoryI Prod
 instance JWTServiceI Prod
 instance JWTUtilI Prod
 instance ErrorTI Prod
+instance OAuth2ClientGRpcExServiceI Prod
+instance OAuth2ClientKakaoExServiceI Prod
+instance OAuth2ClientNaverExServiceI Prod
 instance OAuth2ClientControllerI Prod
+instance OAuth2ClientExServiceI Prod
 instance OAuth2ClientRepositoryI Prod
 instance OAuth2ClientServiceI Prod
 instance OAuth2ClientUtilI Prod

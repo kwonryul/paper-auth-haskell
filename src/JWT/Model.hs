@@ -1,31 +1,6 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 
-module JWT.Model(
-    PreAuthenticatedUser(
-        PreAuthenticatedUser
-      , userId
-      , roleSet
-    )
-  , AuthenticatedUser(
-        AuthenticatedUser
-      , accessTokenId
-      , refreshTokenId
-      , userId
-      , roleSet
-      )
-  , AuthenticatedUserRefresh(
-        AuthenticatedUserRefresh
-      , refreshTokenId
-      , userId
-      )
-  , JWTDTO(
-        JWTDTO
-      , accessToken
-      , refreshToken
-      , accessTokenId
-      , refreshTokenId
-      )
-) where
+module JWT.Model where
 
 import JWT.Entity
 import User.Entity

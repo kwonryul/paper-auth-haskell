@@ -8,9 +8,6 @@ password String
 DB에는 해쉬되어 저장됨
 -
 
-name String
--
-
 phoneNumber String
 -
 
