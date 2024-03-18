@@ -57,7 +57,7 @@ data GlobalError = GlobalError {
   , globalErrorCallStack :: CallStack
   }
 instance Show GlobalError where
-    show (GlobalError msg cs) = "[GlobalError]\n" ++ show msg ++ "\n" ++ prettyCallStack cs
+    show (GlobalError msg cs) = "[GlobalError]\n" ++ msg ++ "\n\n" ++ prettyCallStack cs
 
 data GlobalDefaultError where
     GlobalDefaultError :: Exception e => e -> CallStack -> GlobalDefaultError

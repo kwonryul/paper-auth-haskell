@@ -76,7 +76,7 @@ webSocketImpl ctx socketConnections' socketConn' pool = do
     currentTime <- paperLiftIOUnliftIO getCurrentTime
     socketConn <- paperLiftIOUnliftIO $ acceptRequest socketConn'
     host <- lookupRequired (config ctx) "host"
-    port <- lookupRequired (config ctx) "port.grpc"
+    port <- lookupRequired (config ctx) "port.oauth2-client-socket"
     socketId <- runSqlPoolOneConnection (OAuth2.Client.Repository.newConnection WebSocket host port currentTime) pool
     sendLock <- paperLiftIOUnliftIO newEmptyMVar
     closeShot <- paperLiftIOUnliftIO newEmptyMVar
@@ -117,7 +117,7 @@ webSocketImpl ctx socketConnections' socketConn' pool = do
         profile = Proxy
         receiveLoop :: Connection -> IO ()
         receiveLoop socketConn = do
-            msg <- nestedLog profile ctx $ receive socketConn
+            msg <- receive socketConn
             case msg of
                 ControlMessage (Close _ _) -> return ()
                 _ -> receiveLoop socketConn

@@ -2,14 +2,9 @@
 #include <memory>
 #include <string>
 
-#include "absl/flags/flag.h"
-#include "absl/flags/parse.h"
-
 #include <grpcpp/grpcpp.h>
 
-#include "grpc/oauth2_client_socket.grpc.pb.h"
-
-ABSL_FLAG(std::string, target, "localhost:9895", "Server address");
+#include "oauth2_client_socket.grpc.pb.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -38,7 +33,7 @@ class OAuth2ClientSocketClient {
     if (status.ok()) {
       return "OK";
     } else
-      return "FAILED";
+      return status.error_message();
   }
 
  private:
@@ -47,14 +42,15 @@ class OAuth2ClientSocketClient {
 
 extern "C" {
   const char *send_token_and_close_c(const char *h, int p, int si, const char *at, const char *rt) {
-    std::string target_str = absl::GetFlag(FLAGS_target);
-    OAuth2ClientSocketClient client(
-        grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+    std::string host(h);
+    std::string port = std::to_string(p);
     std::string accessToken(at);
     std::string refreshToken(rt);
+    std::string target_str = host + ":" + port;
+    OAuth2ClientSocketClient client(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
     std::string res = client.SendTokenAndClose((int32_t) si, accessToken, refreshToken);
-    char *ret = (char *)malloc(sizeof(char) * (res.length() + 1));
-    strcpy(ret, res.c_str());
-    return ret;
+    char *cstr = (char *)malloc(sizeof(char) * (res.length() + 1));
+    strcpy(cstr, res.c_str());
+    return cstr;
   }
 }

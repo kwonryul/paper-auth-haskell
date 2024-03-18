@@ -58,7 +58,7 @@ data PaperError = PaperError {
   , paperErrorCallStack :: CallStack
   }
 instance Show PaperError where
-    show (PaperError msg _ cs) = "[PaperError]\n" ++ show msg ++ "\n" ++ prettyCallStack cs
+    show (PaperError msg _ cs) = "[PaperError]\n" ++ msg ++ "\n\n" ++ prettyCallStack cs
 
 data PaperDefaultError where
     PaperDefaultError :: Exception e => e -> CallStack -> PaperDefaultError

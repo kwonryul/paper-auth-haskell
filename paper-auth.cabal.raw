@@ -9,16 +9,11 @@ author:             kwonryul
 maintainer:         pkr08205@gmail.com
 -- copyright:
 category:           Web
-build-type:         Custom
+build-type:         Simple
 
 extra-doc-files:
     CHANGELOG.md
 -- extra-source-files:
-
-custom-setup
-  setup-depends:
-        base ^>=4.19.0.0
-      , Cabal
 
 source-repository head
     type: git
@@ -55,6 +50,8 @@ library
       , JWT.Util
       , Monad.ErrorT
       , Monad.ProfileT
+      , OAuth2.Client.GRpc.Controller
+      , OAuth2.Client.GRpc.DTO
       , OAuth2.Client.GRpc.ExService
       , OAuth2.Client.ThirdParties.Kakao.ExService
       , OAuth2.Client.ThirdParties.Naver.ExService
@@ -150,9 +147,9 @@ library
       , persistent-mysql
     hs-source-dirs:   src
     default-language: GHC2021
+    ghc-options: -threaded
     extra-libraries:
-        oauth2_client_socket_client
-    --  , oauth2_client_socket_server
+        oauth2_client_socket
     extra-lib-dirs:
         ${project_dir}c++/out
 

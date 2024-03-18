@@ -2,8 +2,8 @@
 // If you make any local change, they will be lost.
 // source: oauth2_client_socket.proto
 
-#include "grpc/oauth2_client_socket.pb.h"
-#include "grpc/oauth2_client_socket.grpc.pb.h"
+#include "oauth2_client_socket.pb.h"
+#include "oauth2_client_socket.grpc.pb.h"
 
 #include <functional>
 #include <grpcpp/support/async_stream.h>

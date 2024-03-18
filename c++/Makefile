@@ -6,6 +6,7 @@ PROTOBUF_UTF8_RANGE_LINK_LIBS = -lutf8_validity
 CXX = g++
 CPPFLAGS = -L$(project_dir)grpc/lib `export PKG_CONFIG_PATH=$(project_dir)grpc/lib/pkgconfig; pkg-config --cflags protobuf grpc absl_flags absl_flags_parse`
 LDFLAGS = -L$(project_dir)grpc/lib `export PKG_CONFIG_PATH=$(project_dir)grpc/lib/pkgconfig; pkg-config --libs --static protobuf grpc++ absl_flags absl_flags_parse $(PROTO_BUF_ABSL_DEPTS)` $(PROTOBUF_UTF8_RANGE_LINK_LIBS) -pthread -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl
+INCLUDEFLAGS = -Iinclude -Iinclude/ghc -Iinclude/grpc -I../grpc/include
 
 .PHONY: clean
 clean:
@@ -14,24 +15,26 @@ clean:
 
 build/grpc/oauth2_client_socket.grpc.pb.o: src/grpc/oauth2_client_socket.grpc.pb.cc
 	mkdir -p build/grpc
-	$(CXX) $(CPPFLAGS) -c -fPIC -Iinclude -I../grpc/include $< -o $@
+	$(CXX) $(CPPFLAGS) -c -fPIC $(INCLUDEFLAGS) $< -o $@
 
 build/grpc/oauth2_client_socket.pb.o: src/grpc/oauth2_client_socket.pb.cc
 	mkdir -p build/grpc
-	$(CXX) $(CPPFLAGS) -c -fPIC -Iinclude -I../grpc/include $< -o $@
+	$(CXX) $(CPPFLAGS) -c -fPIC $(INCLUDEFLAGS) $< -o $@
 
 build/oauth2_client_socket_client.o: src/oauth2_client_socket_client.cc
 	mkdir -p build
-	$(CXX) $(CPPFLAGS) -c -fPIC -Iinclude -I../grpc/include $< -o $@
+	$(CXX) $(CPPFLAGS) -c -fPIC $(INCLUDEFLAGS) $< -o $@
 
 build/oauth2_client_socket_server.o: src/oauth2_client_socket_server.cc
 	mkdir -p build
-	$(CXX) $(CPPFLAGS) -c -fPIC -Iinclude -I../grpc/include $< -o $@
+	$(CXX) $(CPPFLAGS) -c -fPIC $(INCLUDEFLAGS) $< -o $@
 
-out/liboauth2_client_socket_client.so: build/oauth2_client_socket_client.o build/grpc/oauth2_client_socket.grpc.pb.o build/grpc/oauth2_client_socket.pb.o
+out/liboauth2_client_socket.so: build/oauth2_client_socket_client.o build/oauth2_client_socket_server.o build/grpc/oauth2_client_socket.grpc.pb.o build/grpc/oauth2_client_socket.pb.o
 	mkdir -p out
-	$(CXX) $(CPPFLAGS) -shared -fPIC -Iinclude -I../grpc/include $^ -o $@ $(LDFLAGS)
+	$(CXX) $(CPPFLAGS) -shared -fPIC $^ -o $@ $(LDFLAGS)
 
-out/liboauth2_client_socket_server.so: build/oauth2_client_socket_server.o build/grpc/oauth2_client_socket.grpc.pb.o build/grpc/oauth2_client_socket.pb.o
-	mkdir -p out
-	$(CXX) $(CPPFLAGS) -shared -fPIC -Iinclude -I../grpc/include $^ -o $@ $(LDFLAGS)
+.PHONY: build
+build:
+	echo "Building CPP..."
+	make clean
+	make out/liboauth2_client_socket.so

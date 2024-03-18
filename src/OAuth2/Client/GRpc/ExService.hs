@@ -1,4 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module OAuth2.Client.GRpc.ExService(
     OAuth2ClientGRpcExServiceI(
@@ -6,8 +7,11 @@ module OAuth2.Client.GRpc.ExService(
       )
 ) where
 
+import CallStack
 import Import
 import PaperMonad
+
+import Servant
 
 import Foreign.C.String
 import Foreign.Marshal.Alloc
@@ -23,7 +27,7 @@ class PaperMonadI p => OAuth2ClientGRpcExServiceI p where
     sendToken :: (HasCallStack, MonadUnliftIO m) => String -> Int -> OAuth2ClientSocketId' -> Text -> Maybe Text -> PaperMonad p m ()
     sendToken = sendTokenImpl
 
-sendTokenImpl :: (HasCallStack, OAuth2ClientGRpcExServiceI p, MonadUnliftIO m) => String -> Int -> OAuth2ClientSocketId' -> Text -> Maybe Text -> PaperMonad p m ()
+sendTokenImpl :: forall p m. (HasCallStack, OAuth2ClientGRpcExServiceI p, MonadUnliftIO m) => String -> Int -> OAuth2ClientSocketId' -> Text -> Maybe Text -> PaperMonad p m ()
 sendTokenImpl host port socketId accessToken refreshToken = do
     res <- paperLiftIOUnliftIO $ bracket (
         bracket (newCString host) free (\h ->
@@ -35,12 +39,10 @@ sendTokenImpl host port socketId accessToken refreshToken = do
             )
         ) free peekCString
     case res of
-        "OK" -> do
-            paperLiftIOUnliftIO $ print "test - ok"
+        "OK" ->
             return ()
-        "FAILED" -> do
-            paperLiftIOUnliftIO $ print "test - ok"
-            return ()
-        x -> do
-            paperLiftIOUnliftIO $ print $ "test - " ++ x
-            return ()
+        err ->
+            toPaperMonad $ PaperError ("GRpc error\n" ++ err) (err500 { errBody = "internal server error" }) $ callStack' profile
+    where
+        profile :: Proxy p
+        profile = Proxy

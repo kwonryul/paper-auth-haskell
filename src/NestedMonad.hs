@@ -57,7 +57,7 @@ data NestedError = NestedError {
   , nestedErrorCallStack :: CallStack
   }
 instance Show NestedError where
-    show (NestedError msg cs) = "[NestedError]\n" ++ show msg ++ "\n" ++ prettyCallStack cs
+    show (NestedError msg cs) = "[NestedError]\n" ++ msg ++ "\n\n" ++ prettyCallStack cs
 
 data NestedDefaultError where
     NestedDefaultError :: Exception e => e -> CallStack -> NestedDefaultError

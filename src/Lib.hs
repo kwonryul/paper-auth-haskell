@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
 
 module Lib(
     Resources(
@@ -24,6 +25,7 @@ module Lib(
 ) where
 
 import JWT.Entity
+import OAuth2.Client.GRpc.Controller
 import OAuth2.Client.Entity
 import Role.Entity
 import User.Entity
@@ -40,12 +42,20 @@ import Database.Persist.Typed
 import Network.Wai.Handler.Warp
 import Network.Wai.Handler.WarpTLS
 
+import Foreign.Ptr
+import Foreign.C.String
+import Foreign.Marshal.Alloc
+
 import Control.Monad.Trans.Reader
 import Control.Monad.IO.Unlift
 import Control.Concurrent
+import Control.Exception
 import Data.Proxy
 import System.Environment
 import GHC.Stack
+
+foreign import ccall "wrapper" genSendTokenAndCloseC :: (Int -> CString -> CString -> IO CString) -> IO (FunPtr (Int -> CString -> CString -> IO CString))
+foreign import ccall "run_oauth2_client_socket_server_c" runOAuth2ClientSocketServerC :: Int -> FunPtr (Int -> CString -> CString -> IO CString) -> IO CString
 
 data Resources = Resources {
     context :: Context
@@ -84,28 +94,44 @@ getAllResources'Impl = do
         }
 
 startAppImpl :: forall p. LibI p => Proxy p -> Context -> FilePath -> FilePath -> IO ()
-startAppImpl _ context certPath secretKeyPath =
-    runGlobalMonad context $ startApp' @p context certPath secretKeyPath
+startAppImpl _ ctx certPath secretKeyPath =
+    runGlobalMonad ctx $ startApp' @p ctx certPath secretKeyPath
 
 startApp'Impl :: forall p m. (HasCallStack, LibI p, MonadUnliftIO m) => Context -> FilePath -> FilePath -> GlobalMonad p m ()
-startApp'Impl context certPath secretKeyPath = do
+startApp'Impl ctx certPath secretKeyPath = do
     homeDir <- globalLiftIOUnliftIO $ getEnv "HOME"
     projectDir <- globalLiftIOUnliftIO $ readFile $ homeDir ++ "/.paper-auth/project-directory"
-    httpPort <- lookupRequiredGlobal (config context) "port.http"
-    httpsPort <- lookupRequiredGlobal (config context) "port.https"
+    httpPort <- lookupRequiredGlobal (config ctx) "port.http"
+    httpsPort <- lookupRequiredGlobal (config ctx) "port.https"
+    oauth2ClientSocketPort <- lookupRequiredGlobal (config ctx) "port.oauth2-client-socket"
     let docsFilePath = projectDir ++ "generated/docs"
         staticFilePath = projectDir ++ "resources/static"
-    _ <- globalLiftIOUnliftIO $ forkIO $ (globalLog profile context $ run httpPort (app (Proxy :: Proxy p) context docsFilePath staticFilePath))
+    _ <- globalLiftIOUnliftIO $ do
+            forkIO $ do
+                res <- bracket
+                    (genSendTokenAndCloseC $ sendTokenAndCloseHs $ oauth2ClientSocketConnections ctx)
+                    (\sendTokenAndCloseC -> freeHaskellFunPtr sendTokenAndCloseC)
+                    (\sendTokenAndCloseC -> bracket
+                        (runOAuth2ClientSocketServerC oauth2ClientSocketPort sendTokenAndCloseC)
+                        free
+                        peekCString
+                        )
+                case res of
+                    "OK" ->
+                        return ()
+                    err ->
+                        throwIO $ userError err
+    _ <- globalLiftIOUnliftIO $ forkIO $ (globalLog profile ctx $ run httpPort (app (Proxy :: Proxy p) ctx docsFilePath staticFilePath))
     globalLiftIOUnliftIO $ runTLS
         (tlsSettings certPath secretKeyPath)
         (setPort httpsPort defaultSettings)
-        (app profile context docsFilePath staticFilePath)
+        (app profile ctx docsFilePath staticFilePath)
     where
         profile :: Proxy p
         profile = Proxy
 
 migratePaperAuthImpl :: forall p. LibI p => Proxy p -> Context.Context -> PaperAuthPool -> IO ()
-migratePaperAuthImpl _ context = runGlobalMonad context . migratePaperAuth' @p
+migratePaperAuthImpl _ ctx = runGlobalMonad ctx . migratePaperAuth' @p
 
 migratePaperAuth'Impl :: (HasCallStack, LibI p, MonadUnliftIO m) => PaperAuthPool -> GlobalMonad p m ()
 migratePaperAuth'Impl pool = runSqlPoolOneConnectionGlobal (migratePaperAuth'') pool
