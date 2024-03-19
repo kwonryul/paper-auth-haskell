@@ -12,6 +12,8 @@ import JWT.ExService
 import JWT.Repository
 import JWT.Service
 import JWT.Util
+import Middleware.CORS
+import Middleware.Utf8
 import Monad.ErrorT
 import OAuth2.Client.GRpc.ExService
 import OAuth2.Client.ThirdParties.Kakao.ExService
@@ -35,7 +37,6 @@ import Authentication
 import CallStack
 import Configurator
 import Context
-import CORS
 import DB
 import GlobalMonad
 import Lib
@@ -63,6 +64,8 @@ instance JWTExServiceI Prod
 instance JWTRepositoryI Prod
 instance JWTServiceI Prod
 instance JWTUtilI Prod
+instance CORSI Prod
+instance Utf8I Prod
 instance ErrorTI Prod
 instance OAuth2ClientGRpcExServiceI Prod
 instance OAuth2ClientKakaoExServiceI Prod
@@ -85,7 +88,6 @@ instance AuthenticationI Prod
 instance CallStackI Prod
 instance ConfiguratorI Prod
 instance ContextI Prod
-instance CORSI Prod
 instance DBI Prod
 instance GlobalMonadI Prod
 instance LibI Prod

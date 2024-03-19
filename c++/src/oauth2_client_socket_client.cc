@@ -47,7 +47,9 @@ extern "C" {
     std::string accessToken(at);
     std::string refreshToken(rt);
     std::string target_str = host + ":" + port;
-    OAuth2ClientSocketClient client(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+    grpc::SslCredentialsOptions ssl_opts;
+    ssl_opts.pem_root_certs = "";
+    OAuth2ClientSocketClient client(grpc::CreateChannel(target_str, grpc::SslCredentials(ssl_opts)));
     std::string res = client.SendTokenAndClose((int32_t) si, accessToken, refreshToken);
     char *cstr = (char *)malloc(sizeof(char) * (res.length() + 1));
     strcpy(cstr, res.c_str());

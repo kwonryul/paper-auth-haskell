@@ -105,14 +105,14 @@ asciidoctor: test
 run:
 	sudo -v
 	echo "Running..."
-	sudo bash -c "export LD_LIBRARY_PATH=${project_dir}c++/out:${project_dir}out && out/paper-auth-exe"
+	sudo bash -c "export LD_LIBRARY_PATH=${project_dir}c++/out && out/paper-auth-exe"
 
 .PHONY: rund
 rund:
 	sudo -v
 	echo "Running Daemon..."
 	sudo pkill paper-auth-exe
-	sudo bash -c "export LD_LIBRARY_PATH=${project_dir}c++/out:${project_dir}out && nohup out/paper-auth-exe &"
+	sudo bash -c "export LD_LIBRARY_PATH=${project_dir}c++/out && nohup out/paper-auth-exe &"
 
 .PHONY: killd
 killd:

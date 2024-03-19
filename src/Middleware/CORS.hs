@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module CORS(
+module Middleware.CORS(
     CORSI(
-        corsMiddleware
+        corsM
       )
 ) where
 
@@ -23,12 +23,12 @@ import Data.Proxy
 import GHC.Stack
 
 class GlobalMonadI p => CORSI p where
-    corsMiddleware :: HasCallStack => Proxy p -> Context -> Middleware
-    corsMiddleware = corsMiddlewareImpl
+    corsM :: HasCallStack => Proxy p -> Context -> Middleware
+    corsM = corsMImpl
 
 
-corsMiddlewareImpl :: forall p. (HasCallStack, GlobalMonadI p) => Proxy p -> Context -> Middleware
-corsMiddlewareImpl p ctx app req sendResponse = do
+corsMImpl :: forall p. (HasCallStack, CORSI p) => Proxy p -> Context -> Middleware
+corsMImpl p ctx app req sendResponse = do
     let allowOrigins = [
             "http://43.200.64.248:80"
           , "https://43.200.64.248:443"

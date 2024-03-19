@@ -111,10 +111,11 @@ startApp'Impl ctx certPath secretKeyPath = do
                 res <- bracket
                     (genSendTokenAndCloseC $ sendTokenAndCloseHs $ oauth2ClientSocketConnections ctx)
                     (\sendTokenAndCloseC -> freeHaskellFunPtr sendTokenAndCloseC)
-                    (\sendTokenAndCloseC -> bracket
-                        (runOAuth2ClientSocketServerC oauth2ClientSocketPort sendTokenAndCloseC)
-                        free
-                        peekCString
+                    (\sendTokenAndCloseC -> do
+                        bracket
+                            (runOAuth2ClientSocketServerC oauth2ClientSocketPort sendTokenAndCloseC)
+                            free
+                            peekCString
                         )
                 case res of
                     "OK" ->

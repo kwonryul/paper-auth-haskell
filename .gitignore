@@ -15,4 +15,3 @@ protos/build/*
 c++/build/*
 c++/out/*
 grpc/*
-c++/include/ghc/*

@@ -9,6 +9,7 @@ import qualified User.Controller
 
 import Profile.Test.Snippet
 import User.DTO
+import Authentication
 import Import
 import Lib
 import MIME
@@ -34,8 +35,9 @@ enrollC = client (Servant.Proxy :: Servant.Proxy EnrollC)
 
 type APIS = "user" :> User.Controller.API
 
-userApp :: LibI profile => Servant.Proxy profile -> Import.Context -> Application
-userApp profile ctx = generateExampleSnippetM ctx $ serve (Servant.Proxy :: Servant.Proxy APIS) $ userServer profile ctx
+userApp :: forall profile. LibI profile => Servant.Proxy profile -> Import.Context -> Application
+userApp profile ctx = generateExampleSnippetM ctx $ serveWithContext (Servant.Proxy :: Servant.Proxy APIS)
+    (authContext(Servant.Proxy :: Servant.Proxy profile) ctx) $ userServer profile ctx
 
 userServer :: LibI profile => Servant.Proxy profile -> Import.Context -> Server APIS
 userServer profile ctx = User.Controller.server profile ctx

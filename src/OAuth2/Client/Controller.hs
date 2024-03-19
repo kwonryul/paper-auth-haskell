@@ -13,10 +13,12 @@ import OAuth2.Client.Service(OAuth2ClientServiceI)
 
 import Context
 import Enum
+import MIME
 import PaperMonad
 
 import Servant
 import Servant.API.WebSocket
+import Text.Blaze.Html
 import Network.WebSockets.Connection
 import Web.Cookie
 
@@ -31,17 +33,17 @@ type API =
     :<|> "finalize" :> Finalize
 
 type ConnectSocketWeb = WebSocketPending
-type IssueJWT = QueryParam "code" String :> QueryParam "state" String :> Get '[PlainText] (Headers '[Header "Set-Cookie" SetCookie] String)
+type IssueJWT = QueryParam "code" String :> QueryParam "state" String :> Get '[HTMLBlaze] (Headers '[Header "Set-Cookie" SetCookie] Html)
 type Finalize = QueryParam "state" String :> Get '[PlainText] NoContent
 
 class OAuth2ClientServiceI p => OAuth2ClientControllerI p where
     webSocket :: HasCallStack => Proxy p -> Context.Context -> PendingConnection -> Handler ()
     webSocket = webSocketImpl
-    issueJWTKakao :: HasCallStack => Proxy p -> Context.Context -> Maybe String -> Maybe String -> Handler (Headers '[Header "Set-Cookie" SetCookie] String)
+    issueJWTKakao :: HasCallStack => Proxy p -> Context.Context -> Maybe String -> Maybe String -> Handler (Headers '[Header "Set-Cookie" SetCookie] Html)
     issueJWTKakao = issueJWTKakaoImpl
-    issueJWTNaver :: HasCallStack => Proxy p -> Context.Context -> Maybe String -> Maybe String -> Handler (Headers '[Header "Set-Cookie" SetCookie] String)
+    issueJWTNaver :: HasCallStack => Proxy p -> Context.Context -> Maybe String -> Maybe String -> Handler (Headers '[Header "Set-Cookie" SetCookie] Html)
     issueJWTNaver = issueJWTNaverImpl
-    issueJWT :: HasCallStack => Proxy p -> Context.Context -> AuthenticationType -> Maybe String -> Maybe String -> Handler (Headers '[Header "Set-Cookie" SetCookie] String)
+    issueJWT :: HasCallStack => Proxy p -> Context.Context -> AuthenticationType -> Maybe String -> Maybe String -> Handler (Headers '[Header "Set-Cookie" SetCookie] Html)
     issueJWT = issueJWTImpl
     finalize :: HasCallStack => Proxy p -> Context.Context -> Maybe String -> Handler NoContent
     finalize = finalizeImpl
@@ -52,13 +54,13 @@ webSocketImpl :: forall p. (HasCallStack, OAuth2ClientControllerI p) => Proxy p 
 webSocketImpl _ ctx socketConn =
     runPaperMonad ctx $ OAuth2.Client.Service.webSocket @p ctx (oauth2ClientSocketConnections ctx) socketConn (paperAuthPool ctx)
 
-issueJWTKakaoImpl :: (HasCallStack, OAuth2ClientControllerI p) => Proxy p -> Context.Context -> Maybe String -> Maybe String -> Handler (Headers '[Header "Set-Cookie" SetCookie] String)
+issueJWTKakaoImpl :: (HasCallStack, OAuth2ClientControllerI p) => Proxy p -> Context.Context -> Maybe String -> Maybe String -> Handler (Headers '[Header "Set-Cookie" SetCookie] Html)
 issueJWTKakaoImpl p ctx = issueJWT p ctx Kakao
 
-issueJWTNaverImpl :: (HasCallStack, OAuth2ClientControllerI p) => Proxy p -> Context.Context -> Maybe String -> Maybe String -> Handler (Headers '[Header "Set-Cookie" SetCookie] String)
+issueJWTNaverImpl :: (HasCallStack, OAuth2ClientControllerI p) => Proxy p -> Context.Context -> Maybe String -> Maybe String -> Handler (Headers '[Header "Set-Cookie" SetCookie] Html)
 issueJWTNaverImpl p ctx = issueJWT p ctx Naver
 
-issueJWTImpl :: forall p. (HasCallStack, OAuth2ClientControllerI p) => Proxy p -> Context.Context -> AuthenticationType -> Maybe String -> Maybe String -> Handler (Headers '[Header "Set-Cookie" SetCookie] String)
+issueJWTImpl :: forall p. (HasCallStack, OAuth2ClientControllerI p) => Proxy p -> Context.Context -> AuthenticationType -> Maybe String -> Maybe String -> Handler (Headers '[Header "Set-Cookie" SetCookie] Html)
 issueJWTImpl _ _ _ Nothing _ =
     throwError $ err400 { errBody = "missing code" }
 issueJWTImpl _ _ _ _ Nothing =

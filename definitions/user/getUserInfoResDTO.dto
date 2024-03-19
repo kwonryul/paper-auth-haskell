@@ -1,0 +1,13 @@
+GetUserInfoResDTO
+
+roleSet [String]
+-
+
+name ?String
+-
+
+phoneNumber ?String
+-
+
+registerDate UTCTime
+-

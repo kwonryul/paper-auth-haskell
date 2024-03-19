@@ -48,6 +48,8 @@ library
       , JWT.Repository
       , JWT.Service
       , JWT.Util
+      , Middleware.CORS
+      , Middleware.Utf8
       , Monad.ErrorT
       , Monad.ProfileT
       , OAuth2.Client.GRpc.Controller
@@ -60,6 +62,7 @@ library
       , OAuth2.Client.DTO
       , OAuth2.Client.Entity
       , OAuth2.Client.ExService
+      , OAuth2.Client.HTML
       , OAuth2.Client.Model
       , OAuth2.Client.Repository
       , OAuth2.Client.Service
@@ -82,7 +85,6 @@ library
       , CallStack
       , Configurator
       , Context
-      , CORS
       , DB
       , Definition
       , Enum
@@ -141,6 +143,8 @@ library
       , warp-tls
       , websockets
       , http-types
+      , blaze-html
+      , blaze-markup
       , persistent
       , persistent-template
       , persistent-typed-db

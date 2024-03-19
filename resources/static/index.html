@@ -1,0 +1,88 @@
+<html>
+    <head>
+        <title>
+            Paper-Auth Index
+        </title>
+        <script>
+            let db;
+
+            function openDB() {
+                let request = indexedDB.open('myDatabase', 1);
+
+                request.onerror = function(event) {
+                    alert('error');
+                }
+                request.onsuccess = function(event) {
+                    db = request.result;
+                    getUserInfo();
+                }
+                request.onupgradeneeded = function(event) {
+                    db = event.target.result;
+                    let objectStore = db.createObjectStore('tokenStore', { kyePath: 'id' });
+                }
+            }
+
+            function getUserInfo() {
+                let transaction = db.transaction(["tokenStore"]);
+                let objectStore = transaction.objectStore("tokenStore");
+                let request = objectStore.get("accessToken");
+                request.onsuccess = function(event) {
+                    if (request.result) {
+                        let headers = new Headers();
+                        if (request.result.value)
+                            headers.append('Authorization', 'Bearer ' + request.result.value);
+                        else
+                            window.location = '/static/login.html';
+                        fetch('http://43.200.64.248/user/userInfo',
+                            headers)
+                            .then(res => {
+                                if (!res.ok) {
+                                    if (res.status === 401 || res.status === 403)
+                                        window.location = '/static/login.html';
+                                    else
+                                        alert('error');
+                                }
+                                res.json().then(j => {
+                                    document.getElementById('roleSet')
+                                        .textContent = j.roleSet;
+                                    document.getElementById('name')
+                                        .textContent = j.name;
+                                    document.getElementById('phoneNumber')
+                                        .textContent = j.phoneNumber;
+                                    document.getElementById('registerDate')
+                                        .textContent = j.textContent;
+                                });
+                            });
+                    } else {
+                        window.location = '/static/login.html';
+                    }
+                }
+                request.onerror = function(event) {
+                    alert('error');
+                }
+            }
+
+            function ready(callbackFunc) {
+                if (document.readyState !== 'loading')
+                    callbackFunc();
+                else
+                    document.addEventListener('DOMContentLoaded', callbackFunc);
+            }
+
+            function patchUserInfo() {
+            }
+
+            ready(openDB)
+        </script>
+    </head>
+    <body>
+        <label for='roleSet'>유저 권한</label>
+        <input type='text' id='roleSet'>
+        <label for='name'>닉네임</label>
+        <input type='text' id='name'>
+        <label for='phoneNumber'>핸드폰 번호</label>
+        <input type='text' id='phoneNumber'>
+        <label for='registerDate'>가입 날짜</label>
+        <input type='text' id='registerDate'>
+    </body>
+</html>

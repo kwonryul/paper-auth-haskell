@@ -12,6 +12,7 @@
 #include <HsFFI.h>
 
 #include "oauth2_client_socket.grpc.pb.h"
+#include "file.hpp"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -47,13 +48,29 @@ class OAuth2ClientSocketServiceImpl final : public OAuth2ClientSocket::Service {
 };
 
 void RunServer(uint16_t port) {
+  std::string project_dir = readFileIntoString("~/.paper-auth/project-directory");
+  std::string cert = readFileIntoString(project_dir + "resources/tls/cert.pem");
+  std::string secret_key = readFileIntoString(project_dir + "resources/tls/secret-key.pem");
+
   std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
   OAuth2ClientSocketServiceImpl service;
 
   grpc::EnableDefaultHealthCheckService(true);
   grpc::reflection::InitProtoReflectionServerBuilderPlugin();
+
+  grpc::SslServerCredentialsOptions::PemKeyCertPair keycert;
+  keycert.cert_chain = cert;
+  keycert.private_key = secret_key;
+  grpc::SslServerCredentialsOptions ssl_opts;
+  ssl_opts.pem_root_certs = "";
+
+  ssl_opts.pem_key_cert_pairs.push_back(keycert);
+  
+  std::shared_ptr<grpc::ServerCredentials> creds =
+    grpc::SslServerCredentials(ssl_opts);
+
   ServerBuilder builder;
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  builder.AddListeningPort(server_address, creds);
   builder.RegisterService(&service);
   std::unique_ptr<Server> server(builder.BuildAndStart());
   server->Wait();

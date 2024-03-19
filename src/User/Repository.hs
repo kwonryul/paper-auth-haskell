@@ -2,7 +2,8 @@
 
 module User.Repository(
     UserRepositoryI(
-        newUser
+        getUserInfo
+      , newUser
       , findByPaperId
       , findByPhoneNumber
       , verifyIdPw
@@ -13,6 +14,7 @@ module User.Repository(
 
 import JWT.Model
 import Role.Entity
+import User.DTO
 import User.Entity
 import UserRole.Entity
 import Verification.Util
@@ -34,6 +36,8 @@ import Data.ByteString.Char8
 import GHC.Stack
 
 class PaperMonadI p => UserRepositoryI p where
+    getUserInfo :: (HasCallStack, MonadUnliftIO m) => UserId -> PaperAuthConn -> PaperMonad p m GetUserInfoResDTO
+    getUserInfo = getUserInfoImpl
     newUser :: (HasCallStack, MonadUnliftIO m) => AuthenticationType -> Maybe String -> Maybe ByteString -> Maybe PhoneNumber -> Maybe String -> UTCTime -> PaperAuthConn -> PaperMonad p m UserId
     newUser = newUserImpl
     findByPaperId :: (HasCallStack, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m [Entity User]
@@ -47,6 +51,18 @@ class PaperMonadI p => UserRepositoryI p where
     findByAuthTypeAndIdentifier :: (HasCallStack, MonadUnliftIO m) => AuthenticationType -> String -> PaperAuthConn -> PaperMonad p m [Entity User]
     findByAuthTypeAndIdentifier = findByAuthTypeAndIdentifierImpl
 
+getUserInfoImpl :: forall p m. (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => UserId -> PaperAuthConn -> PaperMonad p m GetUserInfoResDTO
+getUserInfoImpl userId conn = do
+    userEntity' <- paperLiftUnliftIO $ runReaderT (get userId) conn
+    User { userName, userPhoneNumber, userRegisterDate } <- maybeToPaperMonad userEntity' $ PaperError "user not found" (err500 { errBody = "user not found" }) (callStack' profile)
+    userRoleEntityList <- paperLiftUnliftIO $ runReaderT (selectList [UserRoleUserId ==. userId] []) conn
+    let roleIdList = (\(Entity _ userRole) -> userRoleRoleId userRole) <$> userRoleEntityList
+    roleEntityList <- paperLiftUnliftIO $ runReaderT (selectList [RoleId <-. roleIdList] []) conn
+    let roleList = (\(Entity _ role) -> roleName role) <$> roleEntityList
+    return $ GetUserInfoResDTO roleList userName userPhoneNumber userRegisterDate
+    where
+        profile :: Proxy p
+        profile = Proxy
 
 newUserImpl :: (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => AuthenticationType -> Maybe String -> Maybe ByteString -> Maybe PhoneNumber -> Maybe String -> UTCTime -> PaperAuthConn -> PaperMonad p m UserId
 newUserImpl authenticationType paperId password phoneNumber' identifier registerDate conn = do
@@ -56,11 +72,11 @@ newUserImpl authenticationType paperId password phoneNumber' identifier register
     paperLiftUnliftIO $ runReaderT (Database.Persist.Sql.insert $ User authenticationType paperId password phoneNumber identifier Nothing registerDate) conn
 
 findByPaperIdImpl :: (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m [Entity User]
-findByPaperIdImpl paperId conn = do
+findByPaperIdImpl paperId conn =
     paperLiftUnliftIO $ runReaderT (selectList [UserPaperId ==. Just paperId] []) conn
 
 findByPhoneNumberImpl :: (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => PhoneNumber -> PaperAuthConn -> PaperMonad p m [Entity User]
-findByPhoneNumberImpl (PhoneNumber phoneNumber) conn = do
+findByPhoneNumberImpl (PhoneNumber phoneNumber) conn =
     paperLiftUnliftIO $ runReaderT (selectList [UserPhoneNumber ==. Just phoneNumber] []) conn
 
 verifyIdPwImpl :: forall p m. (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => String -> String -> PaperAuthConn -> PaperMonad p m (Entity User)
@@ -85,8 +101,8 @@ verifyIdPwImpl paperId password conn = do
 
 getPreAuthenticatedUserImpl :: forall p m. (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => UserId -> PaperAuthConn -> PaperMonad p m PreAuthenticatedUser
 getPreAuthenticatedUserImpl userId conn = do
-    userEntity' <- paperLiftUnliftIO $ runReaderT (get userId) conn
-    _ <- maybeToPaperMonad userEntity' $ PaperError "user not found" (err500 { errBody = "user not found" }) (callStack' profile)
+    user' <- paperLiftUnliftIO $ runReaderT (get userId) conn
+    _ <- maybeToPaperMonad user' $ PaperError "user not found" (err500 { errBody = "user not found" }) (callStack' profile)
     userRoleEntityList <- paperLiftUnliftIO $ runReaderT (selectList [UserRoleUserId ==. userId] []) conn
     let roleIdList = (\(Entity _ userRole) -> userRoleRoleId userRole) <$> userRoleEntityList
     roleEntityList <- paperLiftUnliftIO $ runReaderT (selectList [RoleId <-. roleIdList] []) conn
@@ -97,5 +113,5 @@ getPreAuthenticatedUserImpl userId conn = do
         profile = Proxy
 
 findByAuthTypeAndIdentifierImpl :: (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => AuthenticationType -> String -> PaperAuthConn -> PaperMonad p m [Entity User]
-findByAuthTypeAndIdentifierImpl authenticationType identifier conn = do
+findByAuthTypeAndIdentifierImpl authenticationType identifier conn =
     paperLiftUnliftIO $ runReaderT (selectList [UserAuthenticationType ==. authenticationType, UserIdentifier ==. Just identifier] []) conn

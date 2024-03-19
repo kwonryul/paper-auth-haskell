@@ -1,0 +1,85 @@
+<html>
+    <head>
+        <title>
+            Paper-Auth Login
+        </title>
+        <script>
+            let db;
+            let request = indexedDB.open('myDatabase', 1);
+
+            request.onerror = function(event) {
+                alert('error');
+            }
+            request.onsuccess = function(event) {
+                db = request.result;
+            }
+            request.onupgradeneeded = function(event) {
+                let db = event.target.result;
+                let objectStore = db.createObjectStore('tokenStore', { kyePath: 'id' });
+            }
+
+            function paperAuth() {
+            }
+
+            function oauth2Kakao() {
+                openSocket('kakao');
+            }
+
+            function oauth2Naver() {
+                openSocket('naver');
+            }
+
+            function openSocket(name) {
+                let socket = new WebSocket('ws://43.200.64.248/oauth2/client/webSocket');
+                let count = 0;
+                socket.onopen = function(event) {
+                    console.log('open:\t' + name);
+                }
+                socket.onmessage = function(event) {
+                    count++;
+                    if (count === 1) {
+                        console.log('state:\t' + event.data);
+                        window.open('http://43.200.64.248/oauth2/client/issue/kakao?code=something&state=' + event.data, 'newWindow', 'width=600, height=400');
+                    } else {
+                        console.log('msg:\t' + event.data);
+                        let request = db.transaction(['tokenStore'], 'write')
+                            .objetStore('tokenStore')
+                            .add({ id: 'accessToken', value: event.data });
+                        request.onsuccess = function(event) {
+                            window.location = '/static/index.html';
+                        }
+                        request.onerror = function(event) {
+                            alert('error');
+                        }
+                    }
+                };
+                socket.onerror = function(error) {
+                    consol.error(error);
+                };
+                socket.onclose = function(event) {
+                    console.log('socket connection closed');
+                    setTimeout(() => { alert('error'); }, 10);
+                };
+            }
+
+        </script>
+    </head>
+    <body>
+        <label for='paperId'>아이디</label>
+        <input type='text' id='paperId'>
+        <label for='password'>비밀번호</label>
+        <input type='password' id='password'>
+        <p>
+            <button onclick='paperAuth()'>로그인</button>
+        </p>
+        <p>
+            <a href='/static/enroll.html'>회원 가입</a>
+        </p>
+        <p>
+            <button onclick='oauth2Kakao();'>Kakao</button>
+        </p>
+        <p>
+            <button onclick='oatuh2Naver()'>Naver</button>
+        </p>
+    </body>
+</html>

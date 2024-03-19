@@ -23,6 +23,7 @@ import User.Repository(UserRepositoryI)
 import JWT.Model
 import JWT.Util
 import OAuth2.Client.Entity
+import OAuth2.Client.HTML
 import OAuth2.Client.Model
 import OAuth2.Client.Util
 import CallStack
@@ -35,6 +36,7 @@ import NestedMonad
 import PaperMonad
 
 import Servant
+import Text.Blaze.Html
 import Database.Persist.Sql
 import Database.Persist.Typed
 import Network.WebSockets
@@ -62,9 +64,9 @@ class (
   , NestedMonadI p) => OAuth2ClientServiceI p where
     webSocket :: (HasCallStack, MonadUnliftIO m) => Context.Context -> OAuth2ClientSocketConnections -> PendingConnection -> PaperAuthPool -> PaperMonad p m ()
     webSocket = webSocketImpl
-    issueJWT :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> AuthenticationType -> String -> String -> PaperAuthPool -> PaperMonad p m (Servant.Headers '[Header "Set-Cookie" SetCookie] String)
+    issueJWT :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> AuthenticationType -> String -> String -> PaperAuthPool -> PaperMonad p m (Servant.Headers '[Header "Set-Cookie" SetCookie] Html)
     issueJWT = issueJWTImpl
-    issueJWT' :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> AuthenticationType -> String -> String -> PaperAuthConn -> PaperMonad p m (Servant.Headers '[Header "Set-Cookie" SetCookie] String)
+    issueJWT' :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> AuthenticationType -> String -> String -> PaperAuthConn -> PaperMonad p m (Servant.Headers '[Header "Set-Cookie" SetCookie] Html)
     issueJWT' = issueJWT'Impl
     finalize :: (HasCallStack, MonadUnliftIO m) => String -> PaperAuthPool -> PaperMonad p m NoContent
     finalize = finalizeImpl
@@ -122,11 +124,11 @@ webSocketImpl ctx socketConnections' socketConn' pool = do
                 ControlMessage (Close _ _) -> return ()
                 _ -> receiveLoop socketConn
 
-issueJWTImpl :: (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> AuthenticationType -> String -> String -> PaperAuthPool -> PaperMonad p m (Servant.Headers '[Header "Set-Cookie" SetCookie] String)
+issueJWTImpl :: (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> AuthenticationType -> String -> String -> PaperAuthPool -> PaperMonad p m (Servant.Headers '[Header "Set-Cookie" SetCookie] Html)
 issueJWTImpl config encodeSigner authenticationType code state pool =
     runSqlPoolOneConnection (issueJWT' config encodeSigner authenticationType code state) pool
 
-issueJWT'Impl :: forall p m. (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> AuthenticationType -> String -> String -> PaperAuthConn -> PaperMonad p m (Servant.Headers '[Header "Set-Cookie" SetCookie] String)
+issueJWT'Impl :: forall p m. (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> AuthenticationType -> String -> String -> PaperAuthConn -> PaperMonad p m (Servant.Headers '[Header "Set-Cookie" SetCookie] Html)
 issueJWT'Impl config encodeSigner authenticationType code state conn = do
     currentUTC <- paperLiftIOUnliftIO getCurrentTime
     socketId <- maybeToPaperMonad (getSocketIdFromState profile state) $ PaperError "state invalid" (err400 { errBody = "state invalid" }) $ callStack' profile
@@ -152,9 +154,9 @@ issueJWT'Impl config encodeSigner authenticationType code state conn = do
     let cookie = generateRefreshTokenCookie profile refreshToken
     case oAuth2ClientSocketConnectionType of
         WebSocket -> do
-            return $ addHeader cookie "fetch with state => please close your window"
+            return $ addHeader cookie $ issueJWTHtml state
         NativeSocket -> do
-            return $ addHeader cookie "fetch with state => please close your window"
+            return $ addHeader cookie $ issueJWTHtml state
     where
         profile :: Proxy p
         profile = Proxy

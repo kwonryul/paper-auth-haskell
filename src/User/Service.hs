@@ -4,7 +4,9 @@
 
 module User.Service(
     UserServiceI(
-        enroll
+        getUserInfo
+      , patchUserInfo
+      , enroll
       , enroll'
       )
 ) where
@@ -16,9 +18,10 @@ import Verification.Repository(VerificationRepositoryI)
 import qualified JWT.ExService
 import JWT.ExService(JWTExServiceI)
 
-import User.DTO
 import JWT.Util
 import JWT.Model
+import User.DTO
+import User.Entity
 import Verification.Util
 import Verification.ExDTO
 import Verification.Entity
@@ -44,10 +47,34 @@ import Data.ByteString.Char8
 import GHC.Stack
 
 class (DBI p, JWTUtilI p, UserRepositoryI p, VerificationExDTOI p, VerificationRepositoryI p, JWTExServiceI p, VerificationUtilI p) => UserServiceI p where
+    getUserInfo :: (HasCallStack, MonadUnliftIO m) => UserId -> PaperAuthPool -> PaperMonad p m GetUserInfoResDTO
+    getUserInfo = getUserInfoImpl
+    getUserInfo' :: (HasCallStack, MonadUnliftIO m) => UserId -> PaperAuthConn -> PaperMonad p m GetUserInfoResDTO
+    getUserInfo' = getUserInfo'Impl
+    patchUserInfo :: (HasCallStack, MonadUnliftIO m) => UserId -> Maybe String -> Maybe String -> PaperAuthPool -> PaperMonad p m NoContent
+    patchUserInfo = patchUserInfoImpl
+    patchUserInfo' :: (HasCallStack, MonadUnliftIO m) => UserId -> Maybe String -> Maybe String -> PaperAuthConn -> PaperMonad p m NoContent
+    patchUserInfo' = patchUserInfo'Impl
     enroll :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> PaperAuthPool -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
     enroll = enrollImpl
     enroll' :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String ->  String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
     enroll' = enroll'Impl
+
+getUserInfoImpl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => UserId -> PaperAuthPool -> PaperMonad p m GetUserInfoResDTO
+getUserInfoImpl userId pool =
+    runSqlPoolOneConnection (getUserInfo' userId) pool
+
+getUserInfo'Impl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => UserId -> PaperAuthConn -> PaperMonad p m GetUserInfoResDTO
+getUserInfo'Impl userId conn =
+    User.Repository.getUserInfo userId conn
+
+patchUserInfoImpl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => UserId -> Maybe String -> Maybe String -> PaperAuthPool -> PaperMonad p m NoContent
+patchUserInfoImpl userId name phoneNumber pool =
+    runSqlPoolOneConnection (patchUserInfo' userId name phoneNumber) pool
+
+patchUserInfo'Impl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => UserId -> Maybe String -> Maybe String -> PaperAuthConn -> PaperMonad p m NoContent
+patchUserInfo'Impl userId name phoneNumber conn =
+    undefined
 
 enrollImpl :: (HasCallStack, UserServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> String -> String -> String -> String -> PaperAuthPool -> PaperMonad p m (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 enrollImpl config encodeSigner paperId password phoneNumber phoneNumberSecret pool =

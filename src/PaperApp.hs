@@ -16,9 +16,10 @@ import User.Controller(UserControllerI)
 import qualified Verification.Controller
 import Verification.Controller(VerificationControllerI)
 
+import Middleware.CORS
+import Middleware.Utf8
 import Authentication
 import Context
-import CORS
 import PaperMonad
 
 import Servant
@@ -47,6 +48,7 @@ class ( AuthenticationI p
       , UserControllerI p
       , VerificationControllerI p
       , CORSI p
+      , Utf8I p
       ) => PaperAppI p where
     server :: HasCallStack => Proxy p -> Context.Context -> FilePath -> FilePath -> Server API
     server = serverImpl
@@ -60,7 +62,11 @@ class ( AuthenticationI p
 serverImpl :: (HasCallStack, PaperAppI p) => Proxy p -> Context.Context -> FilePath -> FilePath -> Server API
 serverImpl p context docsFilePath staticFilePath =
         faviconServer p context
-    :<|> serveDirectoryWith ((defaultWebAppSettings docsFilePath) { ssMaxAge = NoMaxAge, ssUseHash = False })
+    :<|> serveDirectoryWith (
+        (defaultWebAppSettings docsFilePath) {
+            ssMaxAge = NoMaxAge
+          , ssUseHash = False
+          })
     :<|> serveDirectoryWith ((defaultWebAppSettings staticFilePath) { ssMaxAge = NoMaxAge, ssUseHash = False })
     :<|> JWT.Controller.server p context
     :<|> OAuth2.Client.Controller.server p context
@@ -81,7 +87,7 @@ apiImpl :: PaperAppI p => Proxy p -> Proxy API
 apiImpl _ = Proxy
 
 appImpl :: (HasCallStack, PaperAppI p) => Proxy p -> Context.Context -> FilePath -> FilePath -> Application
-appImpl p context docsFilePath staticFilePath = corsMiddleware p context $ serveWithContext
+appImpl p context docsFilePath staticFilePath = corsM p context $ utf8M p $ serveWithContext
     (api p)
     (authContext p context)
     (server p context docsFilePath staticFilePath)

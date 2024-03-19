@@ -44,24 +44,24 @@ class JWTServiceI p => JWTControllerI p where
     server = serverImpl
 
 issueJWTImpl :: forall p. (HasCallStack, JWTControllerI p) => Proxy p -> Context.Context -> IssueJWTReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] IssueJWTResDTO)
-issueJWTImpl _ context (IssueJWTReqDTO { paperId, password }) = do
-    let encodeSigner = paperEncodeSigner context
-    runPaperMonad context $ JWT.Service.issueJWT @p (config context) encodeSigner paperId password (paperAuthPool context)
+issueJWTImpl _ ctx (IssueJWTReqDTO { paperId, password }) = do
+    let encodeSigner = paperEncodeSigner ctx
+    runPaperMonad ctx $ JWT.Service.issueJWT @p (config ctx) encodeSigner paperId password (paperAuthPool ctx)
 
 
 refreshJWTImpl :: forall p. (HasCallStack, JWTControllerI p) => Proxy p -> Context.Context -> AuthenticatedUserRefresh -> Handler (Headers '[Header "Set-Cookie" SetCookie] RefreshJWTResDTO)
-refreshJWTImpl _ context (AuthenticatedUserRefresh { userId }) = do
-    let encodeSigner = paperEncodeSigner context
-    runPaperMonad context $ JWT.Service.refreshJWT @p
-        (config context) encodeSigner userId (paperAuthPool context)
+refreshJWTImpl _ ctx (AuthenticatedUserRefresh { userId }) = do
+    let encodeSigner = paperEncodeSigner ctx
+    runPaperMonad ctx $ JWT.Service.refreshJWT @p
+        (config ctx) encodeSigner userId (paperAuthPool ctx)
 
 invalidateJWTImpl :: forall p. (HasCallStack, JWTControllerI p) => Proxy p -> Context.Context -> AuthenticatedUser -> Handler NoContent
-invalidateJWTImpl _ context (AuthenticatedUser { userId }) = do
-    runPaperMonad context $ JWT.Service.invalidateJWT @p
-        userId (paperAuthPool context)
+invalidateJWTImpl _ ctx (AuthenticatedUser { userId }) = do
+    runPaperMonad ctx $ JWT.Service.invalidateJWT @p
+        userId (paperAuthPool ctx)
 
 serverImpl :: (HasCallStack, JWTControllerI p) => Proxy p -> Context.Context -> Server API
-serverImpl p context =
-        issueJWT p context
-    :<|> refreshJWT p context
-    :<|> invalidateJWT p context
+serverImpl p ctx =
+        issueJWT p ctx
+    :<|> refreshJWT p ctx
+    :<|> invalidateJWT p ctx

@@ -10,6 +10,8 @@ import JWT.ExService
 import JWT.Repository
 import JWT.Service
 import JWT.Util
+import Middleware.CORS
+import Middleware.Utf8
 import Monad.ErrorT
 import OAuth2.Client.GRpc.ExService
 import OAuth2.Client.ThirdParties.Kakao.ExService
@@ -32,7 +34,6 @@ import Verification.Util
 import Authentication
 import CallStack
 import Context
-import CORS
 import DB
 import GlobalMonad
 import Lib
@@ -74,6 +75,8 @@ instance JWTControllerI Test
 instance JWTRepositoryI Test
 instance JWTServiceI Test
 --instance JWTUtilI Test
+instance CORSI Test
+instance Utf8I Test
 instance OAuth2ClientGRpcExServiceI Test
 --instance OAuth2ClientKakaoExServiceI Test
 --instance OAuth2ClientNaverExServiceI Test
@@ -93,7 +96,6 @@ instance VerificationServiceI Test
 instance VerificationUtilI Test
 --instance AuthenticationI Test
 --instance ContextI Test
-instance CORSI Test
 --instance DBI Test
 instance LibI Test
 instance PaperAppI Test
