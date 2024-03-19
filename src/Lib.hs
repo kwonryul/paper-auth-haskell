@@ -101,7 +101,6 @@ startApp'Impl :: forall p m. (HasCallStack, LibI p, MonadUnliftIO m) => Context 
 startApp'Impl ctx certPath secretKeyPath = do
     homeDir <- globalLiftIOUnliftIO $ getEnv "HOME"
     projectDir <- globalLiftIOUnliftIO $ readFile $ homeDir ++ "/.paper-auth/project-directory"
-    httpPort <- lookupRequiredGlobal (config ctx) "port.http"
     httpsPort <- lookupRequiredGlobal (config ctx) "port.https"
     oauth2ClientSocketPort <- lookupRequiredGlobal (config ctx) "port.oauth2-client-socket"
     let docsFilePath = projectDir ++ "generated/docs"
@@ -122,7 +121,6 @@ startApp'Impl ctx certPath secretKeyPath = do
                         return ()
                     err ->
                         throwIO $ userError err
-    _ <- globalLiftIOUnliftIO $ forkIO $ (globalLog profile ctx $ run httpPort (app (Proxy :: Proxy p) ctx docsFilePath staticFilePath))
     globalLiftIOUnliftIO $ runTLS
         (tlsSettings certPath secretKeyPath)
         (setPort httpsPort defaultSettings)

@@ -64,7 +64,7 @@ paperAuthConnInfo'Impl config = do
 getPaperAuthPool'Impl :: (HasCallStack, DBI p, MonadUnliftIO m) => Config -> GlobalMonad p m PaperAuthPool
 getPaperAuthPool'Impl config = do
     paperAuthConnInfo <- paperAuthConnInfo' config
-    globalLiftIOUnliftIO $ specializePool <$> (runStderrLoggingT $ createMySQLPool paperAuthConnInfo 8)
+    globalLiftIOUnliftIO $ specializePool <$> (runStderrLoggingT $ createMySQLPool paperAuthConnInfo 16)
 
 runSqlPoolOneConnectionImpl :: forall db p m a. (HasCallStack, DBI p, DB db, MonadUnliftIO m) => (SqlFor db -> PaperMonad p m a) -> ConnectionPoolFor db -> PaperMonad p m a
 runSqlPoolOneConnectionImpl inner pool = do

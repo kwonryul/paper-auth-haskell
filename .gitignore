@@ -15,3 +15,5 @@ protos/build/*
 c++/build/*
 c++/out/*
 grpc/*
+./nohup.out
+./paper-auth-exe

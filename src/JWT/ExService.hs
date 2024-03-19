@@ -131,7 +131,7 @@ nominalDiffTimeToNumericDateImpl m =
         Just n ->
             case numericDate n of
                 Just nd -> return $ Just nd
-                Nothing -> toPaperMonad $ PaperError "numericDate invalid" (err500 { errBody = "Internal server error" }) (callStack' profile)
+                Nothing -> toPaperMonad $ PaperError "numericDate invalid" (err500 { errBody = "internal server error" }) (callStack' profile)
         Nothing -> return Nothing
     where
         profile :: Proxy p
@@ -166,7 +166,7 @@ stringOrURI'Impl :: forall p m. (HasCallStack, JWTExServiceI p, Monad m) => Mayb
 stringOrURI'Impl mt = case mt of
     Just t -> case stringOrURI t of
         Just s -> return $ Just s
-        Nothing -> toPaperMonad $ PaperError "stringOrURI invalid" (err500 { errBody = "Internal server error" }) (callStack' profile)
+        Nothing -> toPaperMonad $ PaperError "stringOrURI invalid" (err500 { errBody = "internal server error" }) (callStack' profile)
     Nothing -> return Nothing
     where
         profile :: Proxy p
@@ -176,7 +176,7 @@ stringOrURI''Impl :: forall p m. (HasCallStack, JWTExServiceI p, Monad m) => Int
 stringOrURI''Impl i = do
     case stringOrURI $ pack . show $ i of
         Just s -> return $ Just s
-        Nothing -> toPaperMonad $ PaperError "stringOrURI invalid" (err500 { errBody = "Internal server error" }) (callStack' profile)
+        Nothing -> toPaperMonad $ PaperError "stringOrURI invalid" (err500 { errBody = "internal server error" }) (callStack' profile)
     where
         profile :: Proxy p
         profile = Proxy
@@ -191,7 +191,7 @@ stringOrURIListImpl mt = case mt of
             Data.Traversable.mapM (\t' -> do
                     case stringOrURI t' of
                         Just s -> return s
-                        Nothing -> toPaperMonad $ PaperError "stringOrURI invalid" (err500 { errBody = "Internal server error" }) (callStack' profile)
+                        Nothing -> toPaperMonad $ PaperError "stringOrURI invalid" (err500 { errBody = "internal server error" }) (callStack' profile)
                 )
                 (Data.Text.words t)
         profile :: Proxy p
@@ -209,8 +209,8 @@ formattedDateToNumericDateImpl t' = case t' of
                     let nominalDiffTime = diffUTCTime utc $ UTCTime (fromGregorian 1970 1 1) (secondsToDiffTime 0)
                     case numericDate nominalDiffTime of
                         Just n -> return n
-                        Nothing -> toPaperMonad $ PaperError "numericDate invalid" (err500 { errBody = "Internal server error" }) (callStack' profile)
-                Nothing -> toPaperMonad $ PaperError "parseTimeM failed" (err500 { errBody = "Internal server error" }) (callStack' profile)
+                        Nothing -> toPaperMonad $ PaperError "numericDate invalid" (err500 { errBody = "internal server error" }) (callStack' profile)
+                Nothing -> toPaperMonad $ PaperError "parseTimeM failed" (err500 { errBody = "internal server error" }) (callStack' profile)
         profile :: Proxy p
         profile = Proxy
 

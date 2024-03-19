@@ -22,8 +22,6 @@ using oauth2ClientSocket::OAuth2ClientSocket;
 using oauth2ClientSocket::SocketIdWithToken;
 using oauth2ClientSocket::Empty;
 
-void *haskell_handle;
-
 extern "C" {
   typedef char *(*SendTokenAndCloseHs)(int, const char *, const char *);
   SendTokenAndCloseHs send_token_and_close_hs;
@@ -38,9 +36,9 @@ class OAuth2ClientSocketServiceImpl final : public OAuth2ClientSocket::Service {
       if (res_str == "OK")
         return Status::OK;
       else
-        return grpc::Status(grpc::StatusCode::INTERNAL, res);
+        return grpc::Status(grpc::StatusCode::INTERNAL, res_str);
     } catch (const std::exception& e) {
-      return grpc::Status(grpc::StatusCode::INTERNAL, e.what());
+      return grpc::Status(grpc::StatusCode::INTERNAL, std::string(e.what()));
     } catch (...) {
       return grpc::Status(grpc::StatusCode::INTERNAL, "error while sending token and closing");
     }
@@ -48,29 +46,14 @@ class OAuth2ClientSocketServiceImpl final : public OAuth2ClientSocket::Service {
 };
 
 void RunServer(uint16_t port) {
-  std::string project_dir = readFileIntoString("~/.paper-auth/project-directory");
-  std::string cert = readFileIntoString(project_dir + "resources/tls/cert.pem");
-  std::string secret_key = readFileIntoString(project_dir + "resources/tls/secret-key.pem");
-
   std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
   OAuth2ClientSocketServiceImpl service;
 
   grpc::EnableDefaultHealthCheckService(true);
   grpc::reflection::InitProtoReflectionServerBuilderPlugin();
 
-  grpc::SslServerCredentialsOptions::PemKeyCertPair keycert;
-  keycert.cert_chain = cert;
-  keycert.private_key = secret_key;
-  grpc::SslServerCredentialsOptions ssl_opts;
-  ssl_opts.pem_root_certs = "";
-
-  ssl_opts.pem_key_cert_pairs.push_back(keycert);
-  
-  std::shared_ptr<grpc::ServerCredentials> creds =
-    grpc::SslServerCredentials(ssl_opts);
-
   ServerBuilder builder;
-  builder.AddListeningPort(server_address, creds);
+  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
   builder.RegisterService(&service);
   std::unique_ptr<Server> server(builder.BuildAndStart());
   server->Wait();

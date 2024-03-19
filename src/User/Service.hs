@@ -111,7 +111,7 @@ enroll'Impl config encodeSigner paperId password phoneNumber' phoneNumberSecret 
             toPaperMonad $ PaperError "phoneNumber duplicate" (err400 { errBody = "phoneNumber duplicate" }) (callStack' profile)
     hashedPassword <- maybeTToPaperMonadUnliftIO
         (MaybeT $ hashPasswordUsingPolicy slowerBcryptHashingPolicy (Data.ByteString.Char8.pack password))
-        $ PaperError "hashing string error" (err500 { errBody = "Internal server error" }) (callStack' profile)
+        $ PaperError "hashing string error" (err500 { errBody = "internal server error" }) (callStack' profile)
     userId <- User.Repository.newUser Paper (Just paperId) (Just hashedPassword) (Just phoneNumber) Nothing currentUTC conn
     let roleSet = Data.Set.empty
         preAuthenticatedUser = PreAuthenticatedUser { userId, roleSet }

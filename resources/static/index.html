@@ -10,7 +10,7 @@
                 let request = indexedDB.open('myDatabase', 1);
 
                 request.onerror = function(event) {
-                    alert('error');
+                    alert('error opening indexed db');
                 }
                 request.onsuccess = function(event) {
                     db = request.result;
@@ -18,29 +18,27 @@
                 }
                 request.onupgradeneeded = function(event) {
                     db = event.target.result;
-                    let objectStore = db.createObjectStore('tokenStore', { kyePath: 'id' });
+                    let objectStore = db.createObjectStore('tokenStore');
                 }
             }
 
             function getUserInfo() {
                 let transaction = db.transaction(["tokenStore"]);
                 let objectStore = transaction.objectStore("tokenStore");
-                let request = objectStore.get("accessToken");
+                let request = objectStore.get('accessToken');
                 request.onsuccess = function(event) {
-                    if (request.result) {
+                    if (request.result || request.result.token) {
                         let headers = new Headers();
-                        if (request.result.value)
-                            headers.append('Authorization', 'Bearer ' + request.result.value);
-                        else
-                            window.location = '/static/login.html';
-                        fetch('http://43.200.64.248/user/userInfo',
-                            headers)
+                        headers.append('Authorization', 'Bearer ' + request.result.token);
+                        fetch('https://43.200.64.248/user/userInfo', {
+                            headers,
+                            credentials: 'include' })
                             .then(res => {
                                 if (!res.ok) {
                                     if (res.status === 401 || res.status === 403)
-                                        window.location = '/static/login.html';
+                                        window.location = 'https://43.200.64.248/static/login.html';
                                     else
-                                        alert('error');
+                                        alert('internal server error');
                                 }
                                 res.json().then(j => {
                                     document.getElementById('roleSet')
@@ -54,11 +52,11 @@
                                 });
                             });
                     } else {
-                        window.location = '/static/login.html';
+                        window.location = 'https://43.200.64.248/static/login.html';
                     }
                 }
                 request.onerror = function(event) {
-                    alert('error');
+                    alert('error using indexed db');
                 }
             }
 

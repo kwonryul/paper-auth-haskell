@@ -110,12 +110,14 @@ run:
 .PHONY: rund
 rund:
 	sudo -v
+	make killd
 	echo "Running Daemon..."
-	sudo pkill paper-auth-exe
-	sudo bash -c "export LD_LIBRARY_PATH=${project_dir}c++/out && nohup out/paper-auth-exe &"
+	-rm paper-auth-exe
+	cp out/paper-auth-exe ./
+	sudo bash -c "export LD_LIBRARY_PATH=${project_dir}c++/out && nohup ./paper-auth-exe &"
 
 .PHONY: killd
 killd:
 	sudo -v
 	echo "Killing Daemon..."
-	sudo pkill paper-auth-exe
+	-sudo pkill paper-auth-exe

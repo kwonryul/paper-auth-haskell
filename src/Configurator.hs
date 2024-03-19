@@ -31,7 +31,7 @@ class (PaperMonadI p, GlobalMonadI p, NestedMonadI p) => ConfiguratorI p where
 
 lookupRequiredImpl :: forall p m a. (HasCallStack, ConfiguratorI p, MonadUnliftIO m, Configured a) => Config -> Name -> PaperMonad p m a
 lookupRequiredImpl config name =
-    maybeTToPaperMonadUnliftIO (MaybeT $ Data.Configurator.lookup config name) (PaperError ("configuration not found:\t" ++ show name) (err500 { errBody = "Internal server error" }) (callStack' profile))
+    maybeTToPaperMonadUnliftIO (MaybeT $ Data.Configurator.lookup config name) (PaperError ("configuration not found:\t" ++ show name) (err500 { errBody = "internal server error" }) (callStack' profile))
     where
         profile :: Proxy p
         profile = Proxy

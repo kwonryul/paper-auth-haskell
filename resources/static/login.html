@@ -8,57 +8,47 @@
             let request = indexedDB.open('myDatabase', 1);
 
             request.onerror = function(event) {
-                alert('error');
+                alert('error opening indexed db');
             }
             request.onsuccess = function(event) {
                 db = request.result;
             }
             request.onupgradeneeded = function(event) {
                 let db = event.target.result;
-                let objectStore = db.createObjectStore('tokenStore', { kyePath: 'id' });
+                let objectStore = db.createObjectStore('tokenStore');
             }
 
             function paperAuth() {
             }
 
-            function oauth2Kakao() {
-                openSocket('kakao');
-            }
-
-            function oauth2Naver() {
-                openSocket('naver');
-            }
-
             function openSocket(name) {
-                let socket = new WebSocket('ws://43.200.64.248/oauth2/client/webSocket');
+                let socket = new WebSocket('wss://43.200.64.248/oauth2/client/webSocket');
                 let count = 0;
-                socket.onopen = function(event) {
-                    console.log('open:\t' + name);
-                }
                 socket.onmessage = function(event) {
                     count++;
                     if (count === 1) {
                         console.log('state:\t' + event.data);
-                        window.open('http://43.200.64.248/oauth2/client/issue/kakao?code=something&state=' + event.data, 'newWindow', 'width=600, height=400');
+                        window.open('https://43.200.64.248/oauth2/client/issue/' + name + '?code=something&state=' + event.data, 'newWindow', 'width=600, height=400');
                     } else {
                         console.log('msg:\t' + event.data);
-                        let request = db.transaction(['tokenStore'], 'write')
-                            .objetStore('tokenStore')
-                            .add({ id: 'accessToken', value: event.data });
+                        let at = JSON.parse(event.data).accessToken;
+                        let request = db.transaction(['tokenStore'], 'readwrite')
+                            .objectStore('tokenStore')
+                            .put({ token: at }, 'accessToken');
                         request.onsuccess = function(event) {
                             window.location = '/static/index.html';
                         }
                         request.onerror = function(event) {
-                            alert('error');
+                            console.dir(event);
                         }
                     }
                 };
                 socket.onerror = function(error) {
-                    consol.error(error);
+                    console.error(error);
                 };
                 socket.onclose = function(event) {
                     console.log('socket connection closed');
-                    setTimeout(() => { alert('error'); }, 10);
+                    setTimeout(() => { alert('internal server error'); }, 10000);
                 };
             }
 
@@ -76,10 +66,10 @@
             <a href='/static/enroll.html'>회원 가입</a>
         </p>
         <p>
-            <button onclick='oauth2Kakao();'>Kakao</button>
+            <button onclick='openSocket("kakao");'>Kakao</button>
         </p>
         <p>
-            <button onclick='oatuh2Naver()'>Naver</button>
+            <button onclick='openSocket("naver")'>Naver</button>
         </p>
     </body>
 </html>
