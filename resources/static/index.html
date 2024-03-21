@@ -1,58 +1,71 @@
 <html>
     <head>
         <title>
-            Paper-Auth Index
+            Paper-Auth
         </title>
         <script>
             let db;
+
+            let paperIdI;
+            let nameI;
+            let phoneNumberI;
 
             function openDB() {
                 let request = indexedDB.open('myDatabase', 1);
 
                 request.onerror = function(event) {
                     alert('error opening indexed db');
-                }
+                };
                 request.onsuccess = function(event) {
                     db = request.result;
                     getUserInfo();
-                }
+                };
                 request.onupgradeneeded = function(event) {
                     db = event.target.result;
                     let objectStore = db.createObjectStore('tokenStore');
-                }
+                };
             }
 
             function getUserInfo() {
-                let transaction = db.transaction(["tokenStore"]);
-                let objectStore = transaction.objectStore("tokenStore");
+                let transaction = db.transaction(['tokenStore']);
+                let objectStore = transaction.objectStore('tokenStore');
                 let request = objectStore.get('accessToken');
                 request.onsuccess = function(event) {
                     if (request.result && request.result.token) {
                         let headers = new Headers();
                         headers.append('Authorization', 'Bearer ' + request.result.token);
-                        fetch('https://43.200.64.248/user/userInfo', {
+                        fetch('/user/userInfo', {
                             headers,
                             credentials: 'include' })
                             .then(res => {
                                 if (!res.ok) {
                                     if (res.status === 401 || res.status === 403)
-                                        window.location = 'https://43.200.64.248/static/login.html';
-                                    else
-                                        alert('internal server error');
+                                        window.location = '/static/login.html';
+                                    else {
+                                        res.text().then(t => {
+                                            alert(t);
+                                        })
+                                    }
+                                    return;
                                 }
                                 res.json().then(j => {
+                                    document.getElementById('paperId')
+                                        .value = j.paperId;
+                                    paperIdI = j.paperId;
                                     document.getElementById('roleSet')
                                         .value = JSON.stringify(j.roleSet);
                                     document.getElementById('name')
                                         .value = j.name;
+                                    nameI = j.name;
                                     document.getElementById('phoneNumber')
                                         .value = j.phoneNumber;
+                                    phoneNumberI = j.phoneNumber;
                                     document.getElementById('registerDate')
                                         .value = j.registerDate;
                                 });
                             });
                     } else {
-                        window.location = 'https://43.200.64.248/static/login.html';
+                        window.location = '/static/login.html';
                     }
                 }
                 request.onerror = function(event) {
@@ -60,32 +73,100 @@
                 }
             }
 
-            function logout() {
-                let transaction = db.transaction(["tokenStore"]);
-                let objectStore = transaction.objectStore("tokenStore");
+            function patchUserInfo() {
+                let transaction = db.transaction(['tokenStore']);
+                let objectStore = transaction.objectStore('tokenStore');
                 let request = objectStore.get('accessToken');
                 request.onsuccess = function(event) {
                     if (request.result && request.result.token) {
                         let headers = new Headers();
                         headers.append('Authorization', 'Bearer ' + request.result.token);
-                        fetch('https://43.200.64.248/jwt/invalidate', {
-                            method: "DELETE",
+                        headers.append('Content-Type', 'application/json');
+                        let paperId = document.getElementById('paperId').value;
+                        let password = document.getElementById('password').value;
+                        let name = document.getElementById('name').value;
+                        let phoneNumber = document.getElementById('phoneNumber').value;
+                        let phoneNumberSecret = document.getElementById('phoneNumberSecret').value;
+                        let body = JSON.stringify({
+                            paperId: paperId === paperIdI || paperId === '' ? null : paperId,
+                            password: password === '' ? null : password,
+                            name: name === nameI || name === '' ? null : name,
+                            phoneNumber: phoneNumber === phoneNumberI || phoneNumber === '' ? null : phoneNumber,
+                            phoneNumberSecret: phoneNumberSecret === '' ? null : phoneNumberSecret
+                        });
+                        fetch('/user/userInfo', {
+                            method: 'PATCH',
                             headers,
+                            body,
                             credentials: 'include' })
                             .then(res => {
-                                if (!res.ok)
-                                    alert('internal server error');
-                                else {
-                                    window.location = 'https://43.200.64.248/static/login.html';
+                                if (!res.ok) {
+                                    if (res.status == 401 || res.status == 403)
+                                        window.location = '/static/login.html';
+                                    else {
+                                        res.text().then(t => {
+                                            alert(t);
+                                        });
+                                    }
+                                } else {
+                                    window.location = '/static/index.html';
                                 }
                             });
                     } else {
-                        window.location = 'https://43.200.64.248/static/login.html';
+                        window.location = '/static/login.html';
+                    }
+                };
+                request.onerror = function(event) {
+                    alert('error using indexed db');
+                };
+            }
+
+            function logout() {
+                let transaction = db.transaction(['tokenStore']);
+                let objectStore = transaction.objectStore('tokenStore');
+                let request = objectStore.get('accessToken');
+                request.onsuccess = function(event) {
+                    if (request.result && request.result.token) {
+                        let headers = new Headers();
+                        headers.append('Authorization', 'Bearer ' + request.result.token);
+                        fetch('/jwt/invalidate', {
+                            method: 'DELETE',
+                            headers,
+                            credentials: 'include' })
+                            .then(res => {
+                                if (!res.ok) {
+                                    res.text().then(t => {
+                                        alert(t);
+                                    });
+                                } else {
+                                    window.location = '/static/login.html';
+                                }
+                            });
+                    } else {
+                        window.location = '/static/login.html';
                     }
                 }
                 request.onerror = function(event) {
                     alert('error using indexed db');
                 }
+            }
+
+            function requestVerification() {
+                let phoneNumber = document.getElementById('phoneNumber').value;
+                let headers = new Headers();
+                headers.append('Content-Type', 'application/json');
+                fetch('/verification/request', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ phoneNumber })
+                }).then(res => {
+                    if (!res.ok) {
+                        res.text().then(t => {
+                            alert(t);
+                        });
+                    } else
+                        alert('phoneNumberSecret has sent');
+                })
             }
 
             function ready(callbackFunc) {
@@ -95,21 +176,40 @@
                     document.addEventListener('DOMContentLoaded', callbackFunc);
             }
 
-            function patchUserInfo() {
-            }
-
-            ready(openDB)
+            ready(openDB);
         </script>
     </head>
     <body>
-        <label for='roleSet'>유저 권한</label>
-        <input type='text' id='roleSet'>
-        <label for='name'>닉네임</label>
-        <input type='text' id='name'>
-        <label for='phoneNumber'>핸드폰 번호</label>
-        <input type='text' id='phoneNumber'>
-        <label for='registerDate'>가입 날짜</label>
-        <input type='text' id='registerDate'>
+        <p>
+            <label for='paperId'>아이디</label>
+            <input type='text' id='paperId'>
+        </p>
+        <p>
+            <label for='password'>비밀번호 변경</label>
+            <input type='password' id='password'>
+        </p>
+        <p>
+            <label for='roleSet'>유저 권한</label>
+            <input type='text' id='roleSet' readonly>
+        </p>
+        <p>
+            <label for='name'>닉네임</label>
+            <input type='text' id='name'>
+        </p>
+        <p>
+            <label for='phoneNumber'>핸드폰 번호</label>
+            <input type='text' id='phoneNumber'>
+            <label for='phoneNumberSecret'>인증번호</label>
+            <input type='text' id='phoneNumberSecret'>
+            <button onclick='requestVerification();'>인증번호 받기</button>
+        </p>
+        <p>
+            <label for='registerDate'>가입 날짜</label>
+            <input type='text' id='registerDate' readonly>
+        </p>
+        <p>
+            <button onclick='patchUserInfo();'>유저 정보 수정</button>
+        </p>
         <p>
             <button onclick='logout();'>로그아웃</button>
         </p>

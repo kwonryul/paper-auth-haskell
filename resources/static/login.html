@@ -5,30 +5,65 @@
         </title>
         <script>
             let db;
-            let request = indexedDB.open('myDatabase', 1);
 
-            request.onerror = function(event) {
-                alert('error opening indexed db');
-            }
-            request.onsuccess = function(event) {
-                db = request.result;
-            }
-            request.onupgradeneeded = function(event) {
-                let db = event.target.result;
-                let objectStore = db.createObjectStore('tokenStore');
+            function openDB() {
+                let request = indexedDB.open('myDatabase', 1);
+
+                request.onerror = function(event) {
+                    alert('error opening indexed db');
+                };
+                request.onsuccess = function(event) {
+                    db = request.result;
+                };
+                request.onupgradeneeded = function(event) {
+                    db = event.target.result;
+                    let objectStore = db.createObjectStore('tokenStore');
+                };
             }
 
             function paperAuth() {
+                let paperId = document.getElementById('paperId').value;
+                let password = document.getElementById('password').value;
+                let headers = new Headers();
+                headers.append('Content-Type', 'application/json');
+                fetch('/jwt/issue', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        paperId,
+                        password
+                    })
+                }).then(res => {
+                    if (!res.ok) {
+                        res.text().then(t => {
+                            alert(t);
+                        })
+                        return;
+                    };
+                    res.json().then(j => {
+                        let request = db.transaction(['tokenStore'], 'readwrite')
+                            .objectStore('tokenStore')
+                            .put({ token: j.accessToken }, 'accessToken');
+                        request.onsuccess = function(event) {
+                            window.location = '/static/index.html';
+                        };
+                        request.onerror = function(event) {
+                            console.dir(event);
+                            alert('error using indexed db');
+                        };
+                    });
+                });
             }
 
             function openSocket(name) {
-                let socket = new WebSocket('wss://43.200.64.248/oauth2/client/webSocket');
+                let host = window.location.host;
+                let socket = new WebSocket('wss://' + host + '/oauth2/client/webSocket');
                 let count = 0;
                 socket.onmessage = function(event) {
                     count++;
                     if (count === 1) {
                         console.log('state:\t' + event.data);
-                        window.open('https://43.200.64.248/oauth2/client/issue/' + name + '?code=something&state=' + event.data, 'newWindow', 'width=600, height=400');
+                        window.open(getOAuth2Url(name, event.data), 'newWindow', 'width=600, height=400');
                     } else {
                         console.log('msg:\t' + event.data);
                         let at = JSON.parse(event.data).accessToken;
@@ -37,14 +72,16 @@
                             .put({ token: at }, 'accessToken');
                         request.onsuccess = function(event) {
                             window.location = '/static/index.html';
-                        }
+                        };
                         request.onerror = function(event) {
                             console.dir(event);
-                        }
+                            alert('error using indexed db');
+                        };
                     }
                 };
                 socket.onerror = function(error) {
                     console.error(error);
+                    alert('socket connection error');
                 };
                 socket.onclose = function(event) {
                     console.log('socket connection closed');
@@ -52,6 +89,28 @@
                 };
             }
 
+            function getOAuth2Url(name, state) {
+                switch (name) {
+                    case 'kakao':
+                        return 'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=459a80a6b60eff984847c3a04ae2776f&redirect_uri=https://'
+                            + window.location.host + '/oauth2/client/issue/kakao&state=' + state;
+                    case 'naver':
+                        alert("unsupported social login type");
+                        throw new Error("unsupported social login type");
+                    default:
+                        alert("unsupported social login type");
+                        throw new Error("unsupported social login type");
+                }
+            }
+
+            function ready(callbackFunc) {
+                if (document.readyState !== 'loading')
+                    callbackFunc();
+                else
+                    document.addEventListener('DOMContentLoaded', callbackFunc);
+            }
+
+            ready(openDB);
         </script>
     </head>
     <body>

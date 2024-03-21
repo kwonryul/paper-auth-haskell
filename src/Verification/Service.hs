@@ -43,8 +43,8 @@ verifyRequest'Impl cfg phoneNumber' conn = do
     iat <- paperLiftIOUnliftIO getCurrentTime
     let expire = addUTCTime (fromInteger 180) iat
     let deleteAt = addUTCTime (fromInteger 1800) iat
-    Verification.Repository.deleteByPhoneNumber conn phoneNumber
-    _ <- Verification.Repository.newVerification conn phoneNumber phoneNumberSecret iat expire deleteAt
+    Verification.Repository.deleteByPhoneNumber phoneNumber conn
+    _ <- Verification.Repository.newVerification phoneNumber phoneNumberSecret iat expire deleteAt conn
     smsNotify cfg phoneNumber phoneNumberSecret
     return NoContent
 
@@ -55,7 +55,7 @@ verifyCheck'Impl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => S
 verifyCheck'Impl phoneNumber' phoneNumberSecret pool conn = do
     phoneNumber <- stringToPhoneNumber phoneNumber'
     currentUTC <- paperLiftIOUnliftIO getCurrentTime
-    verificationEntity' <- Verification.Repository.findByPhoneNumber conn phoneNumber
+    verificationEntity' <- Verification.Repository.findByPhoneNumber phoneNumber conn
     case verificationEntity' of
         Just (Entity verificationId Verification {
             verificationPhoneNumberSecret
@@ -74,6 +74,6 @@ verifyCheck'Impl phoneNumber' phoneNumberSecret pool conn = do
         inner :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => VerificationId -> Int -> PaperAuthConn -> PaperMonad p m ()
         inner verificationId failCount innerConn =
                 if failCount == 4 then
-                    Verification.Repository.deleteById innerConn verificationId
+                    Verification.Repository.deleteById verificationId innerConn
                 else
-                    Verification.Repository.increaseFailCount innerConn verificationId
+                    Verification.Repository.increaseFailCount verificationId innerConn

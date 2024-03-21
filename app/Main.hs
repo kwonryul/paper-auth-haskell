@@ -1,33 +1,49 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Main where
 
-import Lib
-import Profile.Prod
 import Profile.Test.Import
+import Profile.Dev
+import Profile.Prod
 import Profile.Test()
+import Lib
 
 import Control.Concurrent
+import Control.Exception
 import Data.Proxy
+import System.Environment
 import GHC.Stack
 
 prod :: Proxy Prod
 prod = Proxy
+
+dev :: Proxy Dev
+dev = Proxy
 
 test :: Proxy Test
 test = Proxy
 
 main :: HasCallStack => IO ()
 main = do
+    args <- getArgs
+    execute $ (\case
+        "prod" -> main' prod
+        "dev" -> main' dev
+        "test" -> main' test
+        _ -> throwIO $ userError "argument invalid"
+        ) <$> args
+    where
+        execute :: [IO ()] -> IO ()
+        execute [] = return ()
+        execute [x] = x
+        execute (x : xs) = forkIO x >> execute xs
+
+main' :: (HasCallStack, LibI p) => Proxy p -> IO ()
+main' p = do
     Resources {
-        context = prodContext
-      , certPath = prodCertPath
-      , secretKeyPath = prodSecretKeyPath
-      } <- getAllResources prod
-    Resources {
-        context = testContext
-      , certPath = testCertPath
-      , secretKeyPath = testSecretKeyPath
-      } <- getAllResources test
-    migratePaperAuth prod prodContext (paperAuthPool prodContext)
-    migratePaperAuth test testContext (paperAuthPool testContext)
-    _ <- forkIO $ startApp test testContext testCertPath testSecretKeyPath
-    startApp prod prodContext prodCertPath prodSecretKeyPath
+        context
+      , certPath
+      , secretKeyPath
+      } <- getAllResources p
+    migratePaperAuth p context (paperAuthPool context)
+    startApp p context certPath secretKeyPath

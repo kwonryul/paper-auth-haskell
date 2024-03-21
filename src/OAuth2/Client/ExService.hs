@@ -26,7 +26,7 @@ class (OAuth2ClientKakaoExServiceI p, OAuth2ClientNaverExServiceI p) => OAuth2Cl
     getIdentifier = getIdentifierImpl
 
 getIdentifierImpl :: forall p m. (HasCallStack, OAuth2ClientExServiceI p, MonadUnliftIO m) => Config -> AuthenticationType -> String -> String -> PaperMonad p m String
-getIdentifierImpl cfg Kakao code state = OAuth2.Client.ThirdParties.Kakao.ExService.getIdentifier cfg code state
+getIdentifierImpl cfg Kakao code _ = OAuth2.Client.ThirdParties.Kakao.ExService.getIdentifier cfg code
 getIdentifierImpl cfg Naver code state = OAuth2.Client.ThirdParties.Naver.ExService.getIdentifier cfg code state
 getIdentifierImpl _ _ _ _ = toPaperMonad $ PaperError "invalid authentication type" (err500 { errBody = "internal server error" }) $ callStack' profile
     where

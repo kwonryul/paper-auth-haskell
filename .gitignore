@@ -3,6 +3,8 @@ dist-newstyle/*
 log/*
 out/*
 resources/application.cfg
+resources/application-dev.cfg
+resources/application-local.cfg
 resources/application-test.cfg
 resources/tls/cert.pem
 resources/tls/secret-key.pem

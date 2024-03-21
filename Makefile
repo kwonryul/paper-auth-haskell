@@ -104,8 +104,13 @@ asciidoctor: test
 .PHONY: run
 run:
 	sudo -v
-	echo "Running..."
-	sudo bash -c "export LD_LIBRARY_PATH=${project_dir}c++/out && out/paper-auth-exe"
+	echo "Running Dev..."
+	sudo bash -c "export LD_LIBRARY_PATH=${project_dir}c++/out && out/paper-auth-exe dev"
+
+run_prod:
+	sudo -v
+	echo "Running Prod..."
+	sudo bash -c "export LD_LIBRARY_PATH=${project_dir}c++/out && out/paper-auth-exe prod"
 
 .PHONY: rund
 rund:
@@ -114,7 +119,7 @@ rund:
 	echo "Running Daemon..."
 	-rm paper-auth-exe
 	cp out/paper-auth-exe ./
-	sudo bash -c "export LD_LIBRARY_PATH=${project_dir}c++/out && nohup ./paper-auth-exe &"
+	sudo bash -c "export LD_LIBRARY_PATH=${project_dir}c++/out && nohup ./paper-auth-exe prod test &"
 
 .PHONY: killd
 killd:

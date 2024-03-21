@@ -45,6 +45,7 @@ import Web.JWT
 import Data.Configurator.Types
 
 import Control.Monad.IO.Unlift
+import Control.Monad.Reader
 import Control.Concurrent
 import Control.Exception
 import Data.Map
@@ -75,6 +76,7 @@ class (
 
 webSocketImpl :: forall p m. (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Context.Context -> OAuth2ClientSocketConnections -> PendingConnection -> PaperAuthPool -> PaperMonad p m ()
 webSocketImpl ctx socketConnections'' socketConn' pool = do
+    profile <- ask
     currentTime <- paperLiftIOUnliftIO getCurrentTime
     socketConn <- paperLiftIOUnliftIO $ acceptRequest socketConn'
     host <- lookupRequired (config ctx) "host"
@@ -115,8 +117,6 @@ webSocketImpl ctx socketConnections'' socketConn' pool = do
             (\_ -> nestedLog profile ctx $ takeMVar closeShot)
 
     where
-        profile :: Proxy p
-        profile = Proxy
         receiveLoop :: Connection -> IO ()
         receiveLoop socketConn = do
             msg <- receive socketConn
@@ -128,8 +128,9 @@ issueJWTImpl :: (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Confi
 issueJWTImpl config encodeSigner authenticationType code state pool =
     runSqlPoolOneConnection (issueJWT' config encodeSigner authenticationType code state) pool
 
-issueJWT'Impl :: forall p m. (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> AuthenticationType -> String -> String -> PaperAuthConn -> PaperMonad p m (Servant.Headers '[Header "Set-Cookie" SetCookie] Html)
+issueJWT'Impl :: (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> AuthenticationType -> String -> String -> PaperAuthConn -> PaperMonad p m (Servant.Headers '[Header "Set-Cookie" SetCookie] Html)
 issueJWT'Impl config encodeSigner authenticationType code state conn = do
+    profile <- ask
     currentUTC <- paperLiftIOUnliftIO getCurrentTime
     socketId <- maybeToPaperMonad (getSocketIdFromState profile state) $ PaperError "state invalid" (err400 { errBody = "state invalid" }) $ callStack' profile
     socketConnection' <- OAuth2.Client.Repository.getConnection (toSqlKeyFor $ fromIntegral socketId) conn
@@ -157,16 +158,14 @@ issueJWT'Impl config encodeSigner authenticationType code state conn = do
             return $ addHeader cookie $ issueJWTHtml state
         NativeSocket -> do
             return $ addHeader cookie $ issueJWTHtml state
-    where
-        profile :: Proxy p
-        profile = Proxy
 
 finalizeImpl :: (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => String -> PaperAuthPool -> PaperMonad p m NoContent
 finalizeImpl state pool =
     runSqlPoolOneConnection (finalize' state) pool
 
-finalize'Impl :: forall p m. (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m NoContent
+finalize'Impl :: (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m NoContent
 finalize'Impl state conn = do
+    profile <- ask
     socketId <- maybeToPaperMonad (getSocketIdFromState profile state) $ PaperError "state invalid" (err400 { errBody = "state invalid" }) $ callStack' profile
     socketConnection' <- OAuth2.Client.Repository.getConnection (toSqlKeyFor $ fromIntegral socketId) conn
     OAuth2ClientSocketConnection {
@@ -190,6 +189,3 @@ finalize'Impl state conn = do
         NativeSocket ->
             OAuth2.Client.GRpc.ExService.sendToken oAuth2ClientSocketConnectionHost oAuth2ClientSocketConnectionPort socketId accessToken $ Just refreshToken
     return NoContent
-    where
-        profile :: Proxy p
-        profile = Proxy

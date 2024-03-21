@@ -24,10 +24,12 @@ import OAuth2.Client.Util
 import Role.Repository
 import SMS.Profile
 import User.Controller
+import User.ExService
 import User.Repository
 import User.Service
 import Verification.Controller
 import Verification.ExDTO
+import Verification.ExService
 import Verification.Repository
 import Verification.Service
 import Verification.Util
@@ -44,8 +46,6 @@ import SMS.Profile.None
 
 import JWT.Model
 import Monad.ProfileT
-import User.DTO
-import Enum
 
 import Profile.Test.Import
 
@@ -56,17 +56,13 @@ import Database.Persist.Typed
 import Database.Persist.MySQL
 import Network.Wai
 import Web.Cookie
-import Crypto.BCrypt
 
 import Control.Monad.Reader
-import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Except
 import Control.Monad.Logger
-import Data.Set
 import Data.Time
 import Data.Text
 import Data.Text.Encoding
-import Data.ByteString.Char8
 import Text.Regex.TDFA
 import System.Environment
 
@@ -87,10 +83,12 @@ instance OAuth2ClientServiceI Test
 instance OAuth2ClientUtilI Test
 instance RoleRepositoryI Test
 instance UserControllerI Test
+instance UserExServiceI Test
 instance UserRepositoryI Test
---instance UserServiceI Test
+instance UserServiceI Test
 instance VerificationControllerI Test
 instance VerificationExDTOI Test
+--instance VerificationExServiceI Test
 instance VerificationRepositoryI Test
 instance VerificationServiceI Test
 instance VerificationUtilI Test
@@ -167,6 +165,9 @@ instance AuthenticationI Test where
             profile :: Proxy Test
             profile = Proxy
 
+instance VerificationExServiceI Test where
+    verifyVerification _ _ _ _ = return ()
+
 instance JWTExServiceI Test where
     issueJWT _ _ (PreAuthenticatedUser { userId }) currentUTC conn = do
         refreshJti <- JWT.Repository.newRefreshToken userId currentUTC Nothing conn
@@ -176,32 +177,6 @@ instance JWTExServiceI Test where
         JWT.Repository.saveAccessToken accessJti (Data.Text.pack accessToken) conn
         JWT.Repository.saveRefreshToken refreshJti (Data.Text.pack refreshToken) conn
         return $ JWTDTO accessJti (Data.Text.pack accessToken) refreshJti (Data.Text.pack refreshToken)
-
-instance UserServiceI Test where
-    enroll' config encodeSigner paperId password phoneNumber' _ _ conn = do
-        profile <- ask
-        phoneNumber <- stringToPhoneNumber phoneNumber'
-        currentUTC <- paperLiftIOUnliftIO getCurrentTime
-        sameUserIdEntityList <- User.Repository.findByPaperId paperId conn
-        case sameUserIdEntityList of
-            [] -> return ()
-            _ ->
-                toPaperMonad $ PaperError "paperId duplicate" (err400 { errBody = "paperId duplicate" }) (callStack' profile)
-        samePhoneNumberList <- User.Repository.findByPhoneNumber phoneNumber conn
-        case samePhoneNumberList of
-            [] -> return ()
-            _ ->
-                toPaperMonad $ PaperError "phoneNumber duplicate" (err400 { errBody = "phoneNumber duplicate" }) (callStack' profile)
-        hashedPassword <- maybeTToPaperMonadUnliftIO
-            (MaybeT $ hashPasswordUsingPolicy slowerBcryptHashingPolicy (Data.ByteString.Char8.pack password))
-            $ PaperError "hashing string error" (err500 { errBody = "internal server error" }) (callStack' profile)
-        userId <- User.Repository.newUser Paper (Just paperId) (Just hashedPassword) (Just phoneNumber) Nothing currentUTC conn
-        let roleSet = Data.Set.empty
-            preAuthenticatedUser = PreAuthenticatedUser { userId, roleSet }
-        JWTDTO { accessToken, refreshToken } <- JWT.ExService.issueJWT config encodeSigner preAuthenticatedUser currentUTC conn
-        let cookie = generateRefreshTokenCookie (Proxy :: Proxy Test) refreshToken
-        return $ addHeader cookie $ EnrollResDTO { accessToken }
-
 instance JWTUtilI Test where
     generateRefreshTokenCookie _ refreshToken =
         defaultSetCookie {
@@ -217,7 +192,7 @@ instance SMSProfileC Test where
     type SMSProfileF Test = SMSNone
 
 instance OAuth2ClientKakaoExServiceI Test where
-    getIdentifier _ _ _ = return "testIdentifier"
+    getIdentifier _ _ = return "testIdentifier"
 
 instance OAuth2ClientNaverExServiceI Test where
     getIdentifier _ _ _ = return "testIdentifier"

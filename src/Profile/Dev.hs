@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Profile.Prod(
-    Prod
+module Profile.Dev(
+    Dev
 ) where
 
 import Monad.ProfileT
@@ -50,6 +50,8 @@ import SMS.Profile.NaverCloud
 
 import ThirdParties.NaverCloud.ExService
 
+import Data.Configurator
+
 import Control.Monad.Logger
 import Data.Text
 import Data.Text.IO
@@ -57,56 +59,64 @@ import Data.Text.Encoding
 import Data.ByteString
 import Data.Time
 import System.Directory
+import System.Environment
 
-data Prod
-instance Profile Prod
+data Dev
+instance Profile Dev
 
-instance JWTControllerI Prod
-instance JWTExServiceI Prod
-instance JWTRepositoryI Prod
-instance JWTServiceI Prod
-instance JWTUtilI Prod
-instance CORSI Prod
-instance Utf8I Prod
-instance ErrorTI Prod
-instance OAuth2ClientGRpcExServiceI Prod
-instance OAuth2ClientKakaoExServiceI Prod
-instance OAuth2ClientNaverExServiceI Prod
-instance OAuth2ClientControllerI Prod
-instance OAuth2ClientExServiceI Prod
-instance OAuth2ClientRepositoryI Prod
-instance OAuth2ClientServiceI Prod
-instance OAuth2ClientUtilI Prod
-instance RoleRepositoryI Prod
-instance UserControllerI Prod
-instance UserExServiceI Prod
-instance UserRepositoryI Prod
-instance UserServiceI Prod
-instance VerificationControllerI Prod
-instance VerificationExDTOI Prod
-instance VerificationExServiceI Prod
-instance VerificationRepositoryI Prod
-instance VerificationServiceI Prod
-instance VerificationUtilI Prod
-instance AuthenticationI Prod
-instance CallStackI Prod
-instance ConfiguratorI Prod
-instance ContextI Prod
-instance DBI Prod
-instance GlobalMonadI Prod
-instance LibI Prod
-instance NestedMonadI Prod
-instance PaperAppI Prod
-instance PaperMonadI Prod
-instance UtilI Prod
+instance JWTControllerI Dev
+instance JWTExServiceI Dev
+instance JWTRepositoryI Dev
+instance JWTServiceI Dev
+instance JWTUtilI Dev
+instance CORSI Dev
+instance Utf8I Dev
+instance ErrorTI Dev
+instance OAuth2ClientGRpcExServiceI Dev
+instance OAuth2ClientKakaoExServiceI Dev
+instance OAuth2ClientNaverExServiceI Dev
+instance OAuth2ClientControllerI Dev
+instance OAuth2ClientExServiceI Dev
+instance OAuth2ClientRepositoryI Dev
+instance OAuth2ClientServiceI Dev
+instance OAuth2ClientUtilI Dev
+instance RoleRepositoryI Dev
+instance UserControllerI Dev
+instance UserExServiceI Dev
+instance UserRepositoryI Dev
+instance UserServiceI Dev
+instance VerificationControllerI Dev
+instance VerificationExDTOI Dev
+instance VerificationExServiceI Dev
+instance VerificationRepositoryI Dev
+instance VerificationServiceI Dev
+instance VerificationUtilI Dev
+instance AuthenticationI Dev
+instance CallStackI Dev
+instance ConfiguratorI Dev
+--instance ContextI Dev
+instance DBI Dev
+instance GlobalMonadI Dev
+instance LibI Dev
+instance NestedMonadI Dev
+instance PaperAppI Dev
+instance PaperMonadI Dev
+instance UtilI Dev
 
-instance ErrorTProfile Prod PaperErrorP where
+instance ContextI Dev where
+    getConfig' = do
+        homeDir <- globalLiftIOUnliftIO $ getEnv "HOME"
+        projectDir <- globalLiftIOUnliftIO $ Prelude.readFile $ homeDir ++ "/.paper-auth/project-directory"
+        let filePath = projectDir ++ "resources/application-dev.cfg"
+        globalLiftIOUnliftIO $ autoReload autoConfig [Required filePath]
+
+instance ErrorTProfile Dev PaperErrorP where
     defaultError _ _ = PaperDefaultError
     defaultLogger _ _ context = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime
         let cfg = config context
             formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
-        logDir :: String <- runGlobalMonadWithoutLog $ lookupRequiredGlobal @Prod cfg "log.paper"
+        logDir :: String <- runGlobalMonadWithoutLog $ lookupRequiredGlobal @Dev cfg "log.paper"
         let (fileNameList, header) =
                 case logLevel of
                     LevelDebug -> (["debug.log", "all.log"], "[DEBUG]\t")
@@ -130,13 +140,13 @@ instance ErrorTProfile Prod PaperErrorP where
         (defaultLoc, "PaperErrorP", LevelError, toLogStr $ show ie)
 
 
-instance ErrorTProfile Prod GlobalErrorP where
+instance ErrorTProfile Dev GlobalErrorP where
     defaultError _ _= GlobalDefaultError
     defaultLogger _ _ context = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime
         let cfg = config context
             formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
-        logDir :: String <- runGlobalMonadWithoutLog $ lookupRequiredGlobal @Prod cfg "log.global"
+        logDir :: String <- runGlobalMonadWithoutLog $ lookupRequiredGlobal @Dev cfg "log.global"
         let (fileNameList, header) =
                 case logLevel of
                     LevelDebug -> (["debug.log", "all.log"], "[DEBUG]\t")
@@ -159,13 +169,13 @@ instance ErrorTProfile Prod GlobalErrorP where
     defaultErrorLog _ _ ie =
         (defaultLoc, "GlobalErrorP", LevelError, toLogStr $ show ie)
 
-instance ErrorTProfile Prod NestedErrorP where
+instance ErrorTProfile Dev NestedErrorP where
     defaultError _ _= NestedDefaultError
     defaultLogger _ _ context = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime
         let cfg = config context
             formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
-        logDir :: String <- runNestedMonadWithoutLog $ lookupRequiredNested @Prod cfg "log.nested"
+        logDir :: String <- runNestedMonadWithoutLog $ lookupRequiredNested @Dev cfg "log.nested"
         let (fileNameList, header) =
                 case logLevel of
                     LevelDebug -> (["debug.log", "all.log"], "[DEBUG]\t")
@@ -188,7 +198,7 @@ instance ErrorTProfile Prod NestedErrorP where
     defaultErrorLog _ _ ie =
         (defaultLoc, "NestedErrorP", LevelError, toLogStr $ show ie)
 
-instance SMSProfileC Prod where
-    type SMSProfileF Prod = SMSNaverCloud
+instance SMSProfileC Dev where
+    type SMSProfileF Dev = SMSNaverCloud
 
-instance NaverCloudExServiceI Prod
+instance NaverCloudExServiceI Dev

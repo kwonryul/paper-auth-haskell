@@ -1,7 +1,16 @@
 PatchUserInfoReqDTO
 
+paperId ?String
+-
+
+password ?String
+-
+
 name ?String
 -
 
 phoneNumber ?String
+-
+
+phoneNumberSecret ?String
 -

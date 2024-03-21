@@ -29,6 +29,7 @@ library
       , JWT.DTO
       , Profile.Test.Import
       , Profile.Test.Snippet
+      , Profile.Dev
       , Profile.Prod
       , Profile.Test
       , User.Controller
@@ -59,7 +60,6 @@ library
       , OAuth2.Client.ThirdParties.Naver.ExService
       , OAuth2.Client.ExService
       , OAuth2.Client.Controller
-      , OAuth2.Client.DTO
       , OAuth2.Client.Entity
       , OAuth2.Client.ExService
       , OAuth2.Client.HTML
@@ -75,10 +75,12 @@ library
       , SMS.Profile
       , ThirdParties.NaverCloud.ExService
       , User.Entity
+      , User.ExService
       , User.Repository
       , User.Service
       , UserRole.Entity
       , Verification.Entity
+      , Verification.ExService
       , Verification.Repository
       , Verification.Service
       , Verification.Util

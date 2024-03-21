@@ -1,5 +1,8 @@
 GetUserInfoResDTO
 
+paperId ?String
+-
+
 roleSet [String]
 -
 

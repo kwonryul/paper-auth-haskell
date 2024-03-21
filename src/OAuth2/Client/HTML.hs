@@ -13,7 +13,7 @@ issueJWTHtml state = docTypeHtml $ do
         Blaze.title "Paper-Auth"
         script ! type_ "text/javascript" $ do
             toMarkup $ concat [
-                "fetch(\"/oauth2/client/finalize?state=" ++ state ++"\")"
+                "fetch(\"/oauth2/client/finalize?state=" ++ state ++ "\")"
               , ".then(res => { "
               , "window.close(); "
               , "});"

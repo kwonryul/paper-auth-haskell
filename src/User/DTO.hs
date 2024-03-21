@@ -17,6 +17,9 @@ $(deriveJSON defaultOptions ''GetUserInfoResDTO)
 $(defineDTO "user/patchUserInfoReqDTO.dto")
 $(deriveJSON defaultOptions ''PatchUserInfoReqDTO)
 
+$(defineDTO "user/patchUserInfoResDTO.dto")
+$(deriveJSON defaultOptions ''PatchUserInfoResDTO)
+
 $(defineDTO "user/enrollReqDTO.dto")
 $(deriveJSON defaultOptions ''EnrollReqDTO)
 

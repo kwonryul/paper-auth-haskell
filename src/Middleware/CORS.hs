@@ -30,10 +30,10 @@ class GlobalMonadI p => CORSI p where
 corsMImpl :: forall p. (HasCallStack, CORSI p) => Proxy p -> Context -> Middleware
 corsMImpl p ctx app req sendResponse = do
     let allowOrigins = [
-            "http://43.200.64.248:80"
-          , "https://43.200.64.248:443"
-          , "http://43.200.64.248:8080"
-          , "https://43.200.64.248.3000"
+            "https://43.200.64.248:443"
+          , "https://43.200.64.248:3000"
+          , "https://localhost:443"
+          , "https://localhost:3000"
           ]
         allowMethods = [
             "GET"

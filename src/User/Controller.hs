@@ -49,8 +49,9 @@ getUserInfoImpl _ ctx (AuthenticatedUser { userId }) =
     runPaperMonad ctx $ User.Service.getUserInfo @p userId $ paperAuthPool ctx
 
 patchUserInfoImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> AuthenticatedUser -> PatchUserInfoReqDTO -> Handler NoContent
-patchUserInfoImpl _ ctx (AuthenticatedUser { userId }) (PatchUserInfoReqDTO { name, phoneNumber }) =
-    runPaperMonad ctx $ User.Service.patchUserInfo @p userId name phoneNumber $ paperAuthPool ctx
+patchUserInfoImpl _ ctx (AuthenticatedUser { userId }) (PatchUserInfoReqDTO { paperId, password, name, phoneNumber, phoneNumberSecret }) =
+    runPaperMonad ctx $ User.Service.patchUserInfo @p
+        userId paperId password name phoneNumber phoneNumberSecret $ paperAuthPool ctx
 
 enrollImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> EnrollReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 enrollImpl _  ctx (EnrollReqDTO { paperId, password, phoneNumber, phoneNumberSecret }) =
