@@ -27,7 +27,7 @@
                 let objectStore = transaction.objectStore("tokenStore");
                 let request = objectStore.get('accessToken');
                 request.onsuccess = function(event) {
-                    if (request.result || request.result.token) {
+                    if (request.result && request.result.token) {
                         let headers = new Headers();
                         headers.append('Authorization', 'Bearer ' + request.result.token);
                         fetch('https://43.200.64.248/user/userInfo', {
@@ -42,14 +42,42 @@
                                 }
                                 res.json().then(j => {
                                     document.getElementById('roleSet')
-                                        .textContent = j.roleSet;
+                                        .value = JSON.stringify(j.roleSet);
                                     document.getElementById('name')
-                                        .textContent = j.name;
+                                        .value = j.name;
                                     document.getElementById('phoneNumber')
-                                        .textContent = j.phoneNumber;
+                                        .value = j.phoneNumber;
                                     document.getElementById('registerDate')
-                                        .textContent = j.textContent;
+                                        .value = j.registerDate;
                                 });
+                            });
+                    } else {
+                        window.location = 'https://43.200.64.248/static/login.html';
+                    }
+                }
+                request.onerror = function(event) {
+                    alert('error using indexed db');
+                }
+            }
+
+            function logout() {
+                let transaction = db.transaction(["tokenStore"]);
+                let objectStore = transaction.objectStore("tokenStore");
+                let request = objectStore.get('accessToken');
+                request.onsuccess = function(event) {
+                    if (request.result && request.result.token) {
+                        let headers = new Headers();
+                        headers.append('Authorization', 'Bearer ' + request.result.token);
+                        fetch('https://43.200.64.248/jwt/invalidate', {
+                            method: "DELETE",
+                            headers,
+                            credentials: 'include' })
+                            .then(res => {
+                                if (!res.ok)
+                                    alert('internal server error');
+                                else {
+                                    window.location = 'https://43.200.64.248/static/login.html';
+                                }
                             });
                     } else {
                         window.location = 'https://43.200.64.248/static/login.html';
@@ -82,5 +110,8 @@
         <input type='text' id='phoneNumber'>
         <label for='registerDate'>가입 날짜</label>
         <input type='text' id='registerDate'>
+        <p>
+            <button onclick='logout();'>로그아웃</button>
+        </p>
     </body>
 </html>

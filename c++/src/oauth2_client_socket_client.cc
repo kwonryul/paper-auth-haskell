@@ -13,15 +13,14 @@ using oauth2ClientSocket::OAuth2ClientSocket;
 using oauth2ClientSocket::SocketIdWithToken;
 using oauth2ClientSocket::Empty;
 
-extern std::string oauth2_client_socket_cert;
-
 class OAuth2ClientSocketClient {
  public:
   OAuth2ClientSocketClient(std::shared_ptr<Channel> channel)
       : stub_(OAuth2ClientSocket::NewStub(channel)) {}
 
-  std::string SendTokenAndClose(std::int32_t socketId, const std::string& accessToken, const std::string& refreshToken) {
+  std::string SendTokenAndClose(int port, std::int32_t socketId, const std::string& accessToken, const std::string& refreshToken) {
     SocketIdWithToken request;
+    request.set_port(port);
     request.set_socketid(socketId);
     request.set_accesstoken(accessToken);
     request.set_refreshtoken(refreshToken);
@@ -50,7 +49,7 @@ extern "C" {
     std::string refreshToken(rt);
     std::string target_str = host + ":" + port;
     OAuth2ClientSocketClient client(grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
-    std::string res = client.SendTokenAndClose((int32_t) si, accessToken, refreshToken);
+    std::string res = client.SendTokenAndClose(p, (int32_t) si, accessToken, refreshToken);
     char *cstr = (char *)malloc(sizeof(char) * (res.length() + 1));
     strcpy(cstr, res.c_str());
     return cstr;

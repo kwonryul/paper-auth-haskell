@@ -7,9 +7,10 @@ service OAuth2ClientSocket {
 }
 
 message SocketIdWithToken {
-    int32 socketId = 1;
-    string accessToken = 2;
-    string refreshToken = 3;
+    int32 port = 1;
+    int32 socketId = 2;
+    string accessToken = 3;
+    string refreshToken = 4;
 }
 
 message Empty {}

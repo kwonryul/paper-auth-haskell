@@ -208,11 +208,12 @@ class SocketIdWithToken final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kAccessTokenFieldNumber = 2,
-    kRefreshTokenFieldNumber = 3,
-    kSocketIdFieldNumber = 1,
+    kAccessTokenFieldNumber = 3,
+    kRefreshTokenFieldNumber = 4,
+    kPortFieldNumber = 1,
+    kSocketIdFieldNumber = 2,
   };
-  // string accessToken = 2;
+  // string accessToken = 3;
   void clear_accesstoken() ;
   const std::string& accesstoken() const;
   template <typename Arg_ = const std::string&, typename... Args_>
@@ -228,7 +229,7 @@ class SocketIdWithToken final :
   std::string* _internal_mutable_accesstoken();
 
   public:
-  // string refreshToken = 3;
+  // string refreshToken = 4;
   void clear_refreshtoken() ;
   const std::string& refreshtoken() const;
   template <typename Arg_ = const std::string&, typename... Args_>
@@ -244,7 +245,17 @@ class SocketIdWithToken final :
   std::string* _internal_mutable_refreshtoken();
 
   public:
-  // int32 socketId = 1;
+  // int32 port = 1;
+  void clear_port() ;
+  ::int32_t port() const;
+  void set_port(::int32_t value);
+
+  private:
+  ::int32_t _internal_port() const;
+  void _internal_set_port(::int32_t value);
+
+  public:
+  // int32 socketId = 2;
   void clear_socketid() ;
   ::int32_t socketid() const;
   void set_socketid(::int32_t value);
@@ -260,7 +271,7 @@ class SocketIdWithToken final :
 
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      2, 3, 0,
+      2, 4, 0,
       68, 2>
       _table_;
   friend class ::google::protobuf::MessageLite;
@@ -279,6 +290,7 @@ class SocketIdWithToken final :
                               ::google::protobuf::Arena* arena, const Impl_& from);
     ::google::protobuf::internal::ArenaStringPtr accesstoken_;
     ::google::protobuf::internal::ArenaStringPtr refreshtoken_;
+    ::int32_t port_;
     ::int32_t socketid_;
     mutable ::google::protobuf::internal::CachedSize _cached_size_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -439,7 +451,30 @@ class Empty final :
 
 // SocketIdWithToken
 
-// int32 socketId = 1;
+// int32 port = 1;
+inline void SocketIdWithToken::clear_port() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.port_ = 0;
+}
+inline ::int32_t SocketIdWithToken::port() const {
+  // @@protoc_insertion_point(field_get:oauth2ClientSocket.SocketIdWithToken.port)
+  return _internal_port();
+}
+inline void SocketIdWithToken::set_port(::int32_t value) {
+  _internal_set_port(value);
+  // @@protoc_insertion_point(field_set:oauth2ClientSocket.SocketIdWithToken.port)
+}
+inline ::int32_t SocketIdWithToken::_internal_port() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.port_;
+}
+inline void SocketIdWithToken::_internal_set_port(::int32_t value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.port_ = value;
+}
+
+// int32 socketId = 2;
 inline void SocketIdWithToken::clear_socketid() {
   PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
   _impl_.socketid_ = 0;
@@ -462,7 +497,7 @@ inline void SocketIdWithToken::_internal_set_socketid(::int32_t value) {
   _impl_.socketid_ = value;
 }
 
-// string accessToken = 2;
+// string accessToken = 3;
 inline void SocketIdWithToken::clear_accesstoken() {
   PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
   _impl_.accesstoken_.ClearToEmpty();
@@ -515,7 +550,7 @@ inline void SocketIdWithToken::set_allocated_accesstoken(std::string* value) {
   // @@protoc_insertion_point(field_set_allocated:oauth2ClientSocket.SocketIdWithToken.accessToken)
 }
 
-// string refreshToken = 3;
+// string refreshToken = 4;
 inline void SocketIdWithToken::clear_refreshtoken() {
   PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
   _impl_.refreshtoken_.ClearToEmpty();

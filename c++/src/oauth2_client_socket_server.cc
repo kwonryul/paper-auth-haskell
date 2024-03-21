@@ -12,7 +12,7 @@
 #include <HsFFI.h>
 
 #include "oauth2_client_socket.grpc.pb.h"
-#include "file.hpp"
+#include "thread_safe_map.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -24,12 +24,14 @@ using oauth2ClientSocket::Empty;
 
 extern "C" {
   typedef char *(*SendTokenAndCloseHs)(int, const char *, const char *);
-  SendTokenAndCloseHs send_token_and_close_hs;
 }
+
+ThreadSafeMap<int, SendTokenAndCloseHs> send_token_and_close_hs_map;
 
 class OAuth2ClientSocketServiceImpl final : public OAuth2ClientSocket::Service {
   Status SendTokenAndClose(ServerContext* context, const SocketIdWithToken* request, Empty* reply) override {
     try {
+      SendTokenAndCloseHs send_token_and_close_hs = send_token_and_close_hs_map.get(request->port());
       char *res = send_token_and_close_hs((int) request->socketid(), request->accesstoken().c_str(), request->refreshtoken().c_str());
       std::string res_str(res);
       free(res);
@@ -71,7 +73,7 @@ int length_c(const char* str) {
 extern "C" {
     const char *run_oauth2_client_socket_server_c(int p, SendTokenAndCloseHs stac) {
       try {
-        send_token_and_close_hs = stac;
+        send_token_and_close_hs_map.insert(p, stac);
         RunServer((uint16_t) p);
         const char *msg = "OK";
         char *cstr = (char *)malloc(sizeof(char) * (length_c(msg) + 1));

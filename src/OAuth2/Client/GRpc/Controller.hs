@@ -1,5 +1,3 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
-
 module OAuth2.Client.GRpc.Controller(
     sendTokenAndCloseHs
 ) where

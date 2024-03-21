@@ -74,7 +74,7 @@ class (
     finalize' = finalize'Impl
 
 webSocketImpl :: forall p m. (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Context.Context -> OAuth2ClientSocketConnections -> PendingConnection -> PaperAuthPool -> PaperMonad p m ()
-webSocketImpl ctx socketConnections' socketConn' pool = do
+webSocketImpl ctx socketConnections'' socketConn' pool = do
     currentTime <- paperLiftIOUnliftIO getCurrentTime
     socketConn <- paperLiftIOUnliftIO $ acceptRequest socketConn'
     host <- lookupRequired (config ctx) "host"
@@ -82,13 +82,13 @@ webSocketImpl ctx socketConnections' socketConn' pool = do
     socketId <- runSqlPoolOneConnection (OAuth2.Client.Repository.newConnection WebSocket host port currentTime) pool
     sendLock <- paperLiftIOUnliftIO newEmptyMVar
     closeShot <- paperLiftIOUnliftIO newEmptyMVar
-    socketConnections <- paperLiftIOUnliftIO $ takeMVar socketConnections'
-    paperLiftIOUnliftIO $ catch (nestedLog profile ctx $ putMVar socketConnections' $ Data.Map.insert
+    socketConnections <- paperLiftIOUnliftIO $ takeMVar socketConnections''
+    paperLiftIOUnliftIO $ catch (nestedLog profile ctx $ putMVar socketConnections'' $ Data.Map.insert
         (fromIntegral $ fromSqlKeyFor socketId)
         (OAuth2ClientWebSocketConnection socketConn sendLock closeShot)
         socketConnections
         ) $ \(e :: SomeException) -> do
-            nestedLog profile ctx $ putMVar socketConnections' socketConnections
+            nestedLog profile ctx $ putMVar socketConnections'' socketConnections
             throw e
     _ <- paperLiftIOUnliftIO $ forkIO $ do
         bracket (return ()) (\_ -> do
@@ -104,12 +104,12 @@ webSocketImpl ctx socketConnections' socketConn' pool = do
     paperLiftIOUnliftIO $ withPingThread socketConn 30 (return ()) $ do
         bracket (return ()) (\_ -> do
             runNestedMonad @p ctx $ runSqlPoolOneConnectionNested (OAuth2.Client.Repository.closeConnection socketId) pool
-            socketConnections'' <- nestedLog profile ctx $ takeMVar socketConnections'
-            catch (nestedLog profile ctx $ putMVar socketConnections' $ Data.Map.delete
+            socketConnections' <- nestedLog profile ctx $ takeMVar socketConnections''
+            catch (nestedLog profile ctx $ putMVar socketConnections'' $ Data.Map.delete
                 (fromIntegral $ fromSqlKeyFor socketId)
-                socketConnections''
+                socketConnections'
                 ) $ \(e :: SomeException) -> do
-                    nestedLog profile ctx $ putMVar socketConnections' socketConnections''
+                    nestedLog profile ctx $ putMVar socketConnections'' socketConnections'
                     throw e
             )
             (\_ -> nestedLog profile ctx $ takeMVar closeShot)

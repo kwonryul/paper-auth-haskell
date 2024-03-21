@@ -30,6 +30,7 @@ inline constexpr SocketIdWithToken::Impl_::Impl_(
         refreshtoken_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
+        port_{0},
         socketid_{0},
         _cached_size_{0} {}
 
@@ -74,6 +75,7 @@ const ::uint32_t TableStruct_oauth2_5fclient_5fsocket_2eproto::offsets[] PROTOBU
     ~0u,  // no _inlined_string_donated_
     ~0u,  // no _split_
     ~0u,  // no sizeof(Split)
+    PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::SocketIdWithToken, _impl_.port_),
     PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::SocketIdWithToken, _impl_.socketid_),
     PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::SocketIdWithToken, _impl_.accesstoken_),
     PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::SocketIdWithToken, _impl_.refreshtoken_),
@@ -90,7 +92,7 @@ const ::uint32_t TableStruct_oauth2_5fclient_5fsocket_2eproto::offsets[] PROTOBU
 static const ::_pbi::MigrationSchema
     schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
         {0, -1, -1, sizeof(::oauth2ClientSocket::SocketIdWithToken)},
-        {11, -1, -1, sizeof(::oauth2ClientSocket::Empty)},
+        {12, -1, -1, sizeof(::oauth2ClientSocket::Empty)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -99,18 +101,18 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 const char descriptor_table_protodef_oauth2_5fclient_5fsocket_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
     "\n\032oauth2_client_socket.proto\022\022oauth2Clie"
-    "ntSocket\"P\n\021SocketIdWithToken\022\020\n\010socketI"
-    "d\030\001 \001(\005\022\023\n\013accessToken\030\002 \001(\t\022\024\n\014refreshT"
-    "oken\030\003 \001(\t\"\007\n\005Empty2m\n\022OAuth2ClientSocke"
-    "t\022W\n\021SendTokenAndClose\022%.oauth2ClientSoc"
-    "ket.SocketIdWithToken\032\031.oauth2ClientSock"
-    "et.Empty\"\000b\006proto3"
+    "ntSocket\"^\n\021SocketIdWithToken\022\014\n\004port\030\001 "
+    "\001(\005\022\020\n\010socketId\030\002 \001(\005\022\023\n\013accessToken\030\003 \001"
+    "(\t\022\024\n\014refreshToken\030\004 \001(\t\"\007\n\005Empty2m\n\022OAu"
+    "th2ClientSocket\022W\n\021SendTokenAndClose\022%.o"
+    "auth2ClientSocket.SocketIdWithToken\032\031.oa"
+    "uth2ClientSocket.Empty\"\000b\006proto3"
 };
 static ::absl::once_flag descriptor_table_oauth2_5fclient_5fsocket_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_oauth2_5fclient_5fsocket_2eproto = {
     false,
     false,
-    258,
+    272,
     descriptor_table_protodef_oauth2_5fclient_5fsocket_2eproto,
     "oauth2_client_socket.proto",
     &descriptor_table_oauth2_5fclient_5fsocket_2eproto_once,
@@ -170,7 +172,13 @@ SocketIdWithToken::SocketIdWithToken(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_);
-  _impl_.socketid_ = from._impl_.socketid_;
+  ::memcpy(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, port_),
+           reinterpret_cast<const char *>(&from._impl_) +
+               offsetof(Impl_, port_),
+           offsetof(Impl_, socketid_) -
+               offsetof(Impl_, port_) +
+               sizeof(Impl_::socketid_));
 
   // @@protoc_insertion_point(copy_constructor:oauth2ClientSocket.SocketIdWithToken)
 }
@@ -183,7 +191,12 @@ inline PROTOBUF_NDEBUG_INLINE SocketIdWithToken::Impl_::Impl_(
 
 inline void SocketIdWithToken::SharedCtor(::_pb::Arena* arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.socketid_ = {};
+  ::memset(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, port_),
+           0,
+           offsetof(Impl_, socketid_) -
+               offsetof(Impl_, port_) +
+               sizeof(Impl_::socketid_));
 }
 SocketIdWithToken::~SocketIdWithToken() {
   // @@protoc_insertion_point(destructor:oauth2ClientSocket.SocketIdWithToken)
@@ -206,7 +219,9 @@ PROTOBUF_NOINLINE void SocketIdWithToken::Clear() {
 
   _impl_.accesstoken_.ClearToEmpty();
   _impl_.refreshtoken_.ClearToEmpty();
-  _impl_.socketid_ = 0;
+  ::memset(&_impl_.port_, 0, static_cast<::size_t>(
+      reinterpret_cast<char*>(&_impl_.socketid_) -
+      reinterpret_cast<char*>(&_impl_.port_)) + sizeof(_impl_.socketid_));
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
 
@@ -218,46 +233,51 @@ const char* SocketIdWithToken::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 3, 0, 68, 2> SocketIdWithToken::_table_ = {
+const ::_pbi::TcParseTable<2, 4, 0, 68, 2> SocketIdWithToken::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    4, 24,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967288,  // skipmap
+    4294967280,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    3,  // num_field_entries
+    4,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     &_SocketIdWithToken_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
-    // int32 socketId = 1;
+    // string refreshToken = 4;
+    {::_pbi::TcParser::FastUS1,
+     {34, 63, 0, PROTOBUF_FIELD_OFFSET(SocketIdWithToken, _impl_.refreshtoken_)}},
+    // int32 port = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SocketIdWithToken, _impl_.port_), 63>(),
+     {8, 63, 0, PROTOBUF_FIELD_OFFSET(SocketIdWithToken, _impl_.port_)}},
+    // int32 socketId = 2;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(SocketIdWithToken, _impl_.socketid_), 63>(),
-     {8, 63, 0, PROTOBUF_FIELD_OFFSET(SocketIdWithToken, _impl_.socketid_)}},
-    // string accessToken = 2;
+     {16, 63, 0, PROTOBUF_FIELD_OFFSET(SocketIdWithToken, _impl_.socketid_)}},
+    // string accessToken = 3;
     {::_pbi::TcParser::FastUS1,
-     {18, 63, 0, PROTOBUF_FIELD_OFFSET(SocketIdWithToken, _impl_.accesstoken_)}},
-    // string refreshToken = 3;
-    {::_pbi::TcParser::FastUS1,
-     {26, 63, 0, PROTOBUF_FIELD_OFFSET(SocketIdWithToken, _impl_.refreshtoken_)}},
+     {26, 63, 0, PROTOBUF_FIELD_OFFSET(SocketIdWithToken, _impl_.accesstoken_)}},
   }}, {{
     65535, 65535
   }}, {{
-    // int32 socketId = 1;
+    // int32 port = 1;
+    {PROTOBUF_FIELD_OFFSET(SocketIdWithToken, _impl_.port_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kInt32)},
+    // int32 socketId = 2;
     {PROTOBUF_FIELD_OFFSET(SocketIdWithToken, _impl_.socketid_), 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kInt32)},
-    // string accessToken = 2;
+    // string accessToken = 3;
     {PROTOBUF_FIELD_OFFSET(SocketIdWithToken, _impl_.accesstoken_), 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
-    // string refreshToken = 3;
+    // string refreshToken = 4;
     {PROTOBUF_FIELD_OFFSET(SocketIdWithToken, _impl_.refreshtoken_), 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
   }},
   // no aux_entries
   {{
-    "\44\0\13\14\0\0\0\0"
+    "\44\0\0\13\14\0\0\0"
     "oauth2ClientSocket.SocketIdWithToken"
     "accessToken"
     "refreshToken"
@@ -271,27 +291,34 @@ const ::_pbi::TcParseTable<2, 3, 0, 68, 2> SocketIdWithToken::_table_ = {
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
-  // int32 socketId = 1;
-  if (this->_internal_socketid() != 0) {
+  // int32 port = 1;
+  if (this->_internal_port() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::
         WriteInt32ToArrayWithField<1>(
+            stream, this->_internal_port(), target);
+  }
+
+  // int32 socketId = 2;
+  if (this->_internal_socketid() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::
+        WriteInt32ToArrayWithField<2>(
             stream, this->_internal_socketid(), target);
   }
 
-  // string accessToken = 2;
+  // string accessToken = 3;
   if (!this->_internal_accesstoken().empty()) {
     const std::string& _s = this->_internal_accesstoken();
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "oauth2ClientSocket.SocketIdWithToken.accessToken");
-    target = stream->WriteStringMaybeAliased(2, _s, target);
+    target = stream->WriteStringMaybeAliased(3, _s, target);
   }
 
-  // string refreshToken = 3;
+  // string refreshToken = 4;
   if (!this->_internal_refreshtoken().empty()) {
     const std::string& _s = this->_internal_refreshtoken();
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "oauth2ClientSocket.SocketIdWithToken.refreshToken");
-    target = stream->WriteStringMaybeAliased(3, _s, target);
+    target = stream->WriteStringMaybeAliased(4, _s, target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -311,19 +338,25 @@ const ::_pbi::TcParseTable<2, 3, 0, 68, 2> SocketIdWithToken::_table_ = {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string accessToken = 2;
+  // string accessToken = 3;
   if (!this->_internal_accesstoken().empty()) {
     total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                     this->_internal_accesstoken());
   }
 
-  // string refreshToken = 3;
+  // string refreshToken = 4;
   if (!this->_internal_refreshtoken().empty()) {
     total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                     this->_internal_refreshtoken());
   }
 
-  // int32 socketId = 1;
+  // int32 port = 1;
+  if (this->_internal_port() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+        this->_internal_port());
+  }
+
+  // int32 socketId = 2;
   if (this->_internal_socketid() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
         this->_internal_socketid());
@@ -354,6 +387,9 @@ void SocketIdWithToken::MergeImpl(::google::protobuf::Message& to_msg, const ::g
   if (!from._internal_refreshtoken().empty()) {
     _this->_internal_set_refreshtoken(from._internal_refreshtoken());
   }
+  if (from._internal_port() != 0) {
+    _this->_internal_set_port(from._internal_port());
+  }
   if (from._internal_socketid() != 0) {
     _this->_internal_set_socketid(from._internal_socketid());
   }
@@ -381,7 +417,12 @@ void SocketIdWithToken::InternalSwap(SocketIdWithToken* PROTOBUF_RESTRICT other)
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.accesstoken_, &other->_impl_.accesstoken_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.refreshtoken_, &other->_impl_.refreshtoken_, arena);
-        swap(_impl_.socketid_, other->_impl_.socketid_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(SocketIdWithToken, _impl_.socketid_)
+      + sizeof(SocketIdWithToken::_impl_.socketid_)
+      - PROTOBUF_FIELD_OFFSET(SocketIdWithToken, _impl_.port_)>(
+          reinterpret_cast<char*>(&_impl_.port_),
+          reinterpret_cast<char*>(&other->_impl_.port_));
 }
 
 ::google::protobuf::Metadata SocketIdWithToken::GetMetadata() const {
