@@ -130,6 +130,7 @@ instance DBI Test where
 
 instance AuthenticationI Test where
     jwtAuthHandler''' _ request conn = do
+        profile <- ask
         currentUTC <- paperLiftIOUnliftIO $ getCurrentTime
         accessToken <- maybeToPaperMonad (Prelude.lookup "Authorization" $ requestHeaders request) $
             PaperError "missing accessToken" (err401 { errBody = "missing accessToken" }) (callStack' profile)
@@ -146,10 +147,8 @@ instance AuthenticationI Test where
         JWT.Repository.saveAccessToken accessTokenId (Data.Text.Encoding.decodeUtf8 accessToken) conn
         JWT.Repository.saveRefreshToken refreshTokenId (Data.Text.Encoding.decodeUtf8 refreshToken) conn
         return $ AuthenticatedUser accessTokenId refreshTokenId userId roleSet
-        where
-            profile :: Proxy Test
-            profile = Proxy
     jwtAuthRefreshHandler''' _ request conn = do
+        profile <- ask
         currentUTC <- paperLiftIOUnliftIO $ getCurrentTime
         cookie <- maybeToPaperMonad (Prelude.lookup "Cookie" $ requestHeaders request) $
             PaperError "missing refreshToken" (err401 { errBody = "missing refreshToken" }) (callStack' profile)
@@ -163,9 +162,6 @@ instance AuthenticationI Test where
         refreshTokenId <- JWT.Repository.newRefreshToken userId currentUTC Nothing conn
         JWT.Repository.saveRefreshToken refreshTokenId (Data.Text.Encoding.decodeUtf8 refreshToken) conn
         return $ AuthenticatedUserRefresh refreshTokenId userId
-        where
-            profile :: Proxy Test
-            profile = Proxy
 
 instance VerificationExServiceI Test where
     verifyVerification _ _ _ _ = return ()

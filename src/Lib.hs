@@ -99,7 +99,7 @@ startAppImpl :: forall p. LibI p => Proxy p -> Context -> FilePath -> FilePath -
 startAppImpl _ ctx certPath secretKeyPath =
     runGlobalMonad (config ctx) $ startApp' @p ctx certPath secretKeyPath
 
-startApp'Impl :: forall p m. (HasCallStack, LibI p, MonadUnliftIO m) => Context -> FilePath -> FilePath -> GlobalMonad p m ()
+startApp'Impl :: (HasCallStack, LibI p, MonadUnliftIO m) => Context -> FilePath -> FilePath -> GlobalMonad p m ()
 startApp'Impl ctx certPath secretKeyPath = do
     profile <- Control.Monad.Reader.ask
     homeDir <- globalLiftIOUnliftIO $ getEnv "HOME"
@@ -129,7 +129,7 @@ startApp'Impl ctx certPath secretKeyPath = do
         (setPort httpsPort defaultSettings)
         (app profile ctx docsFilePath staticFilePath)
 
-migratePaperAuthImpl :: forall p. LibI p => Proxy p -> Context.Context -> PaperAuthPool -> IO ()
+migratePaperAuthImpl :: forall p. (HasCallStack, LibI p) => Proxy p -> Context.Context -> PaperAuthPool -> IO ()
 migratePaperAuthImpl _ ctx = runGlobalMonad (config ctx) . migratePaperAuth' @p
 
 migratePaperAuth'Impl :: (HasCallStack, LibI p, MonadUnliftIO m) => PaperAuthPool -> GlobalMonad p m ()

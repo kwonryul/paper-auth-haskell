@@ -78,7 +78,7 @@ patchUserInfoImpl userId paperId password name phoneNumber conn =
     paperLiftUnliftIO $ runReaderT (update userId updateList) conn
     where
         infixl 0 .:.
-        (.:.) :: forall a. [a] -> Maybe a -> [a]
+        (.:.) :: [a] -> Maybe a -> [a]
         (.:.) as (Just a) = a : as
         (.:.) as Nothing = as
 
@@ -115,7 +115,7 @@ verifyIdPwImpl paperId password conn = do
         Nothing -> toPaperMonad $ PaperError "user not having password" (err401 { errBody = "try another authentication method. user not having password" }) (callStack' profile)
     return rt
 
-getPreAuthenticatedUserImpl :: forall p m. (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => UserId -> PaperAuthConn -> PaperMonad p m PreAuthenticatedUser
+getPreAuthenticatedUserImpl :: (HasCallStack, UserRepositoryI p, MonadUnliftIO m) => UserId -> PaperAuthConn -> PaperMonad p m PreAuthenticatedUser
 getPreAuthenticatedUserImpl userId conn = do
     profile <- Control.Monad.Reader.ask
     user' <- paperLiftUnliftIO $ runReaderT (get userId) conn

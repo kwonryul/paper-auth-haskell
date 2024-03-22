@@ -73,7 +73,7 @@ serverImpl p ctx docsFilePath staticFilePath =
     :<|> User.Controller.server p ctx
     :<|> Verification.Controller.server p ctx
 
-faviconServerImpl :: forall p. (HasCallStack, PaperAppI p) => Proxy p -> Context.Context -> Servant.Handler ByteString
+faviconServerImpl :: (HasCallStack, PaperAppI p) => Proxy p -> Context.Context -> Servant.Handler ByteString
 faviconServerImpl profile ctx = do
     homeDir <- paperLog profile (config ctx) $ getEnv "HOME"
     projectDir <- paperLog profile (config ctx) $ Prelude.readFile $ homeDir ++ "/.paper-auth/project-directory"

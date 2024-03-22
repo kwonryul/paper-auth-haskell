@@ -70,6 +70,7 @@ getPaperAuthPool'Impl cfg = do
     paperAuthConnInfo <- paperAuthConnInfo' cfg
     globalLiftIOUnliftIO $ specializePool <$> (runLoggingT (createMySQLPool paperAuthConnInfo 16) logger)
     where
+        logger :: Loc -> LogSource -> LogLevel -> LogStr -> IO ()
         logger _ _ logLevel logStr = do
             currentTime <- getCurrentTime
             let formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
@@ -104,7 +105,7 @@ runSqlPoolOneConnectionImpl inner pool = do
             )) pool
             )
     where
-        inner' :: (HasCallStack, DB db, MonadUnliftIO m) => Proxy p -> (Loc -> LogSource -> LogLevel -> LogStr -> IO ()) -> SqlFor db -> ExceptT PaperInnerError m a
+        inner' :: HasCallStack => Proxy p -> (Loc -> LogSource -> LogLevel -> LogStr -> IO ()) -> SqlFor db -> ExceptT PaperInnerError m a
         inner' profile logger conn = (runLoggingT $ unErrorT $ unSafeErrorT $ runReaderT (unProfileT $ unPaperMonad $ inner conn) profile) logger
 
 runSqlPoolOneConnectionGlobalImpl :: forall db p m a. (HasCallStack, DBI p, DB db, MonadUnliftIO m) => (SqlFor db -> GlobalMonad p m a) -> ConnectionPoolFor db -> GlobalMonad p m a
@@ -118,7 +119,7 @@ runSqlPoolOneConnectionGlobalImpl inner pool = do
                 )) pool
                 )
     where
-        inner' :: (HasCallStack, DB db, MonadUnliftIO m) => Proxy p -> (Loc -> LogSource -> LogLevel -> LogStr -> IO ()) -> SqlFor db -> ExceptT GlobalInnerError m a
+        inner' :: HasCallStack => Proxy p -> (Loc -> LogSource -> LogLevel -> LogStr -> IO ()) -> SqlFor db -> ExceptT GlobalInnerError m a
         inner' profile logger conn = (runLoggingT $ unErrorT $ unSafeErrorT $ runReaderT (unProfileT $ unGlobalMonad $ inner conn) profile) logger
 
 runSqlPoolOneConnectionNestedImpl :: forall db p m a. (HasCallStack, DBI p, DB db, MonadUnliftIO m) => (SqlFor db -> NestedMonad p m a) -> ConnectionPoolFor db -> NestedMonad p m a
@@ -132,5 +133,5 @@ runSqlPoolOneConnectionNestedImpl inner pool = do
                 )) pool
                 )
     where
-        inner' :: (HasCallStack, DB db, MonadUnliftIO m) => Proxy p -> (Loc -> LogSource -> LogLevel -> LogStr -> IO ()) -> SqlFor db -> ExceptT NestedInnerError m a
+        inner' :: HasCallStack => Proxy p -> (Loc -> LogSource -> LogLevel -> LogStr -> IO ()) -> SqlFor db -> ExceptT NestedInnerError m a
         inner' profile logger conn = (runLoggingT $ unErrorT $ unSafeErrorT $ runReaderT (unProfileT $ unNestedMonad $ inner conn) profile) logger

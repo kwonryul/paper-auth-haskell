@@ -12,7 +12,9 @@ import PaperMonad
 import CallStack
 
 import Servant
+
 import Control.Monad.IO.Unlift
+import Control.Monad.Reader
 import Text.Regex.TDFA
 import System.Random
 import GHC.Stack
@@ -25,15 +27,13 @@ class PaperMonadI p => VerificationUtilI p where
     generatePhoneNumberSecret :: (HasCallStack, MonadUnliftIO m) => PaperMonad p m String
     generatePhoneNumberSecret = generatePhoneNumberSecretImpl
 
-stringToPhoneNumberImpl :: forall p m. (HasCallStack, VerificationUtilI p, Monad m) => String -> PaperMonad p m PhoneNumber
+stringToPhoneNumberImpl :: (HasCallStack, VerificationUtilI p, Monad m) => String -> PaperMonad p m PhoneNumber
 stringToPhoneNumberImpl phoneNumber = do
+    profile <- ask
     if phoneNumber =~ ("^[0-9]{3}-[0-9]{4}-[0-9]{4}$" :: String) :: Bool then
         return $ PhoneNumber phoneNumber
     else
         toPaperMonad $ PaperError "phoneNumber invalid" (err400 { errBody = "phoneNumber invalid" }) (callStack' profile)
-    where
-        profile :: Proxy p
-        profile = Proxy
 
 generatePhoneNumberSecretImpl :: (HasCallStack, VerificationUtilI p, MonadUnliftIO m) => PaperMonad p m String
 generatePhoneNumberSecretImpl = do

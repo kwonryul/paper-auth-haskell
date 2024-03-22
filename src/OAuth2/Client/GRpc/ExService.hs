@@ -30,7 +30,7 @@ class (NestedMonadI p, PaperMonadI p) => OAuth2ClientGRpcExServiceI p where
     sendToken :: (HasCallStack, MonadUnliftIO m) => Config -> String -> Int -> OAuth2ClientSocketId' -> Text -> Maybe Text -> PaperMonad p m ()
     sendToken = sendTokenImpl
 
-sendTokenImpl :: forall p m. (HasCallStack, OAuth2ClientGRpcExServiceI p, MonadUnliftIO m) => Config -> String -> Int -> OAuth2ClientSocketId' -> Text -> Maybe Text -> PaperMonad p m ()
+sendTokenImpl :: (HasCallStack, OAuth2ClientGRpcExServiceI p, MonadUnliftIO m) => Config -> String -> Int -> OAuth2ClientSocketId' -> Text -> Maybe Text -> PaperMonad p m ()
 sendTokenImpl cfg host port socketId accessToken refreshToken = do
     profile <- ask
     res <- paperLiftIOUnliftIO $ bracket (

@@ -125,17 +125,15 @@ utcTimeToNominalDiffTimeImpl :: JWTExServiceI p => Proxy p -> UTCTime -> Nominal
 utcTimeToNominalDiffTimeImpl _ utc =
     diffUTCTime utc $ UTCTime (fromGregorian 1970 1 1) (secondsToDiffTime 0)
 
-nominalDiffTimeToNumericDateImpl :: forall p m. (HasCallStack, JWTExServiceI p, MonadUnliftIO m) => Maybe NominalDiffTime -> PaperMonad p m (Maybe NumericDate)
-nominalDiffTimeToNumericDateImpl m =
+nominalDiffTimeToNumericDateImpl :: (HasCallStack, JWTExServiceI p, MonadUnliftIO m) => Maybe NominalDiffTime -> PaperMonad p m (Maybe NumericDate)
+nominalDiffTimeToNumericDateImpl m = do
+    profile <- ask
     case m of
         Just n ->
             case numericDate n of
                 Just nd -> return $ Just nd
                 Nothing -> toPaperMonad $ PaperError "numericDate invalid" (err500 { errBody = "internal server error" }) (callStack' profile)
         Nothing -> return Nothing
-    where
-        profile :: Proxy p
-        profile = Proxy
 
 accessTokenLifetime'Impl :: (HasCallStack, JWTExServiceI p, MonadUnliftIO m) => Config -> PaperMonad p m (Maybe NominalDiffTime)
 accessTokenLifetime'Impl config =
@@ -162,48 +160,47 @@ refreshTokenSub'Impl :: JWTExServiceI p => Proxy p -> UserId -> Maybe StringOrUR
 refreshTokenSub'Impl _ userId =
     stringOrURI $ pack $ show $ fromSqlKeyFor userId
 
-stringOrURI'Impl :: forall p m. (HasCallStack, JWTExServiceI p, Monad m) => Maybe Text -> PaperMonad p m (Maybe StringOrURI)
-stringOrURI'Impl mt = case mt of
-    Just t -> case stringOrURI t of
-        Just s -> return $ Just s
-        Nothing -> toPaperMonad $ PaperError "stringOrURI invalid" (err500 { errBody = "internal server error" }) (callStack' profile)
-    Nothing -> return Nothing
-    where
-        profile :: Proxy p
-        profile = Proxy
+stringOrURI'Impl :: (HasCallStack, JWTExServiceI p, Monad m) => Maybe Text -> PaperMonad p m (Maybe StringOrURI)
+stringOrURI'Impl mt = do
+    profile <- ask
+    case mt of
+        Just t -> case stringOrURI t of
+            Just s -> return $ Just s
+            Nothing -> toPaperMonad $ PaperError "stringOrURI invalid" (err500 { errBody = "internal server error" }) (callStack' profile)
+        Nothing -> return Nothing
 
-stringOrURI''Impl :: forall p m. (HasCallStack, JWTExServiceI p, Monad m) => Int64 -> PaperMonad p m (Maybe StringOrURI)
+stringOrURI''Impl :: (HasCallStack, JWTExServiceI p, Monad m) => Int64 -> PaperMonad p m (Maybe StringOrURI)
 stringOrURI''Impl i = do
+    profile <- ask
     case stringOrURI $ pack . show $ i of
         Just s -> return $ Just s
         Nothing -> toPaperMonad $ PaperError "stringOrURI invalid" (err500 { errBody = "internal server error" }) (callStack' profile)
-    where
-        profile :: Proxy p
-        profile = Proxy
 
 stringOrURIListImpl :: forall p m. (HasCallStack, JWTExServiceI p, Monad m) => Maybe Text -> PaperMonad p m (Maybe [StringOrURI])
-stringOrURIListImpl mt = case mt of
-    Just t -> Just <$> stringOrURIList' t
-    Nothing -> return Nothing
+stringOrURIListImpl mt = do
+    profile <- ask
+    case mt of
+        Just t -> Just <$> stringOrURIList' profile t
+        Nothing -> return Nothing
     where
-        stringOrURIList' :: (HasCallStack, JWTExServiceI p, Monad m) => Text -> PaperMonad p m [StringOrURI]
-        stringOrURIList' t = do
+        stringOrURIList' :: HasCallStack => Proxy p -> Text -> PaperMonad p m [StringOrURI]
+        stringOrURIList' profile t = do
             Data.Traversable.mapM (\t' -> do
                     case stringOrURI t' of
                         Just s -> return s
                         Nothing -> toPaperMonad $ PaperError "stringOrURI invalid" (err500 { errBody = "internal server error" }) (callStack' profile)
                 )
                 (Data.Text.words t)
-        profile :: Proxy p
-        profile = Proxy
 
 formattedDateToNumericDateImpl :: forall p m. (HasCallStack, JWTExServiceI p, Monad m) => Maybe Text -> PaperMonad p m (Maybe NumericDate)
-formattedDateToNumericDateImpl t' = case t' of
-    Just t -> Just <$> formattedDateToIntDate' t
-    Nothing -> return Nothing
+formattedDateToNumericDateImpl t' = do
+    profile <- ask
+    case t' of
+        Just t -> Just <$> formattedDateToIntDate' profile t
+        Nothing -> return Nothing
     where
-        formattedDateToIntDate' :: (HasCallStack, JWTExServiceI p, Monad m) => Text -> PaperMonad p m NumericDate
-        formattedDateToIntDate' t = do
+        formattedDateToIntDate' :: HasCallStack => Proxy p -> Text -> PaperMonad p m NumericDate
+        formattedDateToIntDate' profile t = do
             case parseTimeM True defaultTimeLocale "%Y-%m-%d %H:%M:%S" (show t) of
                 Just utc -> do
                     let nominalDiffTime = diffUTCTime utc $ UTCTime (fromGregorian 1970 1 1) (secondsToDiffTime 0)
@@ -211,9 +208,6 @@ formattedDateToNumericDateImpl t' = case t' of
                         Just n -> return n
                         Nothing -> toPaperMonad $ PaperError "numericDate invalid" (err500 { errBody = "internal server error" }) (callStack' profile)
                 Nothing -> toPaperMonad $ PaperError "parseTimeM failed" (err500 { errBody = "internal server error" }) (callStack' profile)
-        profile :: Proxy p
-        profile = Proxy
-
 
 accessTokenClaimsSet'Impl :: (HasCallStack, JWTExServiceI p, MonadUnliftIO m) => Config -> AccessTokenId -> UTCTime -> Maybe NominalDiffTime -> UserId -> Set Role -> PaperMonad p m JWTClaimsSet
 accessTokenClaimsSet'Impl config jti' iat' exp' userId roleSet = do

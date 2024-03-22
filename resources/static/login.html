@@ -95,8 +95,8 @@
                         return 'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=459a80a6b60eff984847c3a04ae2776f&redirect_uri=https://'
                             + window.location.host + '/oauth2/client/issue/kakao&state=' + state;
                     case 'naver':
-                        alert("unsupported social login type");
-                        throw new Error("unsupported social login type");
+                        return 'https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=ysY1qOJehUDLb0nbfKmL&redirect_uri=https://'
+                            + window.location.host + '/oauth2/client/issue/naver&state=' + state;
                     default:
                         alert("unsupported social login type");
                         throw new Error("unsupported social login type");

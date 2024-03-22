@@ -117,7 +117,7 @@ webSocketImpl ctx socketConnections'' socketConn' pool = do
             (\_ -> nestedLog profile (config ctx) $ takeMVar closeShot)
 
     where
-        receiveLoop :: Proxy p -> Connection -> IO ()
+        receiveLoop :: HasCallStack => Proxy p -> Connection -> IO ()
         receiveLoop profile socketConn = do
             msg <- nestedLog profile (config ctx) $ receive socketConn
             case msg of

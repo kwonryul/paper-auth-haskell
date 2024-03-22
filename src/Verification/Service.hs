@@ -51,7 +51,7 @@ verifyRequest'Impl cfg phoneNumber' conn = do
 verifyCheckImpl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => String -> String -> PaperAuthPool -> PaperMonad p m VerifyCheckResDTO
 verifyCheckImpl phoneNumber phoneNumberSecret pool = runSqlPoolOneConnection (verifyCheck' phoneNumber phoneNumberSecret pool) pool
 
-verifyCheck'Impl :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m VerifyCheckResDTO
+verifyCheck'Impl :: forall p m. (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => String -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m VerifyCheckResDTO
 verifyCheck'Impl phoneNumber' phoneNumberSecret pool conn = do
     phoneNumber <- stringToPhoneNumber phoneNumber'
     currentUTC <- paperLiftIOUnliftIO getCurrentTime
@@ -71,7 +71,7 @@ verifyCheck'Impl phoneNumber' phoneNumberSecret pool conn = do
                 return $ VerifyCheckResDTO True verificationFailCount
         Nothing -> return $ VerifyCheckResDTO False 0
     where
-        inner :: (HasCallStack, VerificationServiceI p, MonadUnliftIO m) => VerificationId -> Int -> PaperAuthConn -> PaperMonad p m ()
+        inner :: HasCallStack => VerificationId -> Int -> PaperAuthConn -> PaperMonad p m ()
         inner verificationId failCount innerConn =
                 if failCount == 4 then
                     Verification.Repository.deleteById verificationId innerConn

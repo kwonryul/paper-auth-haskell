@@ -36,7 +36,7 @@ class (DBI p, UserRepositoryI p, VerificationExDTOI p, VerificationRepositoryI p
     verifyPhoneNumber :: (HasCallStack, MonadUnliftIO m) => PhoneNumber -> PaperAuthConn -> PaperMonad p m ()
     verifyPhoneNumber = verifyPhoneNumberImpl
 
-verifyVerificationImpl :: (HasCallStack, VerificationExServiceI p, MonadUnliftIO m) => PhoneNumber -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m ()
+verifyVerificationImpl :: forall p m. (HasCallStack, VerificationExServiceI p, MonadUnliftIO m) => PhoneNumber -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m ()
 verifyVerificationImpl phoneNumber phoneNumberSecret pool conn = do
     profile <- ask
     verificationEntity' <- Verification.Repository.findByPhoneNumber phoneNumber conn
@@ -54,7 +54,7 @@ verifyVerificationImpl phoneNumber phoneNumberSecret pool conn = do
                 return ()
         Nothing -> toPaperMonad $ PaperError "verification missing" (err403 { errBody = "verification missing" }) $ callStack' profile
     where
-        inner :: (HasCallStack, VerificationExServiceI p, MonadUnliftIO m) => VerificationId -> Int -> PaperAuthConn -> PaperMonad p m ()
+        inner :: HasCallStack => VerificationId -> Int -> PaperAuthConn -> PaperMonad p m ()
         inner verificationId failCount innerConn =
                 if failCount == 4 then
                     Verification.Repository.deleteById verificationId innerConn

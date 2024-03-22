@@ -49,10 +49,10 @@ type GetTokenC = "oauth" :> "token" :> ReqBody '[FormUrlEncoded'] String :> Post
 type GetIdentifierC = "v1" :> "user" :> "access_token_info" :> Header "Authorization" String :> Get '[JSON] GetIdentifierResDTO
 
 getTokenC :: Client ClientM GetTokenC
-getTokenC = client (Servant.Proxy :: Servant.Proxy GetTokenC)
+getTokenC = client (Proxy :: Proxy GetTokenC)
 
 getIdentifierC :: Client ClientM GetIdentifierC
-getIdentifierC = client (Servant.Proxy :: Servant.Proxy GetIdentifierC)
+getIdentifierC = client (Proxy :: Proxy GetIdentifierC)
 
 class (ConfiguratorI p, PaperMonadI p) => OAuth2ClientKakaoExServiceI p where
     getIdentifier :: (HasCallStack, MonadUnliftIO m) => Config -> String -> PaperMonad p m String
@@ -66,8 +66,8 @@ getIdentifierImpl cfg code = do
     redirectUri <- lookupRequired cfg "oauth2-client.kakao.redirect-uri"
     let body = "grant_type=authorization_code&client_id=" ++ clientId ++ "&redirect_uri=" ++ redirectUri ++
             "&code=" ++ code ++ "&client_secret=" ++ clientSecret
-    baseUrl' <- paperLiftIOUnliftIO $ parseBaseUrl "https://kauth.kakao.com"
     manager <- paperLiftIOUnliftIO $ newTlsManager
+    baseUrl' <- paperLiftIOUnliftIO $ parseBaseUrl "https://kauth.kakao.com"
     let clientEnv = mkClientEnv manager baseUrl'
     result <- paperLiftIOUnliftIO $ runClientM (getTokenC body) clientEnv
     case result of

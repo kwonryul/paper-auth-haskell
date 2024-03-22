@@ -117,7 +117,7 @@ instance (Profile profile, ErrorTProfile profile NestedErrorP, Monad m) => Monad
     local f x = NestedMonad $ local f $ unNestedMonad x
 
 class (ErrorTI profile, ErrorTProfile profile NestedErrorP) => NestedMonadI profile where
-    toNestedMonad :: forall e m a. (ErrorTError e, InnerError e ~ NestedInnerError, OuterError e ~ IOException, Monad m) => e -> NestedMonad profile m a
+    toNestedMonad :: (ErrorTError e, InnerError e ~ NestedInnerError, OuterError e ~ IOException, Monad m) => e -> NestedMonad profile m a
     toNestedMonad = toNestedMonadImpl
     safeErrorTToNestedMonad :: HasCallStack => SafeErrorT profile NestedErrorP m a -> NestedMonad profile m a
     safeErrorTToNestedMonad = safeErrorTToNestedMonadImpl

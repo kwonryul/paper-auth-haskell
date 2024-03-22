@@ -35,6 +35,7 @@ import Web.Cookie
 import Data.Aeson
 
 import Control.Monad.IO.Unlift
+import Control.Monad.Reader
 import Data.Traversable
 import Data.Map
 import Data.Set
@@ -87,17 +88,15 @@ jwtAuthHandler'Impl _ ctx request = runPaperMonad (config ctx) $ jwtAuthHandler'
 jwtAuthHandler''Impl :: (HasCallStack, AuthenticationI p, MonadUnliftIO m) => VerifySigner -> Request -> PaperAuthPool -> PaperMonad p m AuthenticatedUser
 jwtAuthHandler''Impl verifySigner request pool = runSqlPoolOneConnection (jwtAuthHandler''' verifySigner request) pool
 
-jwtAuthHandler'''Impl :: forall p m. (HasCallStack, AuthenticationI p, MonadUnliftIO m) => VerifySigner -> Request -> PaperAuthConn -> PaperMonad p m AuthenticatedUser
+jwtAuthHandler'''Impl :: (HasCallStack, AuthenticationI p, MonadUnliftIO m) => VerifySigner -> Request -> PaperAuthConn -> PaperMonad p m AuthenticatedUser
 jwtAuthHandler'''Impl verifySigner request conn = do
+    profile <- ask
     currentUTC <- paperLiftIOUnliftIO getCurrentTime
     (accessTokenId, AccessToken { accessTokenUserId, accessTokenRefreshTokenId }, roleSet) <- getAccessTokenAndRoleSet conn verifySigner request currentUTC
     (refreshTokenId, RefreshToken { refreshTokenUserId }) <- getRefreshToken conn verifySigner request currentUTC
     paperAssert (accessTokenRefreshTokenId == refreshTokenId) $ PaperError "accessToken and refreshToken not match" (err401 { errBody = "accessToken and refreshToken not match" }) (callStack' profile)
     paperAssert (accessTokenUserId == refreshTokenUserId) $ PaperError "userId invalid" (err401 { errBody = "userId invalid" }) (callStack' profile)
     return $ AuthenticatedUser accessTokenId refreshTokenId accessTokenUserId roleSet
-    where
-        profile :: Proxy p
-        profile = Proxy
 
 jwtAuthRefreshHandlerImpl :: (HasCallStack, AuthenticationI p) => Proxy p -> Context.Context -> AuthHandler Request AuthenticatedUserRefresh
 jwtAuthRefreshHandlerImpl p context = mkAuthHandler $ jwtAuthRefreshHandler' p context
@@ -116,9 +115,10 @@ jwtAuthRefreshHandler'''Impl verifySigner request conn = do
 
 getAccessTokenAndRoleSetImpl :: forall p m. (HasCallStack, AuthenticationI p, MonadUnliftIO m) => PaperAuthConn -> VerifySigner -> Request -> UTCTime -> PaperMonad p m (AccessTokenId, AccessToken, Set Role)
 getAccessTokenAndRoleSetImpl conn verifySigner request currentUTC = do
+    profile <- ask
     accessBearerJWT <- maybeToPaperMonad (Prelude.lookup "Authorization" $ requestHeaders request) $
         PaperError "missing accessToken" (err401 { errBody = "missing accessToken" }) (callStack' profile)
-    accessJwt <- removeBearer accessBearerJWT
+    accessJwt <- removeBearer profile accessBearerJWT
     accessVerifiedJWT <- maybeToPaperMonad (decodeAndVerifySignature verifySigner $ Data.Text.Encoding.decodeUtf8 accessJwt) $
         PaperError "accessToken verification failed" (err401 { errBody = "accessToken verification failed" }) (callStack' profile)
     let JWTClaimsSet {
@@ -161,17 +161,16 @@ getAccessTokenAndRoleSetImpl conn verifySigner request currentUTC = do
     roleSet <- Role.Repository.getRoleSetByNameList roleNameList conn
     return (accessTokenId, accessToken, roleSet)
     where
-        removeBearer :: (HasCallStack, MonadUnliftIO m) => ByteString -> PaperMonad p m ByteString
-        removeBearer bs = do
+        removeBearer :: HasCallStack => Proxy p -> ByteString -> PaperMonad p m ByteString
+        removeBearer profile bs = do
             if Data.ByteString.Char8.isPrefixOf "Bearer " bs then
                 return $ Data.ByteString.Char8.drop 7 bs
             else
                 toPaperMonad $ PaperError "jwtToken should be Bearer" (err401 { errBody = "jwtToken should be Bearer" }) (callStack' profile)
-        profile :: Proxy p
-        profile = Proxy
 
-getRefreshTokenImpl :: forall p m. (HasCallStack, AuthenticationI p, MonadUnliftIO m) => PaperAuthConn -> VerifySigner -> Request -> UTCTime -> PaperMonad p m (RefreshTokenId, RefreshToken)
+getRefreshTokenImpl :: (HasCallStack, AuthenticationI p, MonadUnliftIO m) => PaperAuthConn -> VerifySigner -> Request -> UTCTime -> PaperMonad p m (RefreshTokenId, RefreshToken)
 getRefreshTokenImpl conn verifySigner request currentUTC = do
+    profile <- ask
     cookie <- maybeToPaperMonad (Prelude.lookup "Cookie" $ requestHeaders request) $
         PaperError "missing refreshToken" (err401 { errBody = "missing refreshToken" }) (callStack' profile)
     refreshJWT <- maybeToPaperMonad (Prelude.lookup "Paper-Refresh-Token" $ parseCookies cookie) $
@@ -205,6 +204,3 @@ getRefreshTokenImpl conn verifySigner request currentUTC = do
     paperAssert (refreshTokenUserId refreshToken == refreshUserId) $
         PaperError "refreshUserId invalid" (err401 { errBody = "refreshUserId invalid" }) (callStack' profile)
     return (refreshTokenId, refreshToken)
-    where
-        profile :: Proxy p
-        profile = Proxy

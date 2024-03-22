@@ -116,7 +116,7 @@ instance (Profile profile, ErrorTProfile profile GlobalErrorP, Monad m) => Monad
     local f x = GlobalMonad $ local f $ unGlobalMonad x
 
 class (ErrorTI profile, ErrorTProfile profile GlobalErrorP) => GlobalMonadI profile where
-    toGlobalMonad :: forall e m a. (ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => e -> GlobalMonad profile m a
+    toGlobalMonad :: (ErrorTError e, InnerError e ~ GlobalInnerError, OuterError e ~ IOException, Monad m) => e -> GlobalMonad profile m a
     toGlobalMonad = toGlobalMonadImpl
     safeErrorTToGlobalMonad :: HasCallStack => SafeErrorT profile GlobalErrorP m a -> GlobalMonad profile m a
     safeErrorTToGlobalMonad = safeErrorTToGlobalMonadImpl

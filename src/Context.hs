@@ -24,9 +24,9 @@ import Data.Configurator.Types
 import Web.JWT
 
 import Control.Monad.IO.Unlift
+import Control.Monad.Reader
 import Control.Concurrent
 import Data.ByteString
-import Data.Proxy
 import Data.Map
 import System.Environment
 import GHC.Stack
@@ -64,8 +64,9 @@ getContextImpl = do
       , oauth2ClientSocketConnections
     }
 
-getPaperEncodeSigner'Impl :: forall p m. (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m EncodeSigner
+getPaperEncodeSigner'Impl :: (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m EncodeSigner
 getPaperEncodeSigner'Impl = do
+    profile <- ask
     homeDir <- globalLiftIOUnliftIO $ getEnv "HOME"
     projectDir <- globalLiftIOUnliftIO $ Prelude.readFile $ homeDir ++ "/.paper-auth/project-directory"
     let filePath = projectDir ++ "resources/jwt/paper-auth.pem"
@@ -73,12 +74,10 @@ getPaperEncodeSigner'Impl = do
     case readRsaSecret content of
         Just privateKey -> return $ EncodeRSAPrivateKey privateKey
         Nothing -> toGlobalMonad $ GlobalError "paper-auth private key invalid" (callStack' profile)
-    where
-      profile :: Proxy p
-      profile = Proxy
 
-getPaperVerifySigner'Impl :: forall p m. (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m VerifySigner
+getPaperVerifySigner'Impl :: (HasCallStack, ContextI p, MonadUnliftIO m) => GlobalMonad p m VerifySigner
 getPaperVerifySigner'Impl = do
+    profile <- ask
     homeDir <- globalLiftIOUnliftIO $ getEnv "HOME"
     projectDir <- globalLiftIOUnliftIO $ Prelude.readFile $ homeDir ++ "/.paper-auth/project-directory"
     let filePath = projectDir ++ "resources/jwt/paper-auth.pub"
@@ -86,6 +85,3 @@ getPaperVerifySigner'Impl = do
     case readRsaPublicKey content of
         Just publicKey -> return $ VerifyRSAPublicKey publicKey
         Nothing -> toGlobalMonad $ GlobalError "paper-auth public key invalid" (callStack' profile)
-    where
-      profile :: Proxy p
-      profile = Proxy
