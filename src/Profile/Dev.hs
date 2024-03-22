@@ -15,6 +15,7 @@ import JWT.Util
 import Middleware.CORS
 import Middleware.Utf8
 import Monad.ErrorT
+import OAuth2.Client.GRpc.Controller
 import OAuth2.Client.GRpc.ExService
 import OAuth2.Client.ThirdParties.Kakao.ExService
 import OAuth2.Client.ThirdParties.Naver.ExService
@@ -72,6 +73,7 @@ instance JWTUtilI Dev
 instance CORSI Dev
 instance Utf8I Dev
 instance ErrorTI Dev
+instance OAuth2ClientGRpcControllerI Dev
 instance OAuth2ClientGRpcExServiceI Dev
 instance OAuth2ClientKakaoExServiceI Dev
 instance OAuth2ClientNaverExServiceI Dev
@@ -111,6 +113,7 @@ instance ContextI Dev where
         globalLiftIOUnliftIO $ autoReload autoConfig [Required filePath]
 
 instance ErrorTProfile Dev PaperErrorP where
+    toOuterError _ _ (PaperInnerError { paperInnerServerError }) = paperInnerServerError
     defaultError _ _ = PaperDefaultError
     defaultLogger _ _ cfg = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime
@@ -140,6 +143,7 @@ instance ErrorTProfile Dev PaperErrorP where
 
 
 instance ErrorTProfile Dev GlobalErrorP where
+    toOuterError _ _ _ = userError $ "[Dev] global error"
     defaultError _ _= GlobalDefaultError
     defaultLogger _ _ cfg = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime
@@ -168,6 +172,7 @@ instance ErrorTProfile Dev GlobalErrorP where
         (defaultLoc, "GlobalErrorP", LevelError, toLogStr $ show ie)
 
 instance ErrorTProfile Dev NestedErrorP where
+    toOuterError _ _ _ = userError $ "[Dev] nested error"
     defaultError _ _= NestedDefaultError
     defaultLogger _ _ cfg = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime

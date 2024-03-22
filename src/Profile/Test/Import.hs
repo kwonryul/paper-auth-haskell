@@ -33,6 +33,7 @@ instance NestedMonadI Test
 instance PaperMonadI Test
 
 instance ErrorTProfile Test PaperErrorP where
+    toOuterError _ _ (PaperInnerError { paperInnerServerError }) = paperInnerServerError
     defaultError _ _ = PaperDefaultError
     defaultLogger _ _ cfg = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime
@@ -61,6 +62,7 @@ instance ErrorTProfile Test PaperErrorP where
         (defaultLoc, "PaperErrorP", LevelError, toLogStr $ show ie)
 
 instance ErrorTProfile Test GlobalErrorP where
+    toOuterError _ _ _ = userError $ "[Test] global error"
     defaultError _ _= GlobalDefaultError
     defaultLogger _ _ cfg = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime
@@ -89,6 +91,7 @@ instance ErrorTProfile Test GlobalErrorP where
         (defaultLoc, "GlobalErrorP", LevelError, toLogStr $ show ie)
 
 instance ErrorTProfile Test NestedErrorP where
+    toOuterError _ _ _ = userError $ "[Test] nested error"
     defaultError _ _= NestedDefaultError
     defaultLogger _ _ cfg = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime

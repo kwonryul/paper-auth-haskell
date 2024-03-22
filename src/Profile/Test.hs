@@ -13,6 +13,7 @@ import JWT.Util
 import Middleware.CORS
 import Middleware.Utf8
 import Monad.ErrorT
+import OAuth2.Client.GRpc.Controller
 import OAuth2.Client.GRpc.ExService
 import OAuth2.Client.ThirdParties.Kakao.ExService
 import OAuth2.Client.ThirdParties.Naver.ExService
@@ -73,6 +74,7 @@ instance JWTServiceI Test
 --instance JWTUtilI Test
 instance CORSI Test
 instance Utf8I Test
+instance OAuth2ClientGRpcControllerI Test
 instance OAuth2ClientGRpcExServiceI Test
 --instance OAuth2ClientKakaoExServiceI Test
 --instance OAuth2ClientNaverExServiceI Test

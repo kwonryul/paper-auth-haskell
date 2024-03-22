@@ -14,7 +14,11 @@ module PaperMonad(
   , PaperCatchError(
         PaperCatchError
       )
-  , PaperInnerError
+  , PaperInnerError(
+        PaperInnerError
+      , paperInnerServerError
+      , paperInnerLogError
+      )
   , PaperErrorP
   , PaperMonad(
         unPaperMonad
@@ -90,21 +94,18 @@ type instance OuterError PaperCatchError = ServerError
 type instance DefaultError PaperErrorP = PaperDefaultError
 
 instance ErrorTError PaperError where
-    toOuterError _ (PaperInnerError { paperInnerServerError }) = paperInnerServerError
     toInnerError e = PaperInnerError {
         paperInnerServerError = paperServerError e
       , paperInnerLogError = e
       }
 
 instance ErrorTError PaperDefaultError where
-    toOuterError _ (PaperInnerError { paperInnerServerError }) = paperInnerServerError
     toInnerError e = PaperInnerError {
         paperInnerServerError = err500 { errBody = "unexpected server exception" }
       , paperInnerLogError = e
       }
 
 instance ErrorTError PaperCatchError where
-    toOuterError _ (PaperInnerError { paperInnerServerError }) = paperInnerServerError
     toInnerError ce@(PaperCatchError _ se _) = PaperInnerError {
         paperInnerServerError = se
       , paperInnerLogError = ce

@@ -8,11 +8,11 @@ module Monad.ErrorT(
   , DefaultError
   , ErrorTError(
         toInnerError
-      , toOuterError
       , toSafeErrorT
       )
   , ErrorTProfile(
-        defaultError
+        toOuterError
+      , defaultError
       , defaultLogger
       , defaultErrorLog
       )
@@ -43,7 +43,6 @@ module Monad.ErrorT(
 ) where
 
 import Monad.ProfileT
-import Import
 import CallStack
 
 import Data.Configurator.Types
@@ -66,12 +65,12 @@ type family OuterError e
 type family DefaultError p
 
 class (Show e, Exception (InnerError e), Exception (OuterError e)) => ErrorTError e where
-    toOuterError :: Proxy e -> InnerError e -> OuterError e
     toInnerError :: e -> InnerError e
     toSafeErrorT :: (ErrorTProfile profile p, InnerError e ~ InnerError (DefaultError p), OuterError e ~ OuterError (DefaultError p), Monad m) => Proxy e -> InnerError e -> SafeErrorT profile p m a
     toSafeErrorT _ ie = SafeErrorT $ ErrorT $ LoggingT $ const $ ExceptT $ return $ Left $ ie
 
 class (Profile profile, ErrorTError (DefaultError p)) => ErrorTProfile profile p where
+    toOuterError :: Proxy profile -> Proxy p -> InnerError (DefaultError p) -> OuterError (DefaultError p)
     defaultError :: Exception e => Proxy profile -> Proxy p -> e -> CallStack -> DefaultError p
     defaultLogger :: Proxy profile -> Proxy p -> Config -> Loc -> LogSource -> LogLevel -> LogStr -> IO ()
     defaultErrorLog :: Proxy profile -> Proxy p -> InnerError (DefaultError p) -> (Loc, LogSource, LogLevel, LogStr)
@@ -208,7 +207,7 @@ errorLogImpl profile p cfg io = Control.Monad.Catch.catch (liftIO io) (\(ex :: S
     let ie = toInnerError de
     let (loc, logSource, logLevel, logStr) = defaultErrorLog profile p ie
     liftIO $ defaultLogger profile p cfg loc logSource logLevel logStr
-    throwError $ toOuterError (Proxy :: Proxy (DefaultError p)) ie
+    throwError $ toOuterError (Proxy :: Proxy profile) (Proxy :: Proxy p) ie
     )
 
 runErrorEitherImpl :: forall profile p m a. (HasCallStack, ErrorTI profile, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Config -> Either (InnerError (DefaultError p)) a -> m a
@@ -216,7 +215,7 @@ runErrorEitherImpl profile p cfg e = case e of
     Left ex -> do
         let (loc, logSource, logLevel, logStr) = defaultErrorLog profile p ex
         liftIO $ defaultLogger profile p cfg loc logSource logLevel logStr
-        throwError $ toOuterError (Proxy :: Proxy (DefaultError p)) ex
+        throwError $ toOuterError (Proxy :: Proxy profile) (Proxy :: Proxy p) ex
     Right x -> return x
 
 runErrorEitherWithoutLogImpl :: forall profile p m a. (HasCallStack, ErrorTI profile, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Either (InnerError (DefaultError p)) a -> m a
@@ -224,7 +223,7 @@ runErrorEitherWithoutLogImpl profile p e = case e of
     Left ex -> do
         let (loc, logSource, logLevel, logStr) = defaultErrorLog profile p ex
         liftIO $ defaultLoggerWithoutLog loc logSource logLevel logStr
-        throwError $ toOuterError (Proxy :: Proxy (DefaultError p)) ex
+        throwError $ toOuterError (Proxy :: Proxy profile) (Proxy :: Proxy p) ex
     Right x -> return x
     where
         defaultLoggerWithoutLog :: Loc -> LogSource -> LogLevel -> LogStr -> IO ()

@@ -69,9 +69,9 @@ class (
     issueJWT = issueJWTImpl
     issueJWT' :: (HasCallStack, MonadUnliftIO m) => Config -> EncodeSigner -> AuthenticationType -> String -> String -> PaperAuthConn -> PaperMonad p m (Servant.Headers '[Header "Set-Cookie" SetCookie] Html)
     issueJWT' = issueJWT'Impl
-    finalize :: (HasCallStack, MonadUnliftIO m) => String -> PaperAuthPool -> PaperMonad p m NoContent
+    finalize :: (HasCallStack, MonadUnliftIO m) => Config -> String -> PaperAuthPool -> PaperMonad p m NoContent
     finalize = finalizeImpl
-    finalize' :: (HasCallStack, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m NoContent
+    finalize' :: (HasCallStack, MonadUnliftIO m) => Config -> String -> PaperAuthConn -> PaperMonad p m NoContent
     finalize' = finalize'Impl
 
 webSocketImpl :: forall p m. (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Context.Context -> OAuth2ClientSocketConnections -> PendingConnection -> PaperAuthPool -> PaperMonad p m ()
@@ -97,7 +97,7 @@ webSocketImpl ctx socketConnections'' socketConn' pool = do
             _ <- nestedLog profile (config ctx) $ tryPutMVar closeShot ()
             return ()
             )
-            (const $ receiveLoop socketConn)
+            (\_ -> receiveLoop profile socketConn)
     paperLiftIOUnliftIO $ catch (do
         state <- nestedLog profile (config ctx) $ generateState profile (fromIntegral $ fromSqlKeyFor socketId)
         nestedLog profile (config ctx) $ sendTextData socketConn state
@@ -117,12 +117,12 @@ webSocketImpl ctx socketConnections'' socketConn' pool = do
             (\_ -> nestedLog profile (config ctx) $ takeMVar closeShot)
 
     where
-        receiveLoop :: Connection -> IO ()
-        receiveLoop socketConn = do
-            msg <- receive socketConn
+        receiveLoop :: Proxy p -> Connection -> IO ()
+        receiveLoop profile socketConn = do
+            msg <- nestedLog profile (config ctx) $ receive socketConn
             case msg of
                 ControlMessage (Close _ _) -> return ()
-                _ -> receiveLoop socketConn
+                _ -> receiveLoop profile socketConn
 
 issueJWTImpl :: (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> AuthenticationType -> String -> String -> PaperAuthPool -> PaperMonad p m (Servant.Headers '[Header "Set-Cookie" SetCookie] Html)
 issueJWTImpl config encodeSigner authenticationType code state pool =
@@ -159,12 +159,12 @@ issueJWT'Impl config encodeSigner authenticationType code state conn = do
         NativeSocket -> do
             return $ addHeader cookie $ issueJWTHtml state
 
-finalizeImpl :: (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => String -> PaperAuthPool -> PaperMonad p m NoContent
-finalizeImpl state pool =
-    runSqlPoolOneConnection (finalize' state) pool
+finalizeImpl :: (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Config -> String -> PaperAuthPool -> PaperMonad p m NoContent
+finalizeImpl cfg state pool =
+    runSqlPoolOneConnection (finalize' cfg state) pool
 
-finalize'Impl :: (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m NoContent
-finalize'Impl state conn = do
+finalize'Impl :: (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Config -> String -> PaperAuthConn -> PaperMonad p m NoContent
+finalize'Impl cfg state conn = do
     profile <- ask
     socketId <- maybeToPaperMonad (getSocketIdFromState profile state) $ PaperError "state invalid" (err400 { errBody = "state invalid" }) $ callStack' profile
     socketConnection' <- OAuth2.Client.Repository.getConnection (toSqlKeyFor $ fromIntegral socketId) conn
@@ -185,7 +185,7 @@ finalize'Impl state conn = do
     refreshToken <- maybeToPaperMonad oAuth2ClientSocketConnectionRefreshToken $ PaperError "refreshToken missing" (err500 { errBody = "database error" }) $ callStack' profile
     case oAuth2ClientSocketConnectionType of
         WebSocket ->
-            OAuth2.Client.GRpc.ExService.sendToken oAuth2ClientSocketConnectionHost oAuth2ClientSocketConnectionPort socketId accessToken Nothing
+            OAuth2.Client.GRpc.ExService.sendToken cfg oAuth2ClientSocketConnectionHost oAuth2ClientSocketConnectionPort socketId accessToken Nothing
         NativeSocket ->
-            OAuth2.Client.GRpc.ExService.sendToken oAuth2ClientSocketConnectionHost oAuth2ClientSocketConnectionPort socketId accessToken $ Just refreshToken
+            OAuth2.Client.GRpc.ExService.sendToken cfg oAuth2ClientSocketConnectionHost oAuth2ClientSocketConnectionPort socketId accessToken $ Just refreshToken
     return NoContent

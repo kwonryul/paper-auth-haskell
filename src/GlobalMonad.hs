@@ -13,7 +13,9 @@ module GlobalMonad(
   , GlobalCatchError(
         GlobalCatchError
       )
-  , GlobalInnerError
+  , GlobalInnerError(
+        GlobalInnerError
+      )
   , GlobalErrorP
   , GlobalMonad(
         unGlobalMonad
@@ -79,16 +81,18 @@ data GlobalErrorP
 
 type instance InnerError GlobalError = GlobalInnerError
 type instance InnerError GlobalDefaultError = GlobalInnerError
+type instance InnerError GlobalCatchError = GlobalInnerError
 type instance OuterError GlobalError = IOException
 type instance OuterError GlobalDefaultError = IOException
+type instance OuterError GlobalCatchError = IOException
 type instance DefaultError GlobalErrorP = GlobalDefaultError
 
 instance ErrorTError GlobalError where
-    toOuterError _ ie = userError $ show ie
-    toInnerError e = GlobalInnerError e
+    toInnerError = GlobalInnerError
 instance ErrorTError GlobalDefaultError where
-    toOuterError _ ie = userError $ show ie
-    toInnerError e = GlobalInnerError e
+    toInnerError = GlobalInnerError
+instance ErrorTError GlobalCatchError where
+    toInnerError = GlobalInnerError
 
 type GlobalMonad :: Type -> (Type -> Type) -> Type -> Type
 data GlobalMonad profile m a where

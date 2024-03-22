@@ -9,40 +9,41 @@ module OAuth2.Client.GRpc.ExService(
 
 import CallStack
 import Import
+import NestedMonad
 import PaperMonad
 
 import Servant
+import Data.Configurator.Types
 
 import Foreign.C.String
 import Foreign.Marshal.Alloc
 
 import Control.Monad.IO.Unlift
+import Control.Monad.Reader
 import Control.Exception
 import Data.Text
 import GHC.Stack
 
 foreign import ccall "send_token_and_close_c" sendTokenAndCloseC :: CString -> Int -> Int -> CString -> CString -> IO CString
 
-class PaperMonadI p => OAuth2ClientGRpcExServiceI p where
-    sendToken :: (HasCallStack, MonadUnliftIO m) => String -> Int -> OAuth2ClientSocketId' -> Text -> Maybe Text -> PaperMonad p m ()
+class (NestedMonadI p, PaperMonadI p) => OAuth2ClientGRpcExServiceI p where
+    sendToken :: (HasCallStack, MonadUnliftIO m) => Config -> String -> Int -> OAuth2ClientSocketId' -> Text -> Maybe Text -> PaperMonad p m ()
     sendToken = sendTokenImpl
 
-sendTokenImpl :: forall p m. (HasCallStack, OAuth2ClientGRpcExServiceI p, MonadUnliftIO m) => String -> Int -> OAuth2ClientSocketId' -> Text -> Maybe Text -> PaperMonad p m ()
-sendTokenImpl host port socketId accessToken refreshToken = do
+sendTokenImpl :: forall p m. (HasCallStack, OAuth2ClientGRpcExServiceI p, MonadUnliftIO m) => Config -> String -> Int -> OAuth2ClientSocketId' -> Text -> Maybe Text -> PaperMonad p m ()
+sendTokenImpl cfg host port socketId accessToken refreshToken = do
+    profile <- ask
     res <- paperLiftIOUnliftIO $ bracket (
-        bracket (newCString host) free (\h ->
-            bracket (newCString $ Data.Text.unpack accessToken) free (\at ->
-                bracket (newCString $ maybe "" Data.Text.unpack refreshToken) free (\rt ->
-                    sendTokenAndCloseC h port socketId at rt
+        bracket (nestedLog profile cfg $ newCString host) (nestedLog profile cfg . free) (\h ->
+            bracket (nestedLog profile cfg $ newCString $ Data.Text.unpack accessToken) (nestedLog profile cfg . free) (\at ->
+                bracket (nestedLog profile cfg $ newCString $ maybe "" Data.Text.unpack refreshToken) (nestedLog profile cfg . free) (\rt ->
+                    nestedLog profile cfg $ sendTokenAndCloseC h port socketId at rt
                     )
                 )
             )
-        ) free peekCString
+        ) (nestedLog profile cfg . free) (nestedLog profile cfg . peekCString)
     case res of
         "OK" ->
             return ()
         err ->
             toPaperMonad $ PaperError ("GRpc error\n" ++ err) (err500 { errBody = "internal server error" }) $ callStack' profile
-    where
-        profile :: Proxy p
-        profile = Proxy

@@ -35,6 +35,7 @@ import Configurator
 import Context
 import DB
 import GlobalMonad
+import NestedMonad
 import PaperApp
 
 import Database.Persist.Sql
@@ -48,6 +49,7 @@ import Foreign.Marshal.Alloc
 
 import Control.Monad.Trans.Reader
 import Control.Monad.IO.Unlift
+import Control.Monad.Reader
 import Control.Concurrent
 import Control.Exception
 import Data.Proxy
@@ -63,7 +65,7 @@ data Resources = Resources {
   , secretKeyPath :: FilePath
   }
 
-class (ContextI p, PaperAppI p) => LibI p where
+class (OAuth2ClientGRpcControllerI p, ContextI p, PaperAppI p) => LibI p where
     getAllResources :: Proxy p -> IO Resources
     getAllResources = getAllResourcesImpl
     getAllResources' :: (HasCallStack, MonadUnliftIO m) => GlobalMonad p m Resources
@@ -99,6 +101,7 @@ startAppImpl _ ctx certPath secretKeyPath =
 
 startApp'Impl :: forall p m. (HasCallStack, LibI p, MonadUnliftIO m) => Context -> FilePath -> FilePath -> GlobalMonad p m ()
 startApp'Impl ctx certPath secretKeyPath = do
+    profile <- Control.Monad.Reader.ask
     homeDir <- globalLiftIOUnliftIO $ getEnv "HOME"
     projectDir <- globalLiftIOUnliftIO $ readFile $ homeDir ++ "/.paper-auth/project-directory"
     httpsPort <- lookupRequiredGlobal (config ctx) "port.https"
@@ -108,13 +111,13 @@ startApp'Impl ctx certPath secretKeyPath = do
     _ <- globalLiftIOUnliftIO $ do
             forkIO $ do
                 res <- bracket
-                    (genSendTokenAndCloseC $ sendTokenAndCloseHs $ oauth2ClientSocketConnections ctx)
-                    (\sendTokenAndCloseC -> freeHaskellFunPtr sendTokenAndCloseC)
+                    (nestedLog profile (config ctx) $ genSendTokenAndCloseC $ sendTokenAndCloseHs profile (config ctx) $ oauth2ClientSocketConnections ctx)
+                    (\sendTokenAndCloseC -> nestedLog profile (config ctx) $ freeHaskellFunPtr sendTokenAndCloseC)
                     (\sendTokenAndCloseC -> do
                         bracket
-                            (runOAuth2ClientSocketServerC oauth2ClientSocketPort sendTokenAndCloseC)
-                            free
-                            peekCString
+                            (nestedLog profile (config ctx) $ runOAuth2ClientSocketServerC oauth2ClientSocketPort sendTokenAndCloseC)
+                            (nestedLog profile (config ctx) . free)
+                            (nestedLog profile (config ctx) . peekCString)
                         )
                 case res of
                     "OK" ->
@@ -125,9 +128,6 @@ startApp'Impl ctx certPath secretKeyPath = do
         (tlsSettings certPath secretKeyPath)
         (setPort httpsPort defaultSettings)
         (app profile ctx docsFilePath staticFilePath)
-    where
-        profile :: Proxy p
-        profile = Proxy
 
 migratePaperAuthImpl :: forall p. LibI p => Proxy p -> Context.Context -> PaperAuthPool -> IO ()
 migratePaperAuthImpl _ ctx = runGlobalMonad (config ctx) . migratePaperAuth' @p

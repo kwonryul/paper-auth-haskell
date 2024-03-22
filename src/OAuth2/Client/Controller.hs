@@ -72,7 +72,7 @@ finalizeImpl :: forall p. (HasCallStack, OAuth2ClientControllerI p) => Proxy p -
 finalizeImpl _ _ Nothing =
     throwError $ err400 { errBody = "missing state" }
 finalizeImpl _ ctx (Just state) =
-    runPaperMonad (config ctx) $ OAuth2.Client.Service.finalize @p state (paperAuthPool ctx)
+    runPaperMonad (config ctx) $ OAuth2.Client.Service.finalize @p (config ctx) state (paperAuthPool ctx)
 
 serverImpl :: (HasCallStack, OAuth2ClientControllerI p) => Proxy p -> Context.Context -> Server API
 serverImpl p ctx =

@@ -13,7 +13,9 @@ module NestedMonad(
   , NestedCatchError(
         NestedCatchError
       )
-  , NestedInnerError
+  , NestedInnerError(
+        NestedInnerError
+      )
   , NestedErrorP
   , NestedMonad(
         unNestedMonad
@@ -79,16 +81,19 @@ data NestedErrorP
 
 type instance InnerError NestedError = NestedInnerError
 type instance InnerError NestedDefaultError = NestedInnerError
+type instance InnerError NestedCatchError = NestedInnerError
 type instance OuterError NestedError = IOException
 type instance OuterError NestedDefaultError = IOException
+type instance OuterError NestedCatchError = IOException
 type instance DefaultError NestedErrorP = NestedDefaultError
 
 instance ErrorTError NestedError where
-    toOuterError _ ie = userError $ show ie
-    toInnerError e = NestedInnerError e
+    toInnerError = NestedInnerError
 instance ErrorTError NestedDefaultError where
-    toOuterError _ ie = userError $ show ie
-    toInnerError e = NestedInnerError e
+    toInnerError = NestedInnerError
+
+instance ErrorTError NestedCatchError where
+    toInnerError = NestedInnerError
 
 type NestedMonad :: Type -> (Type -> Type) -> Type -> Type
 data NestedMonad profile m a where
