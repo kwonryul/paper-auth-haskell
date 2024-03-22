@@ -95,7 +95,7 @@ getAllResources'Impl = do
 
 startAppImpl :: forall p. LibI p => Proxy p -> Context -> FilePath -> FilePath -> IO ()
 startAppImpl _ ctx certPath secretKeyPath =
-    runGlobalMonad ctx $ startApp' @p ctx certPath secretKeyPath
+    runGlobalMonad (config ctx) $ startApp' @p ctx certPath secretKeyPath
 
 startApp'Impl :: forall p m. (HasCallStack, LibI p, MonadUnliftIO m) => Context -> FilePath -> FilePath -> GlobalMonad p m ()
 startApp'Impl ctx certPath secretKeyPath = do
@@ -130,7 +130,7 @@ startApp'Impl ctx certPath secretKeyPath = do
         profile = Proxy
 
 migratePaperAuthImpl :: forall p. LibI p => Proxy p -> Context.Context -> PaperAuthPool -> IO ()
-migratePaperAuthImpl _ ctx = runGlobalMonad ctx . migratePaperAuth' @p
+migratePaperAuthImpl _ ctx = runGlobalMonad (config ctx) . migratePaperAuth' @p
 
 migratePaperAuth'Impl :: (HasCallStack, LibI p, MonadUnliftIO m) => PaperAuthPool -> GlobalMonad p m ()
 migratePaperAuth'Impl pool = runSqlPoolOneConnectionGlobal (migratePaperAuth'') pool

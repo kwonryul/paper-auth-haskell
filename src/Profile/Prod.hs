@@ -102,11 +102,10 @@ instance UtilI Prod
 
 instance ErrorTProfile Prod PaperErrorP where
     defaultError _ _ = PaperDefaultError
-    defaultLogger _ _ context = (\_ _ logLevel logStr -> do
+    defaultLogger _ _ cfg = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime
-        let cfg = config context
-            formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
-        logDir :: String <- runGlobalMonadWithoutLog $ lookupRequiredGlobal @Prod cfg "log.paper"
+        let formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
+        logDir :: String <- runGlobalMonadWithoutLog $ lookupRequiredGlobal @Prod cfg "log"
         let (fileNameList, header) =
                 case logLevel of
                     LevelDebug -> (["debug.log", "all.log"], "[DEBUG]\t")
@@ -132,11 +131,10 @@ instance ErrorTProfile Prod PaperErrorP where
 
 instance ErrorTProfile Prod GlobalErrorP where
     defaultError _ _= GlobalDefaultError
-    defaultLogger _ _ context = (\_ _ logLevel logStr -> do
+    defaultLogger _ _ cfg = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime
-        let cfg = config context
-            formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
-        logDir :: String <- runGlobalMonadWithoutLog $ lookupRequiredGlobal @Prod cfg "log.global"
+        let formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
+        logDir :: String <- runGlobalMonadWithoutLog $ lookupRequiredGlobal @Prod cfg "log"
         let (fileNameList, header) =
                 case logLevel of
                     LevelDebug -> (["debug.log", "all.log"], "[DEBUG]\t")
@@ -161,11 +159,10 @@ instance ErrorTProfile Prod GlobalErrorP where
 
 instance ErrorTProfile Prod NestedErrorP where
     defaultError _ _= NestedDefaultError
-    defaultLogger _ _ context = (\_ _ logLevel logStr -> do
+    defaultLogger _ _ cfg = (\_ _ logLevel logStr -> do
         currentTime <- getCurrentTime
-        let cfg = config context
-            formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
-        logDir :: String <- runNestedMonadWithoutLog $ lookupRequiredNested @Prod cfg "log.nested"
+        let formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
+        logDir :: String <- runNestedMonadWithoutLog $ lookupRequiredNested @Prod cfg "log"
         let (fileNameList, header) =
                 case logLevel of
                     LevelDebug -> (["debug.log", "all.log"], "[DEBUG]\t")

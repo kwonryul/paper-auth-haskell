@@ -39,9 +39,9 @@ module NestedMonad(
 
 import Monad.ErrorT
 import Monad.ProfileT
-import Import
 
 import Servant
+import Data.Configurator.Types
 
 import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
@@ -124,11 +124,11 @@ class (ErrorTI profile, ErrorTProfile profile NestedErrorP) => NestedMonadI prof
     nestedLiftIO = nestedLiftIOImpl
     nestedLiftIOUnliftIO :: (HasCallStack, MonadUnliftIO m) => IO a -> NestedMonad profile m a
     nestedLiftIOUnliftIO = nestedLiftIOUnliftIOImpl
-    nestedLog :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> IO a -> m a
+    nestedLog :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Config -> IO a -> m a
     nestedLog = nestedLogImpl
-    runNestedErrorEither :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> Either NestedInnerError a -> m a
+    runNestedErrorEither :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Config -> Either NestedInnerError a -> m a
     runNestedErrorEither = runNestedErrorEitherImpl
-    runNestedMonad :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Import.Context -> NestedMonad profile IO a -> m a
+    runNestedMonad :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Config -> NestedMonad profile IO a -> m a
     runNestedMonad = runNestedMonadImpl
     runNestedMonadWithoutLog :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => NestedMonad profile IO a -> m a
     runNestedMonadWithoutLog = runNestedMonadWithoutLogImpl
@@ -161,14 +161,14 @@ nestedLiftIOImpl = NestedMonad . lift . liftIOSafe
 nestedLiftIOUnliftIOImpl :: (HasCallStack, NestedMonadI profile, MonadUnliftIO m) => IO a -> NestedMonad profile m a
 nestedLiftIOUnliftIOImpl = NestedMonad . lift . liftIOSafeUnliftIO
 
-nestedLogImpl :: (HasCallStack, NestedMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> IO a -> m a
-nestedLogImpl profile context = errorLog profile (Proxy :: Proxy NestedErrorP) context
+nestedLogImpl :: (HasCallStack, NestedMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Config -> IO a -> m a
+nestedLogImpl profile cfg = errorLog profile (Proxy :: Proxy NestedErrorP) cfg
 
-runNestedErrorEitherImpl :: (HasCallStack, NestedMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> Either NestedInnerError a -> m a
-runNestedErrorEitherImpl profile context = runErrorEither profile (Proxy :: Proxy NestedErrorP) context
+runNestedErrorEitherImpl :: (HasCallStack, NestedMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Config -> Either NestedInnerError a -> m a
+runNestedErrorEitherImpl profile cfg = runErrorEither profile (Proxy :: Proxy NestedErrorP) cfg
 
-runNestedMonadImpl :: (HasCallStack, NestedMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Import.Context -> NestedMonad profile IO a -> m a
-runNestedMonadImpl context (NestedMonad (ProfileT (ReaderT x))) = runErrorT context $ x (Proxy :: Proxy p)
+runNestedMonadImpl :: (HasCallStack, NestedMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Config -> NestedMonad profile IO a -> m a
+runNestedMonadImpl cfg (NestedMonad (ProfileT (ReaderT x))) = runErrorT cfg $ x (Proxy :: Proxy p)
 
 runNestedMonadWithoutLogImpl :: (HasCallStack, NestedMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => NestedMonad profile IO a -> m a
 runNestedMonadWithoutLogImpl (NestedMonad (ProfileT (ReaderT x))) = runErrorTWithoutLog $ x (Proxy :: Proxy p)

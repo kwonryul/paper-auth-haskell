@@ -46,17 +46,17 @@ class UserServiceI p => UserControllerI p where
 
 getUserInfoImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> AuthenticatedUser -> Handler GetUserInfoResDTO
 getUserInfoImpl _ ctx (AuthenticatedUser { userId }) =
-    runPaperMonad ctx $ User.Service.getUserInfo @p userId $ paperAuthPool ctx
+    runPaperMonad (config ctx) $ User.Service.getUserInfo @p userId $ paperAuthPool ctx
 
 patchUserInfoImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> AuthenticatedUser -> PatchUserInfoReqDTO -> Handler NoContent
 patchUserInfoImpl _ ctx (AuthenticatedUser { userId }) (PatchUserInfoReqDTO { paperId, password, name, phoneNumber, phoneNumberSecret }) =
-    runPaperMonad ctx $ User.Service.patchUserInfo @p
+    runPaperMonad (config ctx) $ User.Service.patchUserInfo @p
         userId paperId password name phoneNumber phoneNumberSecret $ paperAuthPool ctx
 
 enrollImpl :: forall p. (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> EnrollReqDTO -> Handler (Headers '[Header "Set-Cookie" SetCookie] EnrollResDTO)
 enrollImpl _  ctx (EnrollReqDTO { paperId, password, phoneNumber, phoneNumberSecret }) =
     let encodeSigner = paperEncodeSigner ctx in
-    runPaperMonad ctx $ User.Service.enroll @p
+    runPaperMonad (config ctx) $ User.Service.enroll @p
         (config ctx) encodeSigner paperId password phoneNumber phoneNumberSecret (paperAuthPool ctx)
 
 serverImpl :: (HasCallStack, UserControllerI p) => Proxy p -> Context.Context -> Server API

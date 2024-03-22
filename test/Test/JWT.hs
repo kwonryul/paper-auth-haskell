@@ -46,7 +46,7 @@ invalidateJWTC = client (Servant.Proxy :: Servant.Proxy InvalidateJWTC)
 type APIS = "jwt" :> JWT.Controller.API
 
 jwtApp :: forall profile. LibI profile => Servant.Proxy profile -> Import.Context -> Application
-jwtApp profile ctx = generateExampleSnippetM ctx $ serveWithContext (Servant.Proxy :: Servant.Proxy APIS)
+jwtApp profile ctx = generateExampleSnippetM (config ctx) $ serveWithContext (Servant.Proxy :: Servant.Proxy APIS)
     (authContext (Servant.Proxy :: Servant.Proxy profile) ctx) $ jwtServer profile ctx
 
 jwtServer :: LibI profile => Servant.Proxy profile -> Import.Context -> Server APIS

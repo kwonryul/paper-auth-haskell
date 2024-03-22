@@ -39,9 +39,9 @@ module GlobalMonad(
 
 import Monad.ErrorT
 import Monad.ProfileT
-import Import
 
 import Servant
+import Data.Configurator.Types
 
 import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
@@ -124,11 +124,11 @@ class (ErrorTI profile, ErrorTProfile profile GlobalErrorP) => GlobalMonadI prof
     globalLiftIO = globalLiftIOImpl
     globalLiftIOUnliftIO :: (HasCallStack, MonadUnliftIO m) => IO a -> GlobalMonad profile m a
     globalLiftIOUnliftIO = globalLiftIOUnliftIOImpl
-    globalLog :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> IO a -> m a
+    globalLog :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Config -> IO a -> m a
     globalLog = globalLogImpl
-    runGlobalErrorEither :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> Either GlobalInnerError a -> m a
+    runGlobalErrorEither :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Config -> Either GlobalInnerError a -> m a
     runGlobalErrorEither = runGlobalErrorEitherImpl
-    runGlobalMonad :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Import.Context -> GlobalMonad profile IO a -> m a
+    runGlobalMonad :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => Config -> GlobalMonad profile IO a -> m a
     runGlobalMonad = runGlobalMonadImpl
     runGlobalMonadWithoutLog :: (HasCallStack, MonadError IOException m, MonadIO m, MonadCatch m) => GlobalMonad profile IO a -> m a
     runGlobalMonadWithoutLog = runGlobalMonadWithoutLogImpl
@@ -161,14 +161,14 @@ globalLiftIOImpl = GlobalMonad . lift . liftIOSafe
 globalLiftIOUnliftIOImpl :: (HasCallStack, GlobalMonadI profile, MonadUnliftIO m) => IO a -> GlobalMonad profile m a
 globalLiftIOUnliftIOImpl = GlobalMonad . lift . liftIOSafeUnliftIO
 
-globalLogImpl :: (HasCallStack, GlobalMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> IO a -> m a
-globalLogImpl profile context = errorLog profile (Proxy :: Proxy GlobalErrorP) context
+globalLogImpl :: (HasCallStack, GlobalMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Config -> IO a -> m a
+globalLogImpl profile cfg = errorLog profile (Proxy :: Proxy GlobalErrorP) cfg
 
-runGlobalErrorEitherImpl :: (HasCallStack, GlobalMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> Either GlobalInnerError a -> m a
-runGlobalErrorEitherImpl profile context = runErrorEither profile (Proxy :: Proxy GlobalErrorP) context
+runGlobalErrorEitherImpl :: (HasCallStack, GlobalMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Proxy profile -> Config -> Either GlobalInnerError a -> m a
+runGlobalErrorEitherImpl profile cfg = runErrorEither profile (Proxy :: Proxy GlobalErrorP) cfg
 
-runGlobalMonadImpl :: (HasCallStack, GlobalMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Import.Context -> GlobalMonad profile IO a -> m a
-runGlobalMonadImpl context (GlobalMonad (ProfileT (ReaderT x))) = runErrorT context $ x (Proxy :: Proxy p)
+runGlobalMonadImpl :: (HasCallStack, GlobalMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => Config -> GlobalMonad profile IO a -> m a
+runGlobalMonadImpl cfg (GlobalMonad (ProfileT (ReaderT x))) = runErrorT cfg $ x (Proxy :: Proxy p)
 
 runGlobalMonadWithoutLogImpl :: (HasCallStack, GlobalMonadI profile, MonadError IOException m, MonadIO m, MonadCatch m) => GlobalMonad profile IO a -> m a
 runGlobalMonadWithoutLogImpl (GlobalMonad (ProfileT (ReaderT x))) = runErrorTWithoutLog $ x (Proxy :: Proxy p)

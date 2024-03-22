@@ -37,7 +37,7 @@ enrollC = client (Servant.Proxy :: Servant.Proxy EnrollC)
 type APIS = "user" :> User.Controller.API
 
 userApp :: forall profile. LibI profile => Servant.Proxy profile -> Import.Context -> Application
-userApp profile ctx = generateExampleSnippetM ctx $ serveWithContext (Servant.Proxy :: Servant.Proxy APIS)
+userApp profile ctx = generateExampleSnippetM (config ctx) $ serveWithContext (Servant.Proxy :: Servant.Proxy APIS)
     (authContext(Servant.Proxy :: Servant.Proxy profile) ctx) $ userServer profile ctx
 
 userServer :: LibI profile => Servant.Proxy profile -> Import.Context -> Server APIS

@@ -60,28 +60,28 @@ class ( AuthenticationI p
     app = appImpl
 
 serverImpl :: (HasCallStack, PaperAppI p) => Proxy p -> Context.Context -> FilePath -> FilePath -> Server API
-serverImpl p context docsFilePath staticFilePath =
-        faviconServer p context
+serverImpl p ctx docsFilePath staticFilePath =
+        faviconServer p ctx
     :<|> serveDirectoryWith (
         (defaultWebAppSettings docsFilePath) {
             ssMaxAge = NoMaxAge
           , ssUseHash = False
           })
     :<|> serveDirectoryWith ((defaultWebAppSettings staticFilePath) { ssMaxAge = NoMaxAge, ssUseHash = False })
-    :<|> JWT.Controller.server p context
-    :<|> OAuth2.Client.Controller.server p context
-    :<|> User.Controller.server p context
-    :<|> Verification.Controller.server p context
+    :<|> JWT.Controller.server p ctx
+    :<|> OAuth2.Client.Controller.server p ctx
+    :<|> User.Controller.server p ctx
+    :<|> Verification.Controller.server p ctx
 
 faviconServerImpl :: forall p. (HasCallStack, PaperAppI p) => Proxy p -> Context.Context -> Servant.Handler ByteString
-faviconServerImpl profile context = do
-    homeDir <- paperLog profile context $ getEnv "HOME"
-    projectDir <- paperLog profile context $ Prelude.readFile $ homeDir ++ "/.paper-auth/project-directory"
+faviconServerImpl profile ctx = do
+    homeDir <- paperLog profile (config ctx) $ getEnv "HOME"
+    projectDir <- paperLog profile (config ctx) $ Prelude.readFile $ homeDir ++ "/.paper-auth/project-directory"
     let filePath = projectDir ++ "resources/static/favicon.ico"
     Control.Monad.Catch.bracket
-        (paperLog profile context $ openFile filePath ReadMode)
-        (paperLog profile context . hClose)
-        (paperLog profile context . Data.ByteString.hGetContents)
+        (paperLog profile (config ctx) $ openFile filePath ReadMode)
+        (paperLog profile (config ctx) . hClose)
+        (paperLog profile (config ctx) . Data.ByteString.hGetContents)
 
 apiImpl :: PaperAppI p => Proxy p -> Proxy API
 apiImpl _ = Proxy

@@ -52,7 +52,7 @@ class OAuth2ClientServiceI p => OAuth2ClientControllerI p where
 
 webSocketImpl :: forall p. (HasCallStack, OAuth2ClientControllerI p) => Proxy p -> Context.Context -> PendingConnection -> Handler ()
 webSocketImpl _ ctx socketConn =
-    runPaperMonad ctx $ OAuth2.Client.Service.webSocket @p ctx (oauth2ClientSocketConnections ctx) socketConn (paperAuthPool ctx)
+    runPaperMonad (config ctx) $ OAuth2.Client.Service.webSocket @p ctx (oauth2ClientSocketConnections ctx) socketConn (paperAuthPool ctx)
 
 issueJWTKakaoImpl :: (HasCallStack, OAuth2ClientControllerI p) => Proxy p -> Context.Context -> Maybe String -> Maybe String -> Handler (Headers '[Header "Set-Cookie" SetCookie] Html)
 issueJWTKakaoImpl p ctx = issueJWT p ctx Kakao
@@ -66,13 +66,13 @@ issueJWTImpl _ _ _ Nothing _ =
 issueJWTImpl _ _ _ _ Nothing =
     throwError $ err400 { errBody = "missing state" }
 issueJWTImpl _ ctx authenticationType (Just code) (Just state) =
-    runPaperMonad ctx $ OAuth2.Client.Service.issueJWT @p (config ctx) (paperEncodeSigner ctx) authenticationType code state (paperAuthPool ctx)
+    runPaperMonad (config ctx) $ OAuth2.Client.Service.issueJWT @p (config ctx) (paperEncodeSigner ctx) authenticationType code state (paperAuthPool ctx)
 
 finalizeImpl :: forall p. (HasCallStack, OAuth2ClientControllerI p) => Proxy p -> Context.Context -> Maybe String -> Handler NoContent
 finalizeImpl _ _ Nothing =
     throwError $ err400 { errBody = "missing state" }
 finalizeImpl _ ctx (Just state) =
-    runPaperMonad ctx $ OAuth2.Client.Service.finalize @p state (paperAuthPool ctx)
+    runPaperMonad (config ctx) $ OAuth2.Client.Service.finalize @p state (paperAuthPool ctx)
 
 serverImpl :: (HasCallStack, OAuth2ClientControllerI p) => Proxy p -> Context.Context -> Server API
 serverImpl p ctx =

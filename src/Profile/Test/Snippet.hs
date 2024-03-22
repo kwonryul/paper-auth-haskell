@@ -4,12 +4,12 @@ module Profile.Test.Snippet(
     generateExampleSnippetM
   ) where
 
-import Import
 import Profile.Test.Import
 import GlobalMonad
 
 import Network.Wai
 import Network.HTTP.Types
+import Data.Configurator.Types
 
 import Data.ByteString.Lazy.Char8
 import Data.ByteString.Char8
@@ -22,41 +22,41 @@ import System.Directory
 import System.FilePath.Posix
 import System.Environment
 
-generateExampleSnippetM :: Context -> Middleware
-generateExampleSnippetM ctx app req sendResponse = do
-    homeDir <- globalLog profile ctx $ getEnv "HOME"
-    projectDir <- globalLog profile ctx $ Prelude.readFile $ homeDir ++ "/.paper-auth/project-directory"
+generateExampleSnippetM :: Config -> Middleware
+generateExampleSnippetM cfg app req sendResponse = do
+    homeDir <- globalLog profile cfg $ getEnv "HOME"
+    projectDir <- globalLog profile cfg $ Prelude.readFile $ homeDir ++ "/.paper-auth/project-directory"
     let exampleSnippetsDir = projectDir ++ "generated/snippets/examples/"
         maybeFilePath = lookup "Snippet-Path" $ requestHeaders req
     case maybeFilePath of
         Just fp -> do
             let filePath = exampleSnippetsDir ++ Data.ByteString.Char8.unpack fp
                 req' = setRequestBodyChunks (bodyChunks' filePath) req
-            globalLog profile ctx $ createDirectoryIfMissing True $ takeDirectory filePath
-            globalLog profile ctx $ Data.ByteString.Char8.writeFile (filePath ++ "-request.adoc") $
+            globalLog profile cfg $ createDirectoryIfMissing True $ takeDirectory filePath
+            globalLog profile cfg $ Data.ByteString.Char8.writeFile (filePath ++ "-request.adoc") $
                 Data.ByteString.Char8.concat [
                     "[source,http,options=\"nowrap\"]\n----\n"
                   , requestHeaders' req
                   ]
-            globalLog profile ctx $ app req' $ \res -> do
-                responseBody' <- globalLog profile ctx $ getResponseBody res
+            globalLog profile cfg $ app req' $ \res -> do
+                responseBody' <- globalLog profile cfg $ getResponseBody res
                 let responseBody = if responseBody' == "" then "" else "\n\n" <> responseBody'
-                globalLog profile ctx $ createDirectoryIfMissing True $ takeDirectory filePath
-                globalLog profile ctx $ Data.ByteString.Char8.writeFile (filePath ++ "-response.adoc") $
+                globalLog profile cfg $ createDirectoryIfMissing True $ takeDirectory filePath
+                globalLog profile cfg $ Data.ByteString.Char8.writeFile (filePath ++ "-response.adoc") $
                     "[source,http,options=\"nowrap\"]\n----\n" <> responseHeaders' res <> responseBody <> "\n----\n"
-                globalLog profile ctx $ sendResponse res
+                globalLog profile cfg $ sendResponse res
         Nothing ->
-            globalLog profile ctx $ app req $ \res -> sendResponse res
+            globalLog profile cfg $ app req $ \res -> sendResponse res
     where
         profile :: Proxy Test
         profile = Proxy
         bodyChunks' :: FilePath -> IO Data.ByteString.Char8.ByteString
         bodyChunks' filePath = do
-            chunk <- globalLog profile ctx $ getRequestBodyChunk req
+            chunk <- globalLog profile cfg $ getRequestBodyChunk req
             if chunk == "" then
-                globalLog profile ctx $ Data.ByteString.Char8.appendFile (filePath ++ "-request.adoc") "\n----\n"
+                globalLog profile cfg $ Data.ByteString.Char8.appendFile (filePath ++ "-request.adoc") "\n----\n"
             else
-                globalLog profile ctx $ Data.ByteString.Char8.appendFile (filePath ++ "-request.adoc") chunk
+                globalLog profile cfg $ Data.ByteString.Char8.appendFile (filePath ++ "-request.adoc") chunk
             return chunk
 
             

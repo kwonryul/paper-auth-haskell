@@ -85,36 +85,36 @@ webSocketImpl ctx socketConnections'' socketConn' pool = do
     sendLock <- paperLiftIOUnliftIO newEmptyMVar
     closeShot <- paperLiftIOUnliftIO newEmptyMVar
     socketConnections <- paperLiftIOUnliftIO $ takeMVar socketConnections''
-    paperLiftIOUnliftIO $ catch (nestedLog profile ctx $ putMVar socketConnections'' $ Data.Map.insert
+    paperLiftIOUnliftIO $ catch (nestedLog profile (config ctx) $ putMVar socketConnections'' $ Data.Map.insert
         (fromIntegral $ fromSqlKeyFor socketId)
         (OAuth2ClientWebSocketConnection socketConn sendLock closeShot)
         socketConnections
         ) $ \(e :: SomeException) -> do
-            nestedLog profile ctx $ putMVar socketConnections'' socketConnections
+            nestedLog profile (config ctx) $ putMVar socketConnections'' socketConnections
             throw e
     _ <- paperLiftIOUnliftIO $ forkIO $ do
         bracket (return ()) (\_ -> do
-            _ <- nestedLog profile ctx $ tryPutMVar closeShot ()
+            _ <- nestedLog profile (config ctx) $ tryPutMVar closeShot ()
             return ()
             )
             (const $ receiveLoop socketConn)
     paperLiftIOUnliftIO $ catch (do
-        state <- nestedLog profile ctx $ generateState profile (fromIntegral $ fromSqlKeyFor socketId)
-        nestedLog profile ctx $ sendTextData socketConn state
-        runNestedMonad @p ctx $ runSqlPoolOneConnectionNested (OAuth2.Client.Repository.saveState socketId state) pool) (\(_ :: SomeException) -> return ())
+        state <- nestedLog profile (config ctx) $ generateState profile (fromIntegral $ fromSqlKeyFor socketId)
+        nestedLog profile (config ctx) $ sendTextData socketConn state
+        runNestedMonad @p (config ctx) $ runSqlPoolOneConnectionNested (OAuth2.Client.Repository.saveState socketId state) pool) (\(_ :: SomeException) -> return ())
     paperLiftIOUnliftIO $ putMVar sendLock ()
     paperLiftIOUnliftIO $ withPingThread socketConn 30 (return ()) $ do
         bracket (return ()) (\_ -> do
-            runNestedMonad @p ctx $ runSqlPoolOneConnectionNested (OAuth2.Client.Repository.closeConnection socketId) pool
-            socketConnections' <- nestedLog profile ctx $ takeMVar socketConnections''
-            catch (nestedLog profile ctx $ putMVar socketConnections'' $ Data.Map.delete
+            runNestedMonad @p (config ctx) $ runSqlPoolOneConnectionNested (OAuth2.Client.Repository.closeConnection socketId) pool
+            socketConnections' <- nestedLog profile (config ctx) $ takeMVar socketConnections''
+            catch (nestedLog profile (config ctx) $ putMVar socketConnections'' $ Data.Map.delete
                 (fromIntegral $ fromSqlKeyFor socketId)
                 socketConnections'
                 ) $ \(e :: SomeException) -> do
-                    nestedLog profile ctx $ putMVar socketConnections'' socketConnections'
+                    nestedLog profile (config ctx) $ putMVar socketConnections'' socketConnections'
                     throw e
             )
-            (\_ -> nestedLog profile ctx $ takeMVar closeShot)
+            (\_ -> nestedLog profile (config ctx) $ takeMVar closeShot)
 
     where
         receiveLoop :: Connection -> IO ()

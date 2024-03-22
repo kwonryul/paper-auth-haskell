@@ -13,11 +13,9 @@ module DB(
     )
 ) where
 
-import qualified Configurator
-import Configurator(ConfiguratorI)
-
 import Monad.ErrorT
 import Monad.ProfileT
+import Configurator
 import Import
 import GlobalMonad
 import NestedMonad
@@ -31,7 +29,13 @@ import Control.Monad.Reader
 import Control.Monad.Trans.Except
 import Control.Monad.IO.Unlift
 import Control.Monad.Logger
+import Data.Text
+import Data.Text.IO
+import Data.Text.Encoding
+import Data.ByteString
+import Data.Time
 import Data.Proxy
+import System.Directory
 import GHC.Stack
 
 class (NestedMonadI p, ConfiguratorI p) => DBI p where
@@ -47,12 +51,12 @@ class (NestedMonadI p, ConfiguratorI p) => DBI p where
     runSqlPoolOneConnectionNested = runSqlPoolOneConnectionNestedImpl
 
 paperAuthConnInfo'Impl :: (HasCallStack, DBI p, MonadUnliftIO m) => Config -> GlobalMonad p m ConnectInfo
-paperAuthConnInfo'Impl config = do
-    host <- Configurator.lookupRequiredGlobal config "db.paper-auth.host"
-    port <- Configurator.lookupRequiredGlobal config "db.paper-auth.port"
-    user <- Configurator.lookupRequiredGlobal config "db.paper-auth.user"
-    password <- Configurator.lookupRequiredGlobal config "db.paper-auth.password"
-    dbname <- Configurator.lookupRequiredGlobal config "db.paper-auth.dbname"
+paperAuthConnInfo'Impl cfg = do
+    host <- lookupRequiredGlobal cfg "db.paper-auth.host"
+    port <- lookupRequiredGlobal cfg "db.paper-auth.port"
+    user <- lookupRequiredGlobal cfg "db.paper-auth.user"
+    password <- lookupRequiredGlobal cfg "db.paper-auth.password"
+    dbname <- lookupRequiredGlobal cfg "db.paper-auth.dbname"
     return defaultConnectInfo {
         connectHost = host
       , connectPort = port
@@ -61,10 +65,33 @@ paperAuthConnInfo'Impl config = do
       , connectDatabase = dbname
     }
 
-getPaperAuthPool'Impl :: (HasCallStack, DBI p, MonadUnliftIO m) => Config -> GlobalMonad p m PaperAuthPool
-getPaperAuthPool'Impl config = do
-    paperAuthConnInfo <- paperAuthConnInfo' config
-    globalLiftIOUnliftIO $ specializePool <$> (runStderrLoggingT $ createMySQLPool paperAuthConnInfo 16)
+getPaperAuthPool'Impl :: forall p m. (HasCallStack, DBI p, MonadUnliftIO m) => Config -> GlobalMonad p m PaperAuthPool
+getPaperAuthPool'Impl cfg = do
+    paperAuthConnInfo <- paperAuthConnInfo' cfg
+    globalLiftIOUnliftIO $ specializePool <$> (runLoggingT (createMySQLPool paperAuthConnInfo 16) logger)
+    where
+        logger _ _ logLevel logStr = do
+            currentTime <- getCurrentTime
+            let formattedDate = formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S\n" currentTime
+            logDir :: String <- runGlobalMonad cfg $ lookupRequiredGlobal @p cfg "log"
+            let (fileNameList, header) =
+                    case logLevel of
+                        LevelDebug -> (["debug.log", "all.log"], "[DEBUG]\t")
+                        LevelInfo -> (["info.log", "info-error.log", "info-warn-error.log", "all.log"], "[INFO]\t")
+                        LevelWarn -> (["warn.log", "info-warn-error.log", "all.log"], "[WARN]\t")
+                        LevelError -> (["error.log", "info-error.log", "info-warn-error.log", "all.log"], "[ERROR]\t")
+                        LevelOther _ -> (["other.log", "all.log"], "[OTHER]\t")
+                dirName = logDir ++ "sql/"
+                filePathList = (\fileName -> dirName ++ fileName) <$> fileNameList
+                content = Data.Text.Encoding.decodeUtf8 $ Data.ByteString.concat
+                    [
+                        Data.Text.Encoding.encodeUtf8 $ Data.Text.pack (header ++ formattedDate)
+                    , fromLogStr logStr
+                    , Data.Text.Encoding.encodeUtf8 $ Data.Text.pack "\n"
+                    ]
+            createDirectoryIfMissing True dirName
+            mapM_ (\filePath ->
+                Data.Text.IO.appendFile filePath content) filePathList
 
 runSqlPoolOneConnectionImpl :: forall db p m a. (HasCallStack, DBI p, DB db, MonadUnliftIO m) => (SqlFor db -> PaperMonad p m a) -> ConnectionPoolFor db -> PaperMonad p m a
 runSqlPoolOneConnectionImpl inner pool = do

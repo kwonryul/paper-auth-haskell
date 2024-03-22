@@ -36,7 +36,7 @@ verifyCheckC = client (Servant.Proxy :: Servant.Proxy VerifyCheckC)
 type APIS = "verification" :> Verification.Controller.API
 
 verificationApp :: LibI profile => Servant.Proxy profile -> Import.Context -> Application
-verificationApp profile ctx = generateExampleSnippetM ctx $ serve (Servant.Proxy :: Servant.Proxy APIS) $ verificationServer profile ctx
+verificationApp profile ctx = generateExampleSnippetM (config ctx) $ serve (Servant.Proxy :: Servant.Proxy APIS) $ verificationServer profile ctx
 
 verificationServer :: LibI profile => Servant.Proxy profile -> Import.Context -> Server APIS
 verificationServer profile ctx = Verification.Controller.server profile ctx

@@ -37,14 +37,14 @@ class VerificationServiceI p => VerificationControllerI p where
     server = serverImpl
 
 verifyRequestImpl :: forall p. (HasCallStack, VerificationControllerI p) => Proxy p -> Context.Context -> VerifyRequestReqDTO -> Handler NoContent
-verifyRequestImpl _ context (VerifyRequestReqDTO { phoneNumber }) =
-    runPaperMonad context $ Verification.Service.verifyRequest @p
-        (config context) phoneNumber (paperAuthPool context)
+verifyRequestImpl _ ctx (VerifyRequestReqDTO { phoneNumber }) =
+    runPaperMonad (config ctx) $ Verification.Service.verifyRequest @p
+        (config ctx) phoneNumber (paperAuthPool ctx)
 
 verifyCheckImpl :: forall p. (HasCallStack, VerificationControllerI p) => Proxy p -> Context.Context -> VerifyCheckReqDTO -> Handler VerifyCheckResDTO
-verifyCheckImpl _ context (VerifyCheckReqDTO { phoneNumber, phoneNumberSecret }) =
-    runPaperMonad context $ Verification.Service.verifyCheck @p
-        phoneNumber phoneNumberSecret (paperAuthPool context)
+verifyCheckImpl _ ctx (VerifyCheckReqDTO { phoneNumber, phoneNumberSecret }) =
+    runPaperMonad (config ctx) $ Verification.Service.verifyCheck @p
+        phoneNumber phoneNumberSecret (paperAuthPool ctx)
 
 serverImpl :: (HasCallStack, VerificationControllerI p) => Proxy p -> Context.Context -> Server API
 serverImpl p context =

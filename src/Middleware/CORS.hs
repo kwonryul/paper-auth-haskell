@@ -72,15 +72,15 @@ corsMImpl p ctx app req sendResponse = do
                         if Prelude.any ((mk method) ==) (mk <$> allowMethods) &&
                             Prelude.length headersAllowed == Prelude.length requestingHeaders
                         then do
-                            recoveredOriginMatched <- runGlobalMonad @p ctx $ maybeToGlobalMonad (recover modifiedFlag originMatched) $ GlobalError "cors allowed origin not valid" (callStack' p)
-                            globalLog p ctx $ sendResponse $ responseLBS status200
+                            recoveredOriginMatched <- runGlobalMonad @p (config ctx) $ maybeToGlobalMonad (recover modifiedFlag originMatched) $ GlobalError "cors allowed origin not valid" (callStack' p)
+                            globalLog p (config ctx) $ sendResponse $ responseLBS status200
                                 (("Access-Control-Allow-Origin", recoveredOriginMatched) : ("Access-Control-Allow-Credentials", "true") : corsHeaders) ""
                         else
-                            globalLog p ctx $ sendResponse $ responseLBS status400 [] "method / headers not allowed"
+                            globalLog p (config ctx) $ sendResponse $ responseLBS status400 [] "method / headers not allowed"
                     Nothing ->
-                        globalLog p ctx $ sendResponse $ responseLBS status400 [] "origin not allowed"
+                        globalLog p (config ctx) $ sendResponse $ responseLBS status400 [] "origin not allowed"
             _ -> do
-                globalLog p ctx $ sendResponse $ responseLBS status400 [] "OPTIONS should be sent with Origin"
+                globalLog p (config ctx) $ sendResponse $ responseLBS status400 [] "OPTIONS should be sent with Origin"
     else
         let requestOriginTuple' = (lookup "Origin" $ requestHeaders req) >>= (addPortToUrl . Data.ByteString.Char8.unpack) in
         case requestOriginTuple' of
@@ -89,16 +89,16 @@ corsMImpl p ctx app req sendResponse = do
                 case originMatched' of
                     Just originMatched ->
                         if  Prelude.any ((Data.ByteString.Char8.map toLower $ requestMethod req) ==) (Data.ByteString.Char8.map toLower <$> allowMethods) then do
-                            recoveredOriginMatched <- runGlobalMonad @p ctx $ maybeToGlobalMonad (recover modifiedFlag originMatched) $ GlobalError "cors allowed origin not valid" (callStack' p)
-                            globalLog p ctx $ app req $ \res -> sendResponse $ mapResponseHeaders (\h ->
+                            recoveredOriginMatched <- runGlobalMonad @p (config ctx) $ maybeToGlobalMonad (recover modifiedFlag originMatched) $ GlobalError "cors allowed origin not valid" (callStack' p)
+                            globalLog p (config ctx) $ app req $ \res -> sendResponse $ mapResponseHeaders (\h ->
                                 (("Access-Control-Allow-Origin", recoveredOriginMatched) : ("Access-Control-Allow-Credentials", "true"): h)
                                 ) res
                         else
-                            globalLog p ctx $ sendResponse $ responseLBS status400 [] "method not allowed"
+                            globalLog p (config ctx) $ sendResponse $ responseLBS status400 [] "method not allowed"
                     Nothing ->
-                            globalLog p ctx $ sendResponse $ responseLBS status400 [] "origin not allowed"
+                            globalLog p (config ctx) $ sendResponse $ responseLBS status400 [] "origin not allowed"
             Nothing ->
-                globalLog p ctx $ app req $ \res -> sendResponse res
+                globalLog p (config ctx) $ app req $ \res -> sendResponse res
     where
         addPortToUrl :: String -> Maybe (Bool, Data.ByteString.Char8.ByteString)
         addPortToUrl urlStr = do

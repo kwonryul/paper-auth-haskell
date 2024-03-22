@@ -39,9 +39,9 @@ module PaperMonad(
 
 import Monad.ErrorT
 import Monad.ProfileT
-import Import
 
 import Servant
+import Data.Configurator.Types
 
 import Control.Monad.Logger
 import Control.Monad.Reader
@@ -147,11 +147,11 @@ class (ErrorTI profile, ErrorTProfile profile PaperErrorP) => PaperMonadI profil
     paperLiftIO = paperLiftIOImpl
     paperLiftIOUnliftIO :: (HasCallStack, MonadUnliftIO m) => IO a -> PaperMonad profile m a
     paperLiftIOUnliftIO = paperLiftIOUnliftIOImpl
-    paperLog :: (HasCallStack, MonadError ServerError m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> IO a -> m a
+    paperLog :: (HasCallStack, MonadError ServerError m, MonadIO m, MonadCatch m) => Proxy profile -> Config -> IO a -> m a
     paperLog = paperLogImpl
-    runPaperErrorEither :: (HasCallStack, MonadError ServerError m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> Either PaperInnerError a -> m a
+    runPaperErrorEither :: (HasCallStack, MonadError ServerError m, MonadIO m, MonadCatch m) => Proxy profile -> Config -> Either PaperInnerError a -> m a
     runPaperErrorEither = runPaperErrorEitherImpl
-    runPaperMonad :: (HasCallStack, MonadError ServerError m, MonadIO m, MonadCatch m) => Import.Context -> PaperMonad profile IO a -> m a
+    runPaperMonad :: (HasCallStack, MonadError ServerError m, MonadIO m, MonadCatch m) => Config -> PaperMonad profile IO a -> m a
     runPaperMonad = runPaperMonadImpl
     maybeToPaperMonad :: (HasCallStack, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => Maybe a -> e -> PaperMonad profile m a
     maybeToPaperMonad = maybeToPaperMonadImpl
@@ -182,14 +182,14 @@ paperLiftIOImpl = PaperMonad . lift . liftIOSafe
 paperLiftIOUnliftIOImpl :: (HasCallStack, PaperMonadI profile, MonadUnliftIO m) => IO a -> PaperMonad profile m a
 paperLiftIOUnliftIOImpl = PaperMonad . lift . liftIOSafeUnliftIO
 
-paperLogImpl :: (HasCallStack, PaperMonadI profile, MonadError ServerError m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> IO a -> m a
-paperLogImpl profile context = errorLog profile (Proxy :: Proxy PaperErrorP) context
+paperLogImpl :: (HasCallStack, PaperMonadI profile, MonadError ServerError m, MonadIO m, MonadCatch m) => Proxy profile -> Config -> IO a -> m a
+paperLogImpl profile cfg = errorLog profile (Proxy :: Proxy PaperErrorP) cfg
 
-runPaperErrorEitherImpl :: (HasCallStack, PaperMonadI profile, MonadError ServerError m, MonadIO m, MonadCatch m) => Proxy profile -> Import.Context -> Either PaperInnerError a -> m a
-runPaperErrorEitherImpl profile context = runErrorEither profile (Proxy :: Proxy PaperErrorP) context
+runPaperErrorEitherImpl :: (HasCallStack, PaperMonadI profile, MonadError ServerError m, MonadIO m, MonadCatch m) => Proxy profile -> Config -> Either PaperInnerError a -> m a
+runPaperErrorEitherImpl profile cfg = runErrorEither profile (Proxy :: Proxy PaperErrorP) cfg
 
-runPaperMonadImpl :: (HasCallStack, PaperMonadI profile, MonadError ServerError m, MonadIO m, MonadCatch m) => Import.Context -> PaperMonad profile IO a -> m a
-runPaperMonadImpl context (PaperMonad (ProfileT (ReaderT x))) = runErrorT context $ x (Proxy :: Proxy profile)
+runPaperMonadImpl :: (HasCallStack, PaperMonadI profile, MonadError ServerError m, MonadIO m, MonadCatch m) => Config -> PaperMonad profile IO a -> m a
+runPaperMonadImpl cfg (PaperMonad (ProfileT (ReaderT x))) = runErrorT cfg $ x (Proxy :: Proxy profile)
 
 maybeToPaperMonadImpl :: (HasCallStack, PaperMonadI profile, ErrorTError e, InnerError e ~ PaperInnerError, OuterError e ~ ServerError, Monad m) => Maybe a -> e -> PaperMonad profile m a
 maybeToPaperMonadImpl a' ex = PaperMonad $ lift $ maybeToErrorT a' ex

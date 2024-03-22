@@ -82,7 +82,7 @@ jwtAuthHandlerImpl :: (HasCallStack, AuthenticationI p) => Proxy p -> Context.Co
 jwtAuthHandlerImpl p context = mkAuthHandler $ jwtAuthHandler' p context
 
 jwtAuthHandler'Impl :: forall p. (HasCallStack, AuthenticationI p) => Proxy p -> Context.Context -> Request -> Handler AuthenticatedUser
-jwtAuthHandler'Impl _ context request = runPaperMonad context $ jwtAuthHandler'' @p (paperVerifySigner context) request (paperAuthPool context)
+jwtAuthHandler'Impl _ ctx request = runPaperMonad (config ctx) $ jwtAuthHandler'' @p (paperVerifySigner ctx) request (paperAuthPool ctx)
 
 jwtAuthHandler''Impl :: (HasCallStack, AuthenticationI p, MonadUnliftIO m) => VerifySigner -> Request -> PaperAuthPool -> PaperMonad p m AuthenticatedUser
 jwtAuthHandler''Impl verifySigner request pool = runSqlPoolOneConnection (jwtAuthHandler''' verifySigner request) pool
@@ -103,7 +103,7 @@ jwtAuthRefreshHandlerImpl :: (HasCallStack, AuthenticationI p) => Proxy p -> Con
 jwtAuthRefreshHandlerImpl p context = mkAuthHandler $ jwtAuthRefreshHandler' p context
 
 jwtAuthRefreshHandler'Impl :: forall p. (HasCallStack, AuthenticationI p) => Proxy p -> Context.Context -> Request -> Handler AuthenticatedUserRefresh
-jwtAuthRefreshHandler'Impl _ context request = runPaperMonad context $ jwtAuthRefreshHandler'' @p (paperVerifySigner context) request (paperAuthPool context)
+jwtAuthRefreshHandler'Impl _ ctx request = runPaperMonad (config ctx) $ jwtAuthRefreshHandler'' @p (paperVerifySigner ctx) request (paperAuthPool ctx)
 
 jwtAuthRefreshHandler''Impl :: (HasCallStack, AuthenticationI p, MonadUnliftIO m) => VerifySigner -> Request -> PaperAuthPool -> PaperMonad p m AuthenticatedUserRefresh
 jwtAuthRefreshHandler''Impl verifySigner request pool = runSqlPoolOneConnection (jwtAuthRefreshHandler''' verifySigner request) pool

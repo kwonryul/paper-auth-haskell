@@ -46,6 +46,8 @@ import Monad.ProfileT
 import Import
 import CallStack
 
+import Data.Configurator.Types
+
 import Control.Monad.Logger
 import Control.Monad.IO.Unlift
 import Control.Monad.Trans.Class
@@ -71,7 +73,7 @@ class (Show e, Exception (InnerError e), Exception (OuterError e)) => ErrorTErro
 
 class (Profile profile, ErrorTError (DefaultError p)) => ErrorTProfile profile p where
     defaultError :: Exception e => Proxy profile -> Proxy p -> e -> CallStack -> DefaultError p
-    defaultLogger :: Proxy profile -> Proxy p -> Context -> Loc -> LogSource -> LogLevel -> LogStr -> IO ()
+    defaultLogger :: Proxy profile -> Proxy p -> Config -> Loc -> LogSource -> LogLevel -> LogStr -> IO ()
     defaultErrorLog :: Proxy profile -> Proxy p -> InnerError (DefaultError p) -> (Loc, LogSource, LogLevel, LogStr)
 
 type ErrorT :: Type -> Type -> (Type -> Type) -> Type -> Type
@@ -142,13 +144,13 @@ class CallStackI profile => ErrorTI profile where
     liftIOSafe = liftIOSafeImpl
     liftIOSafeUnliftIO :: (HasCallStack, ErrorTProfile profile p, MonadUnliftIO m) => IO a -> SafeErrorT profile p m a
     liftIOSafeUnliftIO = liftIOSafeUnliftIOImpl
-    errorLog :: (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Context -> IO a -> m a
+    errorLog :: (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Config -> IO a -> m a
     errorLog = errorLogImpl
-    runErrorEither :: (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Context -> Either (InnerError (DefaultError p)) a -> m a
+    runErrorEither :: (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Config -> Either (InnerError (DefaultError p)) a -> m a
     runErrorEither = runErrorEitherImpl
     runErrorEitherWithoutLog :: (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Either (InnerError (DefaultError p)) a -> m a
     runErrorEitherWithoutLog = runErrorEitherWithoutLogImpl
-    runErrorT :: (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Context -> SafeErrorT profile p IO a -> m a
+    runErrorT :: (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Config -> SafeErrorT profile p IO a -> m a
     runErrorT = runErrorTImpl
     runErrorTWithoutLog :: (HasCallStack, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => SafeErrorT profile p IO a -> m a
     runErrorTWithoutLog = runErrorTWithoutLogImpl
@@ -200,20 +202,20 @@ liftIOSafeImpl = unsafeToSafe . liftIO
 liftIOSafeUnliftIOImpl :: (HasCallStack, ErrorTI profile, ErrorTProfile profile p, MonadUnliftIO m) => IO a -> SafeErrorT profile p m a
 liftIOSafeUnliftIOImpl = unsafeToSafeUnliftIO . liftIO
 
-errorLogImpl :: forall profile p m a. (HasCallStack, ErrorTI profile, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Context -> IO a -> m a
-errorLogImpl profile p context io = Control.Monad.Catch.catch (liftIO io) (\(ex :: SomeException) -> do
+errorLogImpl :: forall profile p m a. (HasCallStack, ErrorTI profile, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Config -> IO a -> m a
+errorLogImpl profile p cfg io = Control.Monad.Catch.catch (liftIO io) (\(ex :: SomeException) -> do
     let de = defaultError profile p ex $ callStack' profile
     let ie = toInnerError de
     let (loc, logSource, logLevel, logStr) = defaultErrorLog profile p ie
-    liftIO $ defaultLogger profile p context loc logSource logLevel logStr
+    liftIO $ defaultLogger profile p cfg loc logSource logLevel logStr
     throwError $ toOuterError (Proxy :: Proxy (DefaultError p)) ie
     )
 
-runErrorEitherImpl :: forall profile p m a. (HasCallStack, ErrorTI profile, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Context -> Either (InnerError (DefaultError p)) a -> m a
-runErrorEitherImpl profile p context e = case e of
+runErrorEitherImpl :: forall profile p m a. (HasCallStack, ErrorTI profile, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Proxy profile -> Proxy p -> Config -> Either (InnerError (DefaultError p)) a -> m a
+runErrorEitherImpl profile p cfg e = case e of
     Left ex -> do
         let (loc, logSource, logLevel, logStr) = defaultErrorLog profile p ex
-        liftIO $ defaultLogger profile p context loc logSource logLevel logStr
+        liftIO $ defaultLogger profile p cfg loc logSource logLevel logStr
         throwError $ toOuterError (Proxy :: Proxy (DefaultError p)) ex
     Right x -> return x
 
@@ -228,10 +230,10 @@ runErrorEitherWithoutLogImpl profile p e = case e of
         defaultLoggerWithoutLog :: Loc -> LogSource -> LogLevel -> LogStr -> IO ()
         defaultLoggerWithoutLog = defaultOutput stdout
 
-runErrorTImpl :: forall profile p m a. (HasCallStack, ErrorTI profile, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Context -> SafeErrorT profile p IO a -> m a
-runErrorTImpl context (SafeErrorT (ErrorT (LoggingT x))) = do
-    e <- liftIO $ runExceptT $ (x $ defaultLogger profile p context)
-    runErrorEither profile p context e
+runErrorTImpl :: forall profile p m a. (HasCallStack, ErrorTI profile, ErrorTProfile profile p, MonadError (OuterError (DefaultError p)) m, MonadIO m, MonadCatch m) => Config -> SafeErrorT profile p IO a -> m a
+runErrorTImpl cfg (SafeErrorT (ErrorT (LoggingT x))) = do
+    e <- liftIO $ runExceptT $ (x $ defaultLogger profile p cfg)
+    runErrorEither profile p cfg e
     where
         profile :: Proxy profile
         profile = Proxy
