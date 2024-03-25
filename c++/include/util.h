@@ -1,0 +1,1 @@
+int length_c(const char*);

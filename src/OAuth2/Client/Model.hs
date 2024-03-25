@@ -2,7 +2,10 @@ module OAuth2.Client.Model where
 
 import Network.WebSockets.Connection
 
+import Foreign.Ptr
+
 import Control.Concurrent
+import Data.Void
 
 data OAuth2ClientSocketConnection = 
     OAuth2ClientWebSocketConnection {
@@ -11,7 +14,7 @@ data OAuth2ClientSocketConnection =
       , closeShot :: MVar ()
       }
   | OAuth2ClientNativeSocketConnection {
-        connection :: Connection
+        stream :: Ptr Void
       , sendLock :: MVar ()
-      , closeShot :: MVar ()
+      , oneShot :: Ptr Void
       }

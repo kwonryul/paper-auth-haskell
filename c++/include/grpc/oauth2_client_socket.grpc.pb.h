@@ -35,6 +35,15 @@ class OAuth2ClientSocket final {
   class StubInterface {
    public:
     virtual ~StubInterface() {}
+    std::unique_ptr< ::grpc::ClientReaderWriterInterface< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>> NewConnection(::grpc::ClientContext* context) {
+      return std::unique_ptr< ::grpc::ClientReaderWriterInterface< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>>(NewConnectionRaw(context));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>> AsyncNewConnection(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>>(AsyncNewConnectionRaw(context, cq, tag));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>> PrepareAsyncNewConnection(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>>(PrepareAsyncNewConnectionRaw(context, cq));
+    }
     virtual ::grpc::Status SendTokenAndClose(::grpc::ClientContext* context, const ::oauth2ClientSocket::SocketIdWithToken& request, ::oauth2ClientSocket::Empty* response) = 0;
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::oauth2ClientSocket::Empty>> AsyncSendTokenAndClose(::grpc::ClientContext* context, const ::oauth2ClientSocket::SocketIdWithToken& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::oauth2ClientSocket::Empty>>(AsyncSendTokenAndCloseRaw(context, request, cq));
@@ -45,6 +54,7 @@ class OAuth2ClientSocket final {
     class async_interface {
      public:
       virtual ~async_interface() {}
+      virtual void NewConnection(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::oauth2ClientSocket::ClientSocketMessage,::oauth2ClientSocket::ServerSocketMessage>* reactor) = 0;
       virtual void SendTokenAndClose(::grpc::ClientContext* context, const ::oauth2ClientSocket::SocketIdWithToken* request, ::oauth2ClientSocket::Empty* response, std::function<void(::grpc::Status)>) = 0;
       virtual void SendTokenAndClose(::grpc::ClientContext* context, const ::oauth2ClientSocket::SocketIdWithToken* request, ::oauth2ClientSocket::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
@@ -52,12 +62,24 @@ class OAuth2ClientSocket final {
     virtual class async_interface* async() { return nullptr; }
     class async_interface* experimental_async() { return async(); }
    private:
+    virtual ::grpc::ClientReaderWriterInterface< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>* NewConnectionRaw(::grpc::ClientContext* context) = 0;
+    virtual ::grpc::ClientAsyncReaderWriterInterface< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>* AsyncNewConnectionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) = 0;
+    virtual ::grpc::ClientAsyncReaderWriterInterface< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>* PrepareAsyncNewConnectionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::oauth2ClientSocket::Empty>* AsyncSendTokenAndCloseRaw(::grpc::ClientContext* context, const ::oauth2ClientSocket::SocketIdWithToken& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::oauth2ClientSocket::Empty>* PrepareAsyncSendTokenAndCloseRaw(::grpc::ClientContext* context, const ::oauth2ClientSocket::SocketIdWithToken& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
     Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
+    std::unique_ptr< ::grpc::ClientReaderWriter< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>> NewConnection(::grpc::ClientContext* context) {
+      return std::unique_ptr< ::grpc::ClientReaderWriter< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>>(NewConnectionRaw(context));
+    }
+    std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>> AsyncNewConnection(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>>(AsyncNewConnectionRaw(context, cq, tag));
+    }
+    std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>> PrepareAsyncNewConnection(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>>(PrepareAsyncNewConnectionRaw(context, cq));
+    }
     ::grpc::Status SendTokenAndClose(::grpc::ClientContext* context, const ::oauth2ClientSocket::SocketIdWithToken& request, ::oauth2ClientSocket::Empty* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::oauth2ClientSocket::Empty>> AsyncSendTokenAndClose(::grpc::ClientContext* context, const ::oauth2ClientSocket::SocketIdWithToken& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::oauth2ClientSocket::Empty>>(AsyncSendTokenAndCloseRaw(context, request, cq));
@@ -68,6 +90,7 @@ class OAuth2ClientSocket final {
     class async final :
       public StubInterface::async_interface {
      public:
+      void NewConnection(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::oauth2ClientSocket::ClientSocketMessage,::oauth2ClientSocket::ServerSocketMessage>* reactor) override;
       void SendTokenAndClose(::grpc::ClientContext* context, const ::oauth2ClientSocket::SocketIdWithToken* request, ::oauth2ClientSocket::Empty* response, std::function<void(::grpc::Status)>) override;
       void SendTokenAndClose(::grpc::ClientContext* context, const ::oauth2ClientSocket::SocketIdWithToken* request, ::oauth2ClientSocket::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
@@ -81,8 +104,12 @@ class OAuth2ClientSocket final {
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
     class async async_stub_{this};
+    ::grpc::ClientReaderWriter< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>* NewConnectionRaw(::grpc::ClientContext* context) override;
+    ::grpc::ClientAsyncReaderWriter< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>* AsyncNewConnectionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) override;
+    ::grpc::ClientAsyncReaderWriter< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>* PrepareAsyncNewConnectionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::oauth2ClientSocket::Empty>* AsyncSendTokenAndCloseRaw(::grpc::ClientContext* context, const ::oauth2ClientSocket::SocketIdWithToken& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::oauth2ClientSocket::Empty>* PrepareAsyncSendTokenAndCloseRaw(::grpc::ClientContext* context, const ::oauth2ClientSocket::SocketIdWithToken& request, ::grpc::CompletionQueue* cq) override;
+    const ::grpc::internal::RpcMethod rpcmethod_NewConnection_;
     const ::grpc::internal::RpcMethod rpcmethod_SendTokenAndClose_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
@@ -91,7 +118,28 @@ class OAuth2ClientSocket final {
    public:
     Service();
     virtual ~Service();
+    virtual ::grpc::Status NewConnection(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::oauth2ClientSocket::ServerSocketMessage, ::oauth2ClientSocket::ClientSocketMessage>* stream);
     virtual ::grpc::Status SendTokenAndClose(::grpc::ServerContext* context, const ::oauth2ClientSocket::SocketIdWithToken* request, ::oauth2ClientSocket::Empty* response);
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_NewConnection : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_NewConnection() {
+      ::grpc::Service::MarkMethodAsync(0);
+    }
+    ~WithAsyncMethod_NewConnection() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status NewConnection(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::oauth2ClientSocket::ServerSocketMessage, ::oauth2ClientSocket::ClientSocketMessage>* /*stream*/)  override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestNewConnection(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::oauth2ClientSocket::ServerSocketMessage, ::oauth2ClientSocket::ClientSocketMessage>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncBidiStreaming(0, context, stream, new_call_cq, notification_cq, tag);
+    }
   };
   template <class BaseClass>
   class WithAsyncMethod_SendTokenAndClose : public BaseClass {
@@ -99,7 +147,7 @@ class OAuth2ClientSocket final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_SendTokenAndClose() {
-      ::grpc::Service::MarkMethodAsync(0);
+      ::grpc::Service::MarkMethodAsync(1);
     }
     ~WithAsyncMethod_SendTokenAndClose() override {
       BaseClassMustBeDerivedFromService(this);
@@ -110,23 +158,46 @@ class OAuth2ClientSocket final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSendTokenAndClose(::grpc::ServerContext* context, ::oauth2ClientSocket::SocketIdWithToken* request, ::grpc::ServerAsyncResponseWriter< ::oauth2ClientSocket::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_SendTokenAndClose<Service > AsyncService;
+  typedef WithAsyncMethod_NewConnection<WithAsyncMethod_SendTokenAndClose<Service > > AsyncService;
+  template <class BaseClass>
+  class WithCallbackMethod_NewConnection : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_NewConnection() {
+      ::grpc::Service::MarkMethodCallback(0,
+          new ::grpc::internal::CallbackBidiHandler< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>(
+            [this](
+                   ::grpc::CallbackServerContext* context) { return this->NewConnection(context); }));
+    }
+    ~WithCallbackMethod_NewConnection() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status NewConnection(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::oauth2ClientSocket::ServerSocketMessage, ::oauth2ClientSocket::ClientSocketMessage>* /*stream*/)  override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerBidiReactor< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>* NewConnection(
+      ::grpc::CallbackServerContext* /*context*/)
+      { return nullptr; }
+  };
   template <class BaseClass>
   class WithCallbackMethod_SendTokenAndClose : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_SendTokenAndClose() {
-      ::grpc::Service::MarkMethodCallback(0,
+      ::grpc::Service::MarkMethodCallback(1,
           new ::grpc::internal::CallbackUnaryHandler< ::oauth2ClientSocket::SocketIdWithToken, ::oauth2ClientSocket::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::oauth2ClientSocket::SocketIdWithToken* request, ::oauth2ClientSocket::Empty* response) { return this->SendTokenAndClose(context, request, response); }));}
     void SetMessageAllocatorFor_SendTokenAndClose(
         ::grpc::MessageAllocator< ::oauth2ClientSocket::SocketIdWithToken, ::oauth2ClientSocket::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(0);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(1);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::oauth2ClientSocket::SocketIdWithToken, ::oauth2ClientSocket::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -141,15 +212,32 @@ class OAuth2ClientSocket final {
     virtual ::grpc::ServerUnaryReactor* SendTokenAndClose(
       ::grpc::CallbackServerContext* /*context*/, const ::oauth2ClientSocket::SocketIdWithToken* /*request*/, ::oauth2ClientSocket::Empty* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_SendTokenAndClose<Service > CallbackService;
+  typedef WithCallbackMethod_NewConnection<WithCallbackMethod_SendTokenAndClose<Service > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
+  template <class BaseClass>
+  class WithGenericMethod_NewConnection : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_NewConnection() {
+      ::grpc::Service::MarkMethodGeneric(0);
+    }
+    ~WithGenericMethod_NewConnection() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status NewConnection(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::oauth2ClientSocket::ServerSocketMessage, ::oauth2ClientSocket::ClientSocketMessage>* /*stream*/)  override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
   template <class BaseClass>
   class WithGenericMethod_SendTokenAndClose : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_SendTokenAndClose() {
-      ::grpc::Service::MarkMethodGeneric(0);
+      ::grpc::Service::MarkMethodGeneric(1);
     }
     ~WithGenericMethod_SendTokenAndClose() override {
       BaseClassMustBeDerivedFromService(this);
@@ -161,12 +249,32 @@ class OAuth2ClientSocket final {
     }
   };
   template <class BaseClass>
+  class WithRawMethod_NewConnection : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_NewConnection() {
+      ::grpc::Service::MarkMethodRaw(0);
+    }
+    ~WithRawMethod_NewConnection() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status NewConnection(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::oauth2ClientSocket::ServerSocketMessage, ::oauth2ClientSocket::ClientSocketMessage>* /*stream*/)  override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestNewConnection(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncBidiStreaming(0, context, stream, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithRawMethod_SendTokenAndClose : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_SendTokenAndClose() {
-      ::grpc::Service::MarkMethodRaw(0);
+      ::grpc::Service::MarkMethodRaw(1);
     }
     ~WithRawMethod_SendTokenAndClose() override {
       BaseClassMustBeDerivedFromService(this);
@@ -177,8 +285,31 @@ class OAuth2ClientSocket final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSendTokenAndClose(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_NewConnection : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_NewConnection() {
+      ::grpc::Service::MarkMethodRawCallback(0,
+          new ::grpc::internal::CallbackBidiHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context) { return this->NewConnection(context); }));
+    }
+    ~WithRawCallbackMethod_NewConnection() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status NewConnection(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::oauth2ClientSocket::ServerSocketMessage, ::oauth2ClientSocket::ClientSocketMessage>* /*stream*/)  override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerBidiReactor< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* NewConnection(
+      ::grpc::CallbackServerContext* /*context*/)
+      { return nullptr; }
   };
   template <class BaseClass>
   class WithRawCallbackMethod_SendTokenAndClose : public BaseClass {
@@ -186,7 +317,7 @@ class OAuth2ClientSocket final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_SendTokenAndClose() {
-      ::grpc::Service::MarkMethodRawCallback(0,
+      ::grpc::Service::MarkMethodRawCallback(1,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SendTokenAndClose(context, request, response); }));
@@ -208,7 +339,7 @@ class OAuth2ClientSocket final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_SendTokenAndClose() {
-      ::grpc::Service::MarkMethodStreamed(0,
+      ::grpc::Service::MarkMethodStreamed(1,
         new ::grpc::internal::StreamedUnaryHandler<
           ::oauth2ClientSocket::SocketIdWithToken, ::oauth2ClientSocket::Empty>(
             [this](::grpc::ServerContext* context,

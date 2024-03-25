@@ -21,6 +21,10 @@ build/grpc/oauth2_client_socket.pb.o: src/grpc/oauth2_client_socket.pb.cc
 	mkdir -p build/grpc
 	$(CXX) $(CPPFLAGS) -c -fPIC $(INCLUDEFLAGS) $< -o $@
 
+build/util.o: src/util.cc
+	mkdir -p build
+	$(CXX) $(CPPFLAGS) -c -fPIC $(INCLUDEFLAGS) $< -o $@
+
 build/oauth2_client_socket_client.o: src/oauth2_client_socket_client.cc
 	mkdir -p build
 	$(CXX) $(CPPFLAGS) -c -fPIC $(INCLUDEFLAGS) $< -o $@
@@ -29,7 +33,7 @@ build/oauth2_client_socket_server.o: src/oauth2_client_socket_server.cc
 	mkdir -p build
 	$(CXX) $(CPPFLAGS) -c -fPIC $(INCLUDEFLAGS) $< -o $@
 
-out/liboauth2_client_socket.so: build/oauth2_client_socket_client.o build/oauth2_client_socket_server.o build/grpc/oauth2_client_socket.grpc.pb.o build/grpc/oauth2_client_socket.pb.o
+out/liboauth2_client_socket.so: build/util.o build/oauth2_client_socket_client.o build/oauth2_client_socket_server.o build/grpc/oauth2_client_socket.grpc.pb.o build/grpc/oauth2_client_socket.pb.o
 	mkdir -p out
 	$(CXX) $(CPPFLAGS) -shared -fPIC $^ -o $@ $(LDFLAGS)
 
@@ -38,3 +42,7 @@ build:
 	echo "Building CPP..."
 	make clean
 	make out/liboauth2_client_socket.so
+
+.PHONY: huxa
+huxa:
+	$(CXX) $(CPPFLAGS) -o huxa -fPIC $(INCLUDEFLAGS) src/cla.cc build/grpc/oauth2_client_socket.pb.o build/grpc/oauth2_client_socket.grpc.pb.o $(LDFLAGS)

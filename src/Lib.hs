@@ -53,12 +53,19 @@ import Control.Monad.IO.Unlift
 import Control.Monad.Reader
 import Control.Concurrent
 import Control.Exception
+import Data.Void
 import Data.Proxy
 import System.Environment
 import GHC.Stack
 
-foreign import ccall "wrapper" genSendTokenAndCloseC :: (Int -> CString -> CString -> IO CString) -> IO (FunPtr (Int -> CString -> CString -> IO CString))
-foreign import ccall "run_oauth2_client_socket_server_c" runOAuth2ClientSocketServerC :: Int -> FunPtr (Int -> CString -> CString -> IO CString) -> IO CString
+type SaveConnectionFun = Ptr Void -> Ptr Void -> IO Int
+type CleanConnectionFun = Int -> IO CString
+type SendTokenAndCloseFun = Int -> CString -> CString -> IO CString
+
+foreign import ccall "wrapper" genSaveConnectionFunPtr :: SaveConnectionFun -> IO (FunPtr SaveConnectionFun)
+foreign import ccall "wrapper" genCleanConnectionFunPtr :: CleanConnectionFun -> IO (FunPtr CleanConnectionFun)
+foreign import ccall "wrapper" genSendTokenAndCloseFunPtr :: SendTokenAndCloseFun -> IO (FunPtr SendTokenAndCloseFun)
+foreign import ccall "run_oauth2_client_socket_server_c" runOAuth2ClientSocketServerC :: Int -> FunPtr SaveConnectionFun -> FunPtr CleanConnectionFun -> FunPtr SendTokenAndCloseFun -> IO CString
 
 data Resources = Resources {
     context :: Context
@@ -111,14 +118,23 @@ startApp'Impl ctx certPath secretKeyPath = do
         staticFilePath = projectDir ++ "resources/static"
     _ <- globalLiftIOUnliftIO $ do
             forkIO $ do
-                res <- bracket
-                    (nestedLog profile (config ctx) $ genSendTokenAndCloseC $ sendTokenAndCloseHs profile (config ctx) $ oauth2ClientSocketConnections ctx)
-                    (\sendTokenAndCloseC -> nestedLog profile (config ctx) $ freeHaskellFunPtr sendTokenAndCloseC)
-                    (\sendTokenAndCloseC -> do
-                        bracket
-                            (nestedLog profile (config ctx) $ runOAuth2ClientSocketServerC oauth2ClientSocketPort sendTokenAndCloseC)
-                            (nestedLog profile (config ctx) . free)
-                            (nestedLog profile (config ctx) . peekCString)
+                res <-
+                    bracket
+                        (nestedLog profile (config ctx) $ genSaveConnectionFunPtr $ saveConnectionHs profile (config ctx) (oauth2ClientSocketConnections ctx) $ paperAuthPool ctx)
+                        (\saveConnectionFunPtr -> nestedLog profile (config ctx) $ freeHaskellFunPtr saveConnectionFunPtr)
+                        (\saveConnectionFunPtr -> bracket
+                            (nestedLog profile (config ctx) $ genCleanConnectionFunPtr $ cleanConnectionHs profile (config ctx) (oauth2ClientSocketConnections ctx) $ paperAuthPool ctx)
+                            (\cleanConnectionFunPtr -> nestedLog profile (config ctx) $ freeHaskellFunPtr cleanConnectionFunPtr)
+                            (\cleanConnectionFunPtr -> bracket
+                                (nestedLog profile (config ctx) $ genSendTokenAndCloseFunPtr $ sendTokenAndCloseHs profile (config ctx) $ oauth2ClientSocketConnections ctx)
+                                (\sendTokenAndCloseFunPtr -> nestedLog profile (config ctx) $ freeHaskellFunPtr sendTokenAndCloseFunPtr)
+                                (\sendTokenAndCloseFunPtr -> do
+                                    bracket
+                                        (nestedLog profile (config ctx) $ runOAuth2ClientSocketServerC oauth2ClientSocketPort saveConnectionFunPtr cleanConnectionFunPtr sendTokenAndCloseFunPtr)
+                                        (nestedLog profile (config ctx) . free)
+                                        (nestedLog profile (config ctx) . peekCString)
+                                    )
+                            )
                         )
                 case res of
                     "OK" ->

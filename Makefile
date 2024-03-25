@@ -65,7 +65,7 @@ build_no_test: clean_build update_cabal asciidoctor_no_test cpp_make
 	mkdir -p out
 	cp dist-newstyle/build/x86_64-linux/ghc-${ghc_version}/paper-auth-${project_version}/build/libHSpaper-auth-${project_version}-inplace-ghc${ghc_version}.so out/
 	cp dist-newstyle/build/x86_64-linux/ghc-${ghc_version}/paper-auth-${project_version}/build/libHSpaper-auth-${project_version}-inplace.a out/
-	cp dist-newstyle/build/x86_64-linux/ghc-${ghc_version}/paper-auth-${project_version}/x/paper-auth-exe/build/paper-auth-exe out/
+	cp dist-newstyle/build/x86_64-linux/ghc-${ghc_version}/paper-auth-${project_version}/x/paper-auth-exe/build/paper-auth-exe/paper-auth-exe out/
 
 #.PHONY: clean_install
 #clean_install:
@@ -107,6 +107,11 @@ run_prod:
 	sudo -v
 	echo "Running Prod..."
 	sudo bash -c "export LD_LIBRARY_PATH=${project_dir}c++/out && out/paper-auth-exe prod"
+
+run_test:
+	sudo -v
+	echo "Running Test..."
+	sudo bash -c "export LD_LIBRARY_PATH=${project_dir}c++/out && out/paper-auth-exe test"
 
 .PHONY: rund
 rund:

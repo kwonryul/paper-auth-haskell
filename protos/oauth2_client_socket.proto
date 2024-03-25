@@ -3,7 +3,23 @@ syntax = "proto3";
 package oauth2ClientSocket;
 
 service OAuth2ClientSocket {
+    rpc NewConnection(stream ClientSocketMessage) returns (stream ServerSocketMessage) {}
     rpc SendTokenAndClose(SocketIdWithToken) returns (Empty) {}
+}
+
+message ClientSocketMessage {
+}
+
+message ServerSocketMessage {
+    oneof message {
+        string state = 1;
+        Tokens tokens = 2;
+    }
+}
+
+message Tokens {
+    string accessToken = 1;
+    string refreshToken = 2;
 }
 
 message SocketIdWithToken {

@@ -22,6 +22,30 @@ namespace _pbi = ::google::protobuf::internal;
 namespace _fl = ::google::protobuf::internal::field_layout;
 namespace oauth2ClientSocket {
 
+inline constexpr Tokens::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : accesstoken_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        refreshtoken_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        _cached_size_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR Tokens::Tokens(::_pbi::ConstantInitialized)
+    : _impl_(::_pbi::ConstantInitialized()) {}
+struct TokensDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR TokensDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~TokensDefaultTypeInternal() {}
+  union {
+    Tokens _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 TokensDefaultTypeInternal _Tokens_default_instance_;
+
 inline constexpr SocketIdWithToken::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : accesstoken_(
@@ -59,14 +83,85 @@ struct EmptyDefaultTypeInternal {
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 EmptyDefaultTypeInternal _Empty_default_instance_;
+
+inline constexpr ClientSocketMessage::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : message_{},
+        _cached_size_{0},
+        _oneof_case_{} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ClientSocketMessage::ClientSocketMessage(::_pbi::ConstantInitialized)
+    : _impl_(::_pbi::ConstantInitialized()) {}
+struct ClientSocketMessageDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ClientSocketMessageDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ClientSocketMessageDefaultTypeInternal() {}
+  union {
+    ClientSocketMessage _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ClientSocketMessageDefaultTypeInternal _ClientSocketMessage_default_instance_;
+
+inline constexpr ServerSocketMessage::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : message_{},
+        _cached_size_{0},
+        _oneof_case_{} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR ServerSocketMessage::ServerSocketMessage(::_pbi::ConstantInitialized)
+    : _impl_(::_pbi::ConstantInitialized()) {}
+struct ServerSocketMessageDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ServerSocketMessageDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ServerSocketMessageDefaultTypeInternal() {}
+  union {
+    ServerSocketMessage _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ServerSocketMessageDefaultTypeInternal _ServerSocketMessage_default_instance_;
 }  // namespace oauth2ClientSocket
-static ::_pb::Metadata file_level_metadata_oauth2_5fclient_5fsocket_2eproto[2];
+static ::_pb::Metadata file_level_metadata_oauth2_5fclient_5fsocket_2eproto[5];
 static constexpr const ::_pb::EnumDescriptor**
     file_level_enum_descriptors_oauth2_5fclient_5fsocket_2eproto = nullptr;
 static constexpr const ::_pb::ServiceDescriptor**
     file_level_service_descriptors_oauth2_5fclient_5fsocket_2eproto = nullptr;
 const ::uint32_t TableStruct_oauth2_5fclient_5fsocket_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
     protodesc_cold) = {
+    ~0u,  // no _has_bits_
+    PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::ClientSocketMessage, _internal_metadata_),
+    ~0u,  // no _extensions_
+    PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::ClientSocketMessage, _impl_._oneof_case_[0]),
+    ~0u,  // no _weak_field_map_
+    ~0u,  // no _inlined_string_donated_
+    ~0u,  // no _split_
+    ~0u,  // no sizeof(Split)
+    ::_pbi::kInvalidFieldOffsetTag,
+    PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::ClientSocketMessage, _impl_.message_),
+    ~0u,  // no _has_bits_
+    PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::ServerSocketMessage, _internal_metadata_),
+    ~0u,  // no _extensions_
+    PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::ServerSocketMessage, _impl_._oneof_case_[0]),
+    ~0u,  // no _weak_field_map_
+    ~0u,  // no _inlined_string_donated_
+    ~0u,  // no _split_
+    ~0u,  // no sizeof(Split)
+    ::_pbi::kInvalidFieldOffsetTag,
+    ::_pbi::kInvalidFieldOffsetTag,
+    PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::ServerSocketMessage, _impl_.message_),
+    ~0u,  // no _has_bits_
+    PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::Tokens, _internal_metadata_),
+    ~0u,  // no _extensions_
+    ~0u,  // no _oneof_case_
+    ~0u,  // no _weak_field_map_
+    ~0u,  // no _inlined_string_donated_
+    ~0u,  // no _split_
+    ~0u,  // no sizeof(Split)
+    PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::Tokens, _impl_.accesstoken_),
+    PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::Tokens, _impl_.refreshtoken_),
     ~0u,  // no _has_bits_
     PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::SocketIdWithToken, _internal_metadata_),
     ~0u,  // no _extensions_
@@ -91,34 +186,48 @@ const ::uint32_t TableStruct_oauth2_5fclient_5fsocket_2eproto::offsets[] PROTOBU
 
 static const ::_pbi::MigrationSchema
     schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-        {0, -1, -1, sizeof(::oauth2ClientSocket::SocketIdWithToken)},
-        {12, -1, -1, sizeof(::oauth2ClientSocket::Empty)},
+        {0, -1, -1, sizeof(::oauth2ClientSocket::ClientSocketMessage)},
+        {10, -1, -1, sizeof(::oauth2ClientSocket::ServerSocketMessage)},
+        {21, -1, -1, sizeof(::oauth2ClientSocket::Tokens)},
+        {31, -1, -1, sizeof(::oauth2ClientSocket::SocketIdWithToken)},
+        {43, -1, -1, sizeof(::oauth2ClientSocket::Empty)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
+    &::oauth2ClientSocket::_ClientSocketMessage_default_instance_._instance,
+    &::oauth2ClientSocket::_ServerSocketMessage_default_instance_._instance,
+    &::oauth2ClientSocket::_Tokens_default_instance_._instance,
     &::oauth2ClientSocket::_SocketIdWithToken_default_instance_._instance,
     &::oauth2ClientSocket::_Empty_default_instance_._instance,
 };
 const char descriptor_table_protodef_oauth2_5fclient_5fsocket_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
     "\n\032oauth2_client_socket.proto\022\022oauth2Clie"
-    "ntSocket\"^\n\021SocketIdWithToken\022\014\n\004port\030\001 "
+    "ntSocket\"0\n\023ClientSocketMessage\022\016\n\004port\030"
+    "\001 \001(\005H\000B\t\n\007message\"_\n\023ServerSocketMessag"
+    "e\022\017\n\005state\030\001 \001(\tH\000\022,\n\006tokens\030\002 \001(\0132\032.oau"
+    "th2ClientSocket.TokensH\000B\t\n\007message\"3\n\006T"
+    "okens\022\023\n\013accessToken\030\001 \001(\t\022\024\n\014refreshTok"
+    "en\030\002 \001(\t\"^\n\021SocketIdWithToken\022\014\n\004port\030\001 "
     "\001(\005\022\020\n\010socketId\030\002 \001(\005\022\023\n\013accessToken\030\003 \001"
-    "(\t\022\024\n\014refreshToken\030\004 \001(\t\"\007\n\005Empty2m\n\022OAu"
-    "th2ClientSocket\022W\n\021SendTokenAndClose\022%.o"
-    "auth2ClientSocket.SocketIdWithToken\032\031.oa"
-    "uth2ClientSocket.Empty\"\000b\006proto3"
+    "(\t\022\024\n\014refreshToken\030\004 \001(\t\"\007\n\005Empty2\326\001\n\022OA"
+    "uth2ClientSocket\022g\n\rNewConnection\022\'.oaut"
+    "h2ClientSocket.ClientSocketMessage\032\'.oau"
+    "th2ClientSocket.ServerSocketMessage\"\000(\0010"
+    "\001\022W\n\021SendTokenAndClose\022%.oauth2ClientSoc"
+    "ket.SocketIdWithToken\032\031.oauth2ClientSock"
+    "et.Empty\"\000b\006proto3"
 };
 static ::absl::once_flag descriptor_table_oauth2_5fclient_5fsocket_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_oauth2_5fclient_5fsocket_2eproto = {
     false,
     false,
-    272,
+    578,
     descriptor_table_protodef_oauth2_5fclient_5fsocket_2eproto,
     "oauth2_client_socket.proto",
     &descriptor_table_oauth2_5fclient_5fsocket_2eproto_once,
     nullptr,
     0,
-    2,
+    5,
     schemas,
     file_default_instances,
     TableStruct_oauth2_5fclient_5fsocket_2eproto::offsets,
@@ -145,6 +254,724 @@ PROTOBUF_ATTRIBUTE_WEAK const ::_pbi::DescriptorTable* descriptor_table_oauth2_5
 PROTOBUF_ATTRIBUTE_INIT_PRIORITY2
 static ::_pbi::AddDescriptorsRunner dynamic_init_dummy_oauth2_5fclient_5fsocket_2eproto(&descriptor_table_oauth2_5fclient_5fsocket_2eproto);
 namespace oauth2ClientSocket {
+// ===================================================================
+
+class ClientSocketMessage::_Internal {
+ public:
+  static constexpr ::int32_t kOneofCaseOffset =
+    PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::ClientSocketMessage, _impl_._oneof_case_);
+};
+
+ClientSocketMessage::ClientSocketMessage(::google::protobuf::Arena* arena)
+    : ::google::protobuf::Message(arena) {
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:oauth2ClientSocket.ClientSocketMessage)
+}
+inline PROTOBUF_NDEBUG_INLINE ClientSocketMessage::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from)
+      : message_{},
+        _cached_size_{0},
+        _oneof_case_{from._oneof_case_[0]} {}
+
+ClientSocketMessage::ClientSocketMessage(
+    ::google::protobuf::Arena* arena,
+    const ClientSocketMessage& from)
+    : ::google::protobuf::Message(arena) {
+  ClientSocketMessage* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_);
+  switch (message_case()) {
+    case MESSAGE_NOT_SET:
+      break;
+      case kPort:
+        _impl_.message_.port_ = from._impl_.message_.port_;
+        break;
+  }
+
+  // @@protoc_insertion_point(copy_constructor:oauth2ClientSocket.ClientSocketMessage)
+}
+inline PROTOBUF_NDEBUG_INLINE ClientSocketMessage::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : message_{},
+        _cached_size_{0},
+        _oneof_case_{} {}
+
+inline void ClientSocketMessage::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+ClientSocketMessage::~ClientSocketMessage() {
+  // @@protoc_insertion_point(destructor:oauth2ClientSocket.ClientSocketMessage)
+  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  SharedDtor();
+}
+inline void ClientSocketMessage::SharedDtor() {
+  ABSL_DCHECK(GetArena() == nullptr);
+  if (has_message()) {
+    clear_message();
+  }
+  _impl_.~Impl_();
+}
+
+void ClientSocketMessage::clear_message() {
+// @@protoc_insertion_point(one_of_clear_start:oauth2ClientSocket.ClientSocketMessage)
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  switch (message_case()) {
+    case kPort: {
+      // No need to clear
+      break;
+    }
+    case MESSAGE_NOT_SET: {
+      break;
+    }
+  }
+  _impl_._oneof_case_[0] = MESSAGE_NOT_SET;
+}
+
+
+PROTOBUF_NOINLINE void ClientSocketMessage::Clear() {
+// @@protoc_insertion_point(message_clear_start:oauth2ClientSocket.ClientSocketMessage)
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  clear_message();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+const char* ClientSocketMessage::_InternalParse(
+    const char* ptr, ::_pbi::ParseContext* ctx) {
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  return ptr;
+}
+
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 0, 0, 2> ClientSocketMessage::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    &_ClientSocketMessage_default_instance_._instance,
+    ::_pbi::TcParser::GenericFallback,  // fallback
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // int32 port = 1;
+    {PROTOBUF_FIELD_OFFSET(ClientSocketMessage, _impl_.message_.port_), _Internal::kOneofCaseOffset + 0, 0,
+    (0 | ::_fl::kFcOneof | ::_fl::kInt32)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+
+::uint8_t* ClientSocketMessage::_InternalSerialize(
+    ::uint8_t* target,
+    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:oauth2ClientSocket.ClientSocketMessage)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // int32 port = 1;
+  if (message_case() == kPort) {
+    target = ::google::protobuf::internal::WireFormatLite::
+        WriteInt32ToArrayWithField<1>(
+            stream, this->_internal_port(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:oauth2ClientSocket.ClientSocketMessage)
+  return target;
+}
+
+::size_t ClientSocketMessage::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:oauth2ClientSocket.ClientSocketMessage)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  switch (message_case()) {
+    // int32 port = 1;
+    case kPort: {
+      total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+          this->_internal_port());
+      break;
+    }
+    case MESSAGE_NOT_SET: {
+      break;
+    }
+  }
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::google::protobuf::Message::ClassData ClientSocketMessage::_class_data_ = {
+    ClientSocketMessage::MergeImpl,
+    nullptr,  // OnDemandRegisterArenaDtor
+};
+const ::google::protobuf::Message::ClassData* ClientSocketMessage::GetClassData() const {
+  return &_class_data_;
+}
+
+void ClientSocketMessage::MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg) {
+  auto* const _this = static_cast<ClientSocketMessage*>(&to_msg);
+  auto& from = static_cast<const ClientSocketMessage&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:oauth2ClientSocket.ClientSocketMessage)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  switch (from.message_case()) {
+    case kPort: {
+      _this->_internal_set_port(from._internal_port());
+      break;
+    }
+    case MESSAGE_NOT_SET: {
+      break;
+    }
+  }
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ClientSocketMessage::CopyFrom(const ClientSocketMessage& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:oauth2ClientSocket.ClientSocketMessage)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+PROTOBUF_NOINLINE bool ClientSocketMessage::IsInitialized() const {
+  return true;
+}
+
+::_pbi::CachedSize* ClientSocketMessage::AccessCachedSize() const {
+  return &_impl_._cached_size_;
+}
+void ClientSocketMessage::InternalSwap(ClientSocketMessage* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_.message_, other->_impl_.message_);
+  swap(_impl_._oneof_case_[0], other->_impl_._oneof_case_[0]);
+}
+
+::google::protobuf::Metadata ClientSocketMessage::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_oauth2_5fclient_5fsocket_2eproto_getter, &descriptor_table_oauth2_5fclient_5fsocket_2eproto_once,
+      file_level_metadata_oauth2_5fclient_5fsocket_2eproto[0]);
+}
+// ===================================================================
+
+class ServerSocketMessage::_Internal {
+ public:
+  static constexpr ::int32_t kOneofCaseOffset =
+    PROTOBUF_FIELD_OFFSET(::oauth2ClientSocket::ServerSocketMessage, _impl_._oneof_case_);
+  static const ::oauth2ClientSocket::Tokens& tokens(const ServerSocketMessage* msg);
+};
+
+const ::oauth2ClientSocket::Tokens& ServerSocketMessage::_Internal::tokens(const ServerSocketMessage* msg) {
+  return *msg->_impl_.message_.tokens_;
+}
+void ServerSocketMessage::set_allocated_tokens(::oauth2ClientSocket::Tokens* tokens) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  clear_message();
+  if (tokens) {
+    ::google::protobuf::Arena* submessage_arena = tokens->GetArena();
+    if (message_arena != submessage_arena) {
+      tokens = ::google::protobuf::internal::GetOwnedMessage(message_arena, tokens, submessage_arena);
+    }
+    set_has_tokens();
+    _impl_.message_.tokens_ = tokens;
+  }
+  // @@protoc_insertion_point(field_set_allocated:oauth2ClientSocket.ServerSocketMessage.tokens)
+}
+ServerSocketMessage::ServerSocketMessage(::google::protobuf::Arena* arena)
+    : ::google::protobuf::Message(arena) {
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:oauth2ClientSocket.ServerSocketMessage)
+}
+inline PROTOBUF_NDEBUG_INLINE ServerSocketMessage::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from)
+      : message_{},
+        _cached_size_{0},
+        _oneof_case_{from._oneof_case_[0]} {}
+
+ServerSocketMessage::ServerSocketMessage(
+    ::google::protobuf::Arena* arena,
+    const ServerSocketMessage& from)
+    : ::google::protobuf::Message(arena) {
+  ServerSocketMessage* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_);
+  switch (message_case()) {
+    case MESSAGE_NOT_SET:
+      break;
+      case kState:
+        new (&_impl_.message_.state_) decltype(_impl_.message_.state_){arena, from._impl_.message_.state_};
+        break;
+      case kTokens:
+        _impl_.message_.tokens_ = CreateMaybeMessage<::oauth2ClientSocket::Tokens>(arena, *from._impl_.message_.tokens_);
+        break;
+  }
+
+  // @@protoc_insertion_point(copy_constructor:oauth2ClientSocket.ServerSocketMessage)
+}
+inline PROTOBUF_NDEBUG_INLINE ServerSocketMessage::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : message_{},
+        _cached_size_{0},
+        _oneof_case_{} {}
+
+inline void ServerSocketMessage::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+ServerSocketMessage::~ServerSocketMessage() {
+  // @@protoc_insertion_point(destructor:oauth2ClientSocket.ServerSocketMessage)
+  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  SharedDtor();
+}
+inline void ServerSocketMessage::SharedDtor() {
+  ABSL_DCHECK(GetArena() == nullptr);
+  if (has_message()) {
+    clear_message();
+  }
+  _impl_.~Impl_();
+}
+
+void ServerSocketMessage::clear_message() {
+// @@protoc_insertion_point(one_of_clear_start:oauth2ClientSocket.ServerSocketMessage)
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  switch (message_case()) {
+    case kState: {
+      _impl_.message_.state_.Destroy();
+      break;
+    }
+    case kTokens: {
+      if (GetArena() == nullptr) {
+        delete _impl_.message_.tokens_;
+      }
+      break;
+    }
+    case MESSAGE_NOT_SET: {
+      break;
+    }
+  }
+  _impl_._oneof_case_[0] = MESSAGE_NOT_SET;
+}
+
+
+PROTOBUF_NOINLINE void ServerSocketMessage::Clear() {
+// @@protoc_insertion_point(message_clear_start:oauth2ClientSocket.ServerSocketMessage)
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  clear_message();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+const char* ServerSocketMessage::_InternalParse(
+    const char* ptr, ::_pbi::ParseContext* ctx) {
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  return ptr;
+}
+
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 2, 1, 52, 2> ServerSocketMessage::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    2, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    1,  // num_aux_entries
+    offsetof(decltype(_table_), aux_entries),
+    &_ServerSocketMessage_default_instance_._instance,
+    ::_pbi::TcParser::GenericFallback,  // fallback
+  }, {{
+    {::_pbi::TcParser::MiniParse, {}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string state = 1;
+    {PROTOBUF_FIELD_OFFSET(ServerSocketMessage, _impl_.message_.state_), _Internal::kOneofCaseOffset + 0, 0,
+    (0 | ::_fl::kFcOneof | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // .oauth2ClientSocket.Tokens tokens = 2;
+    {PROTOBUF_FIELD_OFFSET(ServerSocketMessage, _impl_.message_.tokens_), _Internal::kOneofCaseOffset + 0, 0,
+    (0 | ::_fl::kFcOneof | ::_fl::kMessage | ::_fl::kTvTable)},
+  }}, {{
+    {::_pbi::TcParser::GetTable<::oauth2ClientSocket::Tokens>()},
+  }}, {{
+    "\46\5\0\0\0\0\0\0"
+    "oauth2ClientSocket.ServerSocketMessage"
+    "state"
+  }},
+};
+
+::uint8_t* ServerSocketMessage::_InternalSerialize(
+    ::uint8_t* target,
+    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:oauth2ClientSocket.ServerSocketMessage)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  switch (message_case()) {
+    case kState: {
+      const std::string& _s = this->_internal_state();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "oauth2ClientSocket.ServerSocketMessage.state");
+      target = stream->WriteStringMaybeAliased(1, _s, target);
+      break;
+    }
+    case kTokens: {
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          2, _Internal::tokens(this),
+          _Internal::tokens(this).GetCachedSize(), target, stream);
+      break;
+    }
+    default:
+      break;
+  }
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:oauth2ClientSocket.ServerSocketMessage)
+  return target;
+}
+
+::size_t ServerSocketMessage::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:oauth2ClientSocket.ServerSocketMessage)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  switch (message_case()) {
+    // string state = 1;
+    case kState: {
+      total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                      this->_internal_state());
+      break;
+    }
+    // .oauth2ClientSocket.Tokens tokens = 2;
+    case kTokens: {
+      total_size +=
+          1 + ::google::protobuf::internal::WireFormatLite::MessageSize(*_impl_.message_.tokens_);
+      break;
+    }
+    case MESSAGE_NOT_SET: {
+      break;
+    }
+  }
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::google::protobuf::Message::ClassData ServerSocketMessage::_class_data_ = {
+    ServerSocketMessage::MergeImpl,
+    nullptr,  // OnDemandRegisterArenaDtor
+};
+const ::google::protobuf::Message::ClassData* ServerSocketMessage::GetClassData() const {
+  return &_class_data_;
+}
+
+void ServerSocketMessage::MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg) {
+  auto* const _this = static_cast<ServerSocketMessage*>(&to_msg);
+  auto& from = static_cast<const ServerSocketMessage&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:oauth2ClientSocket.ServerSocketMessage)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  switch (from.message_case()) {
+    case kState: {
+      _this->_internal_set_state(from._internal_state());
+      break;
+    }
+    case kTokens: {
+      _this->_internal_mutable_tokens()->::oauth2ClientSocket::Tokens::MergeFrom(
+          from._internal_tokens());
+      break;
+    }
+    case MESSAGE_NOT_SET: {
+      break;
+    }
+  }
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ServerSocketMessage::CopyFrom(const ServerSocketMessage& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:oauth2ClientSocket.ServerSocketMessage)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+PROTOBUF_NOINLINE bool ServerSocketMessage::IsInitialized() const {
+  return true;
+}
+
+::_pbi::CachedSize* ServerSocketMessage::AccessCachedSize() const {
+  return &_impl_._cached_size_;
+}
+void ServerSocketMessage::InternalSwap(ServerSocketMessage* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_.message_, other->_impl_.message_);
+  swap(_impl_._oneof_case_[0], other->_impl_._oneof_case_[0]);
+}
+
+::google::protobuf::Metadata ServerSocketMessage::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_oauth2_5fclient_5fsocket_2eproto_getter, &descriptor_table_oauth2_5fclient_5fsocket_2eproto_once,
+      file_level_metadata_oauth2_5fclient_5fsocket_2eproto[1]);
+}
+// ===================================================================
+
+class Tokens::_Internal {
+ public:
+};
+
+Tokens::Tokens(::google::protobuf::Arena* arena)
+    : ::google::protobuf::Message(arena) {
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:oauth2ClientSocket.Tokens)
+}
+inline PROTOBUF_NDEBUG_INLINE Tokens::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility, ::google::protobuf::Arena* arena,
+    const Impl_& from)
+      : accesstoken_(arena, from.accesstoken_),
+        refreshtoken_(arena, from.refreshtoken_),
+        _cached_size_{0} {}
+
+Tokens::Tokens(
+    ::google::protobuf::Arena* arena,
+    const Tokens& from)
+    : ::google::protobuf::Message(arena) {
+  Tokens* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_);
+
+  // @@protoc_insertion_point(copy_constructor:oauth2ClientSocket.Tokens)
+}
+inline PROTOBUF_NDEBUG_INLINE Tokens::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : accesstoken_(arena),
+        refreshtoken_(arena),
+        _cached_size_{0} {}
+
+inline void Tokens::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+Tokens::~Tokens() {
+  // @@protoc_insertion_point(destructor:oauth2ClientSocket.Tokens)
+  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  SharedDtor();
+}
+inline void Tokens::SharedDtor() {
+  ABSL_DCHECK(GetArena() == nullptr);
+  _impl_.accesstoken_.Destroy();
+  _impl_.refreshtoken_.Destroy();
+  _impl_.~Impl_();
+}
+
+PROTOBUF_NOINLINE void Tokens::Clear() {
+// @@protoc_insertion_point(message_clear_start:oauth2ClientSocket.Tokens)
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.accesstoken_.ClearToEmpty();
+  _impl_.refreshtoken_.ClearToEmpty();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+const char* Tokens::_InternalParse(
+    const char* ptr, ::_pbi::ParseContext* ctx) {
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  return ptr;
+}
+
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<1, 2, 0, 57, 2> Tokens::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    2, 8,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967292,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    2,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    &_Tokens_default_instance_._instance,
+    ::_pbi::TcParser::GenericFallback,  // fallback
+  }, {{
+    // string refreshToken = 2;
+    {::_pbi::TcParser::FastUS1,
+     {18, 63, 0, PROTOBUF_FIELD_OFFSET(Tokens, _impl_.refreshtoken_)}},
+    // string accessToken = 1;
+    {::_pbi::TcParser::FastUS1,
+     {10, 63, 0, PROTOBUF_FIELD_OFFSET(Tokens, _impl_.accesstoken_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // string accessToken = 1;
+    {PROTOBUF_FIELD_OFFSET(Tokens, _impl_.accesstoken_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // string refreshToken = 2;
+    {PROTOBUF_FIELD_OFFSET(Tokens, _impl_.refreshtoken_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
+  }},
+  // no aux_entries
+  {{
+    "\31\13\14\0\0\0\0\0"
+    "oauth2ClientSocket.Tokens"
+    "accessToken"
+    "refreshToken"
+  }},
+};
+
+::uint8_t* Tokens::_InternalSerialize(
+    ::uint8_t* target,
+    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:oauth2ClientSocket.Tokens)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // string accessToken = 1;
+  if (!this->_internal_accesstoken().empty()) {
+    const std::string& _s = this->_internal_accesstoken();
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+        _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "oauth2ClientSocket.Tokens.accessToken");
+    target = stream->WriteStringMaybeAliased(1, _s, target);
+  }
+
+  // string refreshToken = 2;
+  if (!this->_internal_refreshtoken().empty()) {
+    const std::string& _s = this->_internal_refreshtoken();
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+        _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "oauth2ClientSocket.Tokens.refreshToken");
+    target = stream->WriteStringMaybeAliased(2, _s, target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:oauth2ClientSocket.Tokens)
+  return target;
+}
+
+::size_t Tokens::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:oauth2ClientSocket.Tokens)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string accessToken = 1;
+  if (!this->_internal_accesstoken().empty()) {
+    total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                    this->_internal_accesstoken());
+  }
+
+  // string refreshToken = 2;
+  if (!this->_internal_refreshtoken().empty()) {
+    total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                    this->_internal_refreshtoken());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::google::protobuf::Message::ClassData Tokens::_class_data_ = {
+    Tokens::MergeImpl,
+    nullptr,  // OnDemandRegisterArenaDtor
+};
+const ::google::protobuf::Message::ClassData* Tokens::GetClassData() const {
+  return &_class_data_;
+}
+
+void Tokens::MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg) {
+  auto* const _this = static_cast<Tokens*>(&to_msg);
+  auto& from = static_cast<const Tokens&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:oauth2ClientSocket.Tokens)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_accesstoken().empty()) {
+    _this->_internal_set_accesstoken(from._internal_accesstoken());
+  }
+  if (!from._internal_refreshtoken().empty()) {
+    _this->_internal_set_refreshtoken(from._internal_refreshtoken());
+  }
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void Tokens::CopyFrom(const Tokens& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:oauth2ClientSocket.Tokens)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+PROTOBUF_NOINLINE bool Tokens::IsInitialized() const {
+  return true;
+}
+
+::_pbi::CachedSize* Tokens::AccessCachedSize() const {
+  return &_impl_._cached_size_;
+}
+void Tokens::InternalSwap(Tokens* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  auto* arena = GetArena();
+  ABSL_DCHECK_EQ(arena, other->GetArena());
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.accesstoken_, &other->_impl_.accesstoken_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.refreshtoken_, &other->_impl_.refreshtoken_, arena);
+}
+
+::google::protobuf::Metadata Tokens::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_oauth2_5fclient_5fsocket_2eproto_getter, &descriptor_table_oauth2_5fclient_5fsocket_2eproto_once,
+      file_level_metadata_oauth2_5fclient_5fsocket_2eproto[2]);
+}
 // ===================================================================
 
 class SocketIdWithToken::_Internal {
@@ -428,7 +1255,7 @@ void SocketIdWithToken::InternalSwap(SocketIdWithToken* PROTOBUF_RESTRICT other)
 ::google::protobuf::Metadata SocketIdWithToken::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_oauth2_5fclient_5fsocket_2eproto_getter, &descriptor_table_oauth2_5fclient_5fsocket_2eproto_once,
-      file_level_metadata_oauth2_5fclient_5fsocket_2eproto[0]);
+      file_level_metadata_oauth2_5fclient_5fsocket_2eproto[3]);
 }
 // ===================================================================
 
@@ -463,7 +1290,7 @@ Empty::Empty(
 ::google::protobuf::Metadata Empty::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_oauth2_5fclient_5fsocket_2eproto_getter, &descriptor_table_oauth2_5fclient_5fsocket_2eproto_once,
-      file_level_metadata_oauth2_5fclient_5fsocket_2eproto[1]);
+      file_level_metadata_oauth2_5fclient_5fsocket_2eproto[4]);
 }
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace oauth2ClientSocket

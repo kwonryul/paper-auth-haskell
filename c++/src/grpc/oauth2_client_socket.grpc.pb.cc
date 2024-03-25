@@ -22,6 +22,7 @@
 namespace oauth2ClientSocket {
 
 static const char* OAuth2ClientSocket_method_names[] = {
+  "/oauth2ClientSocket.OAuth2ClientSocket/NewConnection",
   "/oauth2ClientSocket.OAuth2ClientSocket/SendTokenAndClose",
 };
 
@@ -32,8 +33,25 @@ std::unique_ptr< OAuth2ClientSocket::Stub> OAuth2ClientSocket::NewStub(const std
 }
 
 OAuth2ClientSocket::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
-  : channel_(channel), rpcmethod_SendTokenAndClose_(OAuth2ClientSocket_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  : channel_(channel), rpcmethod_NewConnection_(OAuth2ClientSocket_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::BIDI_STREAMING, channel)
+  , rpcmethod_SendTokenAndClose_(OAuth2ClientSocket_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
+
+::grpc::ClientReaderWriter< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>* OAuth2ClientSocket::Stub::NewConnectionRaw(::grpc::ClientContext* context) {
+  return ::grpc::internal::ClientReaderWriterFactory< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>::Create(channel_.get(), rpcmethod_NewConnection_, context);
+}
+
+void OAuth2ClientSocket::Stub::async::NewConnection(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::oauth2ClientSocket::ClientSocketMessage,::oauth2ClientSocket::ServerSocketMessage>* reactor) {
+  ::grpc::internal::ClientCallbackReaderWriterFactory< ::oauth2ClientSocket::ClientSocketMessage,::oauth2ClientSocket::ServerSocketMessage>::Create(stub_->channel_.get(), stub_->rpcmethod_NewConnection_, context, reactor);
+}
+
+::grpc::ClientAsyncReaderWriter< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>* OAuth2ClientSocket::Stub::AsyncNewConnectionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>::Create(channel_.get(), cq, rpcmethod_NewConnection_, context, true, tag);
+}
+
+::grpc::ClientAsyncReaderWriter< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>* OAuth2ClientSocket::Stub::PrepareAsyncNewConnectionRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>::Create(channel_.get(), cq, rpcmethod_NewConnection_, context, false, nullptr);
+}
 
 ::grpc::Status OAuth2ClientSocket::Stub::SendTokenAndClose(::grpc::ClientContext* context, const ::oauth2ClientSocket::SocketIdWithToken& request, ::oauth2ClientSocket::Empty* response) {
   return ::grpc::internal::BlockingUnaryCall< ::oauth2ClientSocket::SocketIdWithToken, ::oauth2ClientSocket::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_SendTokenAndClose_, context, request, response);
@@ -61,6 +79,16 @@ void OAuth2ClientSocket::Stub::async::SendTokenAndClose(::grpc::ClientContext* c
 OAuth2ClientSocket::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       OAuth2ClientSocket_method_names[0],
+      ::grpc::internal::RpcMethod::BIDI_STREAMING,
+      new ::grpc::internal::BidiStreamingHandler< OAuth2ClientSocket::Service, ::oauth2ClientSocket::ClientSocketMessage, ::oauth2ClientSocket::ServerSocketMessage>(
+          [](OAuth2ClientSocket::Service* service,
+             ::grpc::ServerContext* ctx,
+             ::grpc::ServerReaderWriter<::oauth2ClientSocket::ServerSocketMessage,
+             ::oauth2ClientSocket::ClientSocketMessage>* stream) {
+               return service->NewConnection(ctx, stream);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      OAuth2ClientSocket_method_names[1],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< OAuth2ClientSocket::Service, ::oauth2ClientSocket::SocketIdWithToken, ::oauth2ClientSocket::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](OAuth2ClientSocket::Service* service,
@@ -72,6 +100,12 @@ OAuth2ClientSocket::Service::Service() {
 }
 
 OAuth2ClientSocket::Service::~Service() {
+}
+
+::grpc::Status OAuth2ClientSocket::Service::NewConnection(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::oauth2ClientSocket::ServerSocketMessage, ::oauth2ClientSocket::ClientSocketMessage>* stream) {
+  (void) context;
+  (void) stream;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
 ::grpc::Status OAuth2ClientSocket::Service::SendTokenAndClose(::grpc::ServerContext* context, const ::oauth2ClientSocket::SocketIdWithToken* request, ::oauth2ClientSocket::Empty* response) {

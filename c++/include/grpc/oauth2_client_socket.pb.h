@@ -57,12 +57,21 @@ struct TableStruct_oauth2_5fclient_5fsocket_2eproto {
 extern const ::google::protobuf::internal::DescriptorTable
     descriptor_table_oauth2_5fclient_5fsocket_2eproto;
 namespace oauth2ClientSocket {
+class ClientSocketMessage;
+struct ClientSocketMessageDefaultTypeInternal;
+extern ClientSocketMessageDefaultTypeInternal _ClientSocketMessage_default_instance_;
 class Empty;
 struct EmptyDefaultTypeInternal;
 extern EmptyDefaultTypeInternal _Empty_default_instance_;
+class ServerSocketMessage;
+struct ServerSocketMessageDefaultTypeInternal;
+extern ServerSocketMessageDefaultTypeInternal _ServerSocketMessage_default_instance_;
 class SocketIdWithToken;
 struct SocketIdWithTokenDefaultTypeInternal;
 extern SocketIdWithTokenDefaultTypeInternal _SocketIdWithToken_default_instance_;
+class Tokens;
+struct TokensDefaultTypeInternal;
+extern TokensDefaultTypeInternal _Tokens_default_instance_;
 }  // namespace oauth2ClientSocket
 namespace google {
 namespace protobuf {
@@ -75,6 +84,205 @@ namespace oauth2ClientSocket {
 
 
 // -------------------------------------------------------------------
+
+class Tokens final :
+    public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:oauth2ClientSocket.Tokens) */ {
+ public:
+  inline Tokens() : Tokens(nullptr) {}
+  ~Tokens() override;
+  template<typename = void>
+  explicit PROTOBUF_CONSTEXPR Tokens(::google::protobuf::internal::ConstantInitialized);
+
+  inline Tokens(const Tokens& from)
+      : Tokens(nullptr, from) {}
+  Tokens(Tokens&& from) noexcept
+    : Tokens() {
+    *this = ::std::move(from);
+  }
+
+  inline Tokens& operator=(const Tokens& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Tokens& operator=(Tokens&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Tokens& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Tokens* internal_default_instance() {
+    return reinterpret_cast<const Tokens*>(
+               &_Tokens_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  friend void swap(Tokens& a, Tokens& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Tokens* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr &&
+        GetArena() == other->GetArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Tokens* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Tokens* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<Tokens>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const Tokens& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom( const Tokens& from) {
+    Tokens::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  ::size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::google::protobuf::internal::ParseContext* ctx) final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target, ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  ::google::protobuf::internal::CachedSize* AccessCachedSize() const final;
+  void SharedCtor(::google::protobuf::Arena* arena);
+  void SharedDtor();
+  void InternalSwap(Tokens* other);
+
+  private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() {
+    return "oauth2ClientSocket.Tokens";
+  }
+  protected:
+  explicit Tokens(::google::protobuf::Arena* arena);
+  Tokens(::google::protobuf::Arena* arena, const Tokens& from);
+  public:
+
+  static const ClassData _class_data_;
+  const ::google::protobuf::Message::ClassData*GetClassData() const final;
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kAccessTokenFieldNumber = 1,
+    kRefreshTokenFieldNumber = 2,
+  };
+  // string accessToken = 1;
+  void clear_accesstoken() ;
+  const std::string& accesstoken() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_accesstoken(Arg_&& arg, Args_... args);
+  std::string* mutable_accesstoken();
+  PROTOBUF_NODISCARD std::string* release_accesstoken();
+  void set_allocated_accesstoken(std::string* value);
+
+  private:
+  const std::string& _internal_accesstoken() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_accesstoken(
+      const std::string& value);
+  std::string* _internal_mutable_accesstoken();
+
+  public:
+  // string refreshToken = 2;
+  void clear_refreshtoken() ;
+  const std::string& refreshtoken() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_refreshtoken(Arg_&& arg, Args_... args);
+  std::string* mutable_refreshtoken();
+  PROTOBUF_NODISCARD std::string* release_refreshtoken();
+  void set_allocated_refreshtoken(std::string* value);
+
+  private:
+  const std::string& _internal_refreshtoken() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_refreshtoken(
+      const std::string& value);
+  std::string* _internal_mutable_refreshtoken();
+
+  public:
+  // @@protoc_insertion_point(class_scope:oauth2ClientSocket.Tokens)
+ private:
+  class _Internal;
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      1, 2, 0,
+      57, 2>
+      _table_;
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+
+        inline explicit constexpr Impl_(
+            ::google::protobuf::internal::ConstantInitialized) noexcept;
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena);
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena, const Impl_& from);
+    ::google::protobuf::internal::ArenaStringPtr accesstoken_;
+    ::google::protobuf::internal::ArenaStringPtr refreshtoken_;
+    mutable ::google::protobuf::internal::CachedSize _cached_size_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_oauth2_5fclient_5fsocket_2eproto;
+};// -------------------------------------------------------------------
 
 class SocketIdWithToken final :
     public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:oauth2ClientSocket.SocketIdWithToken) */ {
@@ -135,7 +343,7 @@ class SocketIdWithToken final :
                &_SocketIdWithToken_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    0;
+    3;
 
   friend void swap(SocketIdWithToken& a, SocketIdWithToken& b) {
     a.Swap(&b);
@@ -357,7 +565,7 @@ class Empty final :
                &_Empty_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    4;
 
   friend void swap(Empty& a, Empty& b) {
     a.Swap(&b);
@@ -433,6 +641,421 @@ class Empty final :
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   friend struct ::TableStruct_oauth2_5fclient_5fsocket_2eproto;
+};// -------------------------------------------------------------------
+
+class ClientSocketMessage final :
+    public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:oauth2ClientSocket.ClientSocketMessage) */ {
+ public:
+  inline ClientSocketMessage() : ClientSocketMessage(nullptr) {}
+  ~ClientSocketMessage() override;
+  template<typename = void>
+  explicit PROTOBUF_CONSTEXPR ClientSocketMessage(::google::protobuf::internal::ConstantInitialized);
+
+  inline ClientSocketMessage(const ClientSocketMessage& from)
+      : ClientSocketMessage(nullptr, from) {}
+  ClientSocketMessage(ClientSocketMessage&& from) noexcept
+    : ClientSocketMessage() {
+    *this = ::std::move(from);
+  }
+
+  inline ClientSocketMessage& operator=(const ClientSocketMessage& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ClientSocketMessage& operator=(ClientSocketMessage&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ClientSocketMessage& default_instance() {
+    return *internal_default_instance();
+  }
+  enum MessageCase {
+    kPort = 1,
+    MESSAGE_NOT_SET = 0,
+  };
+
+  static inline const ClientSocketMessage* internal_default_instance() {
+    return reinterpret_cast<const ClientSocketMessage*>(
+               &_ClientSocketMessage_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    0;
+
+  friend void swap(ClientSocketMessage& a, ClientSocketMessage& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ClientSocketMessage* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr &&
+        GetArena() == other->GetArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ClientSocketMessage* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ClientSocketMessage* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ClientSocketMessage>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ClientSocketMessage& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom( const ClientSocketMessage& from) {
+    ClientSocketMessage::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  ::size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::google::protobuf::internal::ParseContext* ctx) final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target, ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  ::google::protobuf::internal::CachedSize* AccessCachedSize() const final;
+  void SharedCtor(::google::protobuf::Arena* arena);
+  void SharedDtor();
+  void InternalSwap(ClientSocketMessage* other);
+
+  private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() {
+    return "oauth2ClientSocket.ClientSocketMessage";
+  }
+  protected:
+  explicit ClientSocketMessage(::google::protobuf::Arena* arena);
+  ClientSocketMessage(::google::protobuf::Arena* arena, const ClientSocketMessage& from);
+  public:
+
+  static const ClassData _class_data_;
+  const ::google::protobuf::Message::ClassData*GetClassData() const final;
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kPortFieldNumber = 1,
+  };
+  // int32 port = 1;
+  bool has_port() const;
+  void clear_port() ;
+  ::int32_t port() const;
+  void set_port(::int32_t value);
+
+  private:
+  ::int32_t _internal_port() const;
+  void _internal_set_port(::int32_t value);
+
+  public:
+  void clear_message();
+  MessageCase message_case() const;
+  // @@protoc_insertion_point(class_scope:oauth2ClientSocket.ClientSocketMessage)
+ private:
+  class _Internal;
+  void set_has_port();
+
+  inline bool has_message() const;
+  inline void clear_has_message();
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      0, 1, 0,
+      0, 2>
+      _table_;
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+
+        inline explicit constexpr Impl_(
+            ::google::protobuf::internal::ConstantInitialized) noexcept;
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena);
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena, const Impl_& from);
+    union MessageUnion {
+      constexpr MessageUnion() : _constinit_{} {}
+        ::google::protobuf::internal::ConstantInitialized _constinit_;
+      ::int32_t port_;
+    } message_;
+    mutable ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint32_t _oneof_case_[1];
+
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_oauth2_5fclient_5fsocket_2eproto;
+};// -------------------------------------------------------------------
+
+class ServerSocketMessage final :
+    public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:oauth2ClientSocket.ServerSocketMessage) */ {
+ public:
+  inline ServerSocketMessage() : ServerSocketMessage(nullptr) {}
+  ~ServerSocketMessage() override;
+  template<typename = void>
+  explicit PROTOBUF_CONSTEXPR ServerSocketMessage(::google::protobuf::internal::ConstantInitialized);
+
+  inline ServerSocketMessage(const ServerSocketMessage& from)
+      : ServerSocketMessage(nullptr, from) {}
+  ServerSocketMessage(ServerSocketMessage&& from) noexcept
+    : ServerSocketMessage() {
+    *this = ::std::move(from);
+  }
+
+  inline ServerSocketMessage& operator=(const ServerSocketMessage& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ServerSocketMessage& operator=(ServerSocketMessage&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ServerSocketMessage& default_instance() {
+    return *internal_default_instance();
+  }
+  enum MessageCase {
+    kState = 1,
+    kTokens = 2,
+    MESSAGE_NOT_SET = 0,
+  };
+
+  static inline const ServerSocketMessage* internal_default_instance() {
+    return reinterpret_cast<const ServerSocketMessage*>(
+               &_ServerSocketMessage_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    1;
+
+  friend void swap(ServerSocketMessage& a, ServerSocketMessage& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ServerSocketMessage* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr &&
+        GetArena() == other->GetArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ServerSocketMessage* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ServerSocketMessage* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ServerSocketMessage>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const ServerSocketMessage& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom( const ServerSocketMessage& from) {
+    ServerSocketMessage::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  ::size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::google::protobuf::internal::ParseContext* ctx) final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target, ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  ::google::protobuf::internal::CachedSize* AccessCachedSize() const final;
+  void SharedCtor(::google::protobuf::Arena* arena);
+  void SharedDtor();
+  void InternalSwap(ServerSocketMessage* other);
+
+  private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() {
+    return "oauth2ClientSocket.ServerSocketMessage";
+  }
+  protected:
+  explicit ServerSocketMessage(::google::protobuf::Arena* arena);
+  ServerSocketMessage(::google::protobuf::Arena* arena, const ServerSocketMessage& from);
+  public:
+
+  static const ClassData _class_data_;
+  const ::google::protobuf::Message::ClassData*GetClassData() const final;
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kStateFieldNumber = 1,
+    kTokensFieldNumber = 2,
+  };
+  // string state = 1;
+  bool has_state() const;
+  void clear_state() ;
+  const std::string& state() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_state(Arg_&& arg, Args_... args);
+  std::string* mutable_state();
+  PROTOBUF_NODISCARD std::string* release_state();
+  void set_allocated_state(std::string* value);
+
+  private:
+  const std::string& _internal_state() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_state(
+      const std::string& value);
+  std::string* _internal_mutable_state();
+
+  public:
+  // .oauth2ClientSocket.Tokens tokens = 2;
+  bool has_tokens() const;
+  private:
+  bool _internal_has_tokens() const;
+
+  public:
+  void clear_tokens() ;
+  const ::oauth2ClientSocket::Tokens& tokens() const;
+  PROTOBUF_NODISCARD ::oauth2ClientSocket::Tokens* release_tokens();
+  ::oauth2ClientSocket::Tokens* mutable_tokens();
+  void set_allocated_tokens(::oauth2ClientSocket::Tokens* value);
+  void unsafe_arena_set_allocated_tokens(::oauth2ClientSocket::Tokens* value);
+  ::oauth2ClientSocket::Tokens* unsafe_arena_release_tokens();
+
+  private:
+  const ::oauth2ClientSocket::Tokens& _internal_tokens() const;
+  ::oauth2ClientSocket::Tokens* _internal_mutable_tokens();
+
+  public:
+  void clear_message();
+  MessageCase message_case() const;
+  // @@protoc_insertion_point(class_scope:oauth2ClientSocket.ServerSocketMessage)
+ private:
+  class _Internal;
+  void set_has_state();
+  void set_has_tokens();
+
+  inline bool has_message() const;
+  inline void clear_has_message();
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      0, 2, 1,
+      52, 2>
+      _table_;
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+
+        inline explicit constexpr Impl_(
+            ::google::protobuf::internal::ConstantInitialized) noexcept;
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena);
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena, const Impl_& from);
+    union MessageUnion {
+      constexpr MessageUnion() : _constinit_{} {}
+        ::google::protobuf::internal::ConstantInitialized _constinit_;
+      ::google::protobuf::internal::ArenaStringPtr state_;
+      ::oauth2ClientSocket::Tokens* tokens_;
+    } message_;
+    mutable ::google::protobuf::internal::CachedSize _cached_size_;
+    ::uint32_t _oneof_case_[1];
+
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_oauth2_5fclient_5fsocket_2eproto;
 };
 
 // ===================================================================
@@ -447,6 +1070,339 @@ class Empty final :
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// ClientSocketMessage
+
+// int32 port = 1;
+inline bool ClientSocketMessage::has_port() const {
+  return message_case() == kPort;
+}
+inline void ClientSocketMessage::set_has_port() {
+  _impl_._oneof_case_[0] = kPort;
+}
+inline void ClientSocketMessage::clear_port() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  if (message_case() == kPort) {
+    _impl_.message_.port_ = 0;
+    clear_has_message();
+  }
+}
+inline ::int32_t ClientSocketMessage::port() const {
+  // @@protoc_insertion_point(field_get:oauth2ClientSocket.ClientSocketMessage.port)
+  return _internal_port();
+}
+inline void ClientSocketMessage::set_port(::int32_t value) {
+  _internal_set_port(value);
+  // @@protoc_insertion_point(field_set:oauth2ClientSocket.ClientSocketMessage.port)
+}
+inline ::int32_t ClientSocketMessage::_internal_port() const {
+  if (message_case() == kPort) {
+    return _impl_.message_.port_;
+  }
+  return 0;
+}
+inline void ClientSocketMessage::_internal_set_port(::int32_t value) {
+  if (message_case() != kPort) {
+    clear_message();
+    set_has_port();
+  }
+  _impl_.message_.port_ = value;
+}
+
+inline bool ClientSocketMessage::has_message() const {
+  return message_case() != MESSAGE_NOT_SET;
+}
+inline void ClientSocketMessage::clear_has_message() {
+  _impl_._oneof_case_[0] = MESSAGE_NOT_SET;
+}
+inline ClientSocketMessage::MessageCase ClientSocketMessage::message_case() const {
+  return ClientSocketMessage::MessageCase(_impl_._oneof_case_[0]);
+}
+// -------------------------------------------------------------------
+
+// ServerSocketMessage
+
+// string state = 1;
+inline bool ServerSocketMessage::has_state() const {
+  return message_case() == kState;
+}
+inline void ServerSocketMessage::set_has_state() {
+  _impl_._oneof_case_[0] = kState;
+}
+inline void ServerSocketMessage::clear_state() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  if (message_case() == kState) {
+    _impl_.message_.state_.Destroy();
+    clear_has_message();
+  }
+}
+inline const std::string& ServerSocketMessage::state() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:oauth2ClientSocket.ServerSocketMessage.state)
+  return _internal_state();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void ServerSocketMessage::set_state(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  if (message_case() != kState) {
+    clear_message();
+
+    set_has_state();
+    _impl_.message_.state_.InitDefault();
+  }
+  _impl_.message_.state_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:oauth2ClientSocket.ServerSocketMessage.state)
+}
+inline std::string* ServerSocketMessage::mutable_state() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_state();
+  // @@protoc_insertion_point(field_mutable:oauth2ClientSocket.ServerSocketMessage.state)
+  return _s;
+}
+inline const std::string& ServerSocketMessage::_internal_state() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  if (message_case() != kState) {
+    return ::google::protobuf::internal::GetEmptyStringAlreadyInited();
+  }
+  return _impl_.message_.state_.Get();
+}
+inline void ServerSocketMessage::_internal_set_state(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  if (message_case() != kState) {
+    clear_message();
+
+    set_has_state();
+    _impl_.message_.state_.InitDefault();
+  }
+  _impl_.message_.state_.Set(value, GetArena());
+}
+inline std::string* ServerSocketMessage::_internal_mutable_state() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  if (message_case() != kState) {
+    clear_message();
+
+    set_has_state();
+    _impl_.message_.state_.InitDefault();
+  }
+  return _impl_.message_.state_.Mutable( GetArena());
+}
+inline std::string* ServerSocketMessage::release_state() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:oauth2ClientSocket.ServerSocketMessage.state)
+  if (message_case() != kState) {
+    return nullptr;
+  }
+  clear_has_message();
+  return _impl_.message_.state_.Release();
+}
+inline void ServerSocketMessage::set_allocated_state(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  if (has_message()) {
+    clear_message();
+  }
+  if (value != nullptr) {
+    set_has_state();
+    _impl_.message_.state_.InitAllocated(value, GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:oauth2ClientSocket.ServerSocketMessage.state)
+}
+
+// .oauth2ClientSocket.Tokens tokens = 2;
+inline bool ServerSocketMessage::has_tokens() const {
+  return message_case() == kTokens;
+}
+inline bool ServerSocketMessage::_internal_has_tokens() const {
+  return message_case() == kTokens;
+}
+inline void ServerSocketMessage::set_has_tokens() {
+  _impl_._oneof_case_[0] = kTokens;
+}
+inline void ServerSocketMessage::clear_tokens() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  if (message_case() == kTokens) {
+    if (GetArena() == nullptr) {
+      delete _impl_.message_.tokens_;
+    }
+    clear_has_message();
+  }
+}
+inline ::oauth2ClientSocket::Tokens* ServerSocketMessage::release_tokens() {
+  // @@protoc_insertion_point(field_release:oauth2ClientSocket.ServerSocketMessage.tokens)
+  if (message_case() == kTokens) {
+    clear_has_message();
+    auto* temp = _impl_.message_.tokens_;
+    if (GetArena() != nullptr) {
+      temp = ::google::protobuf::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.message_.tokens_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::oauth2ClientSocket::Tokens& ServerSocketMessage::_internal_tokens() const {
+  return message_case() == kTokens ? *_impl_.message_.tokens_ : reinterpret_cast<::oauth2ClientSocket::Tokens&>(::oauth2ClientSocket::_Tokens_default_instance_);
+}
+inline const ::oauth2ClientSocket::Tokens& ServerSocketMessage::tokens() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:oauth2ClientSocket.ServerSocketMessage.tokens)
+  return _internal_tokens();
+}
+inline ::oauth2ClientSocket::Tokens* ServerSocketMessage::unsafe_arena_release_tokens() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:oauth2ClientSocket.ServerSocketMessage.tokens)
+  if (message_case() == kTokens) {
+    clear_has_message();
+    auto* temp = _impl_.message_.tokens_;
+    _impl_.message_.tokens_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void ServerSocketMessage::unsafe_arena_set_allocated_tokens(::oauth2ClientSocket::Tokens* value) {
+  // We rely on the oneof clear method to free the earlier contents
+  // of this oneof. We can directly use the pointer we're given to
+  // set the new value.
+  clear_message();
+  if (value) {
+    set_has_tokens();
+    _impl_.message_.tokens_ = value;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:oauth2ClientSocket.ServerSocketMessage.tokens)
+}
+inline ::oauth2ClientSocket::Tokens* ServerSocketMessage::_internal_mutable_tokens() {
+  if (message_case() != kTokens) {
+    clear_message();
+    set_has_tokens();
+    _impl_.message_.tokens_ = CreateMaybeMessage<::oauth2ClientSocket::Tokens>(GetArena());
+  }
+  return _impl_.message_.tokens_;
+}
+inline ::oauth2ClientSocket::Tokens* ServerSocketMessage::mutable_tokens() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::oauth2ClientSocket::Tokens* _msg = _internal_mutable_tokens();
+  // @@protoc_insertion_point(field_mutable:oauth2ClientSocket.ServerSocketMessage.tokens)
+  return _msg;
+}
+
+inline bool ServerSocketMessage::has_message() const {
+  return message_case() != MESSAGE_NOT_SET;
+}
+inline void ServerSocketMessage::clear_has_message() {
+  _impl_._oneof_case_[0] = MESSAGE_NOT_SET;
+}
+inline ServerSocketMessage::MessageCase ServerSocketMessage::message_case() const {
+  return ServerSocketMessage::MessageCase(_impl_._oneof_case_[0]);
+}
+// -------------------------------------------------------------------
+
+// Tokens
+
+// string accessToken = 1;
+inline void Tokens::clear_accesstoken() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.accesstoken_.ClearToEmpty();
+}
+inline const std::string& Tokens::accesstoken() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:oauth2ClientSocket.Tokens.accessToken)
+  return _internal_accesstoken();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void Tokens::set_accesstoken(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.accesstoken_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:oauth2ClientSocket.Tokens.accessToken)
+}
+inline std::string* Tokens::mutable_accesstoken() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_accesstoken();
+  // @@protoc_insertion_point(field_mutable:oauth2ClientSocket.Tokens.accessToken)
+  return _s;
+}
+inline const std::string& Tokens::_internal_accesstoken() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.accesstoken_.Get();
+}
+inline void Tokens::_internal_set_accesstoken(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.accesstoken_.Set(value, GetArena());
+}
+inline std::string* Tokens::_internal_mutable_accesstoken() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.accesstoken_.Mutable( GetArena());
+}
+inline std::string* Tokens::release_accesstoken() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:oauth2ClientSocket.Tokens.accessToken)
+  return _impl_.accesstoken_.Release();
+}
+inline void Tokens::set_allocated_accesstoken(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.accesstoken_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.accesstoken_.IsDefault()) {
+          _impl_.accesstoken_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:oauth2ClientSocket.Tokens.accessToken)
+}
+
+// string refreshToken = 2;
+inline void Tokens::clear_refreshtoken() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.refreshtoken_.ClearToEmpty();
+}
+inline const std::string& Tokens::refreshtoken() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:oauth2ClientSocket.Tokens.refreshToken)
+  return _internal_refreshtoken();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void Tokens::set_refreshtoken(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.refreshtoken_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:oauth2ClientSocket.Tokens.refreshToken)
+}
+inline std::string* Tokens::mutable_refreshtoken() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_refreshtoken();
+  // @@protoc_insertion_point(field_mutable:oauth2ClientSocket.Tokens.refreshToken)
+  return _s;
+}
+inline const std::string& Tokens::_internal_refreshtoken() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.refreshtoken_.Get();
+}
+inline void Tokens::_internal_set_refreshtoken(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.refreshtoken_.Set(value, GetArena());
+}
+inline std::string* Tokens::_internal_mutable_refreshtoken() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.refreshtoken_.Mutable( GetArena());
+}
+inline std::string* Tokens::release_refreshtoken() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:oauth2ClientSocket.Tokens.refreshToken)
+  return _impl_.refreshtoken_.Release();
+}
+inline void Tokens::set_allocated_refreshtoken(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.refreshtoken_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.refreshtoken_.IsDefault()) {
+          _impl_.refreshtoken_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:oauth2ClientSocket.Tokens.refreshToken)
+}
+
 // -------------------------------------------------------------------
 
 // SocketIdWithToken

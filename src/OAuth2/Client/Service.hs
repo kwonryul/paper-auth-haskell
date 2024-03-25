@@ -98,22 +98,18 @@ webSocketImpl ctx socketConnections'' socketConn' pool = do
             return ()
             )
             (\_ -> receiveLoop profile socketConn)
+            {-}
     paperLiftIOUnliftIO $ catch (do
         state <- nestedLog profile (config ctx) $ generateState profile (fromIntegral $ fromSqlKeyFor socketId)
         nestedLog profile (config ctx) $ sendTextData socketConn state
-        runNestedMonad @p (config ctx) $ runSqlPoolOneConnectionNested (OAuth2.Client.Repository.saveState socketId state) pool) (\(_ :: SomeException) -> return ())
-    paperLiftIOUnliftIO $ putMVar sendLock ()
+        nestedLog profile (config ctx) $ putMVar sendLock ()
+        runNestedMonad @p (config ctx) $ runSqlPoolOneConnectionNested (OAuth2.Client.Repository.saveState socketId state) pool)
+        (\(e :: SomeException) -> do
+            cleanUp profile socketId
+            throw e)
+            -}
     paperLiftIOUnliftIO $ withPingThread socketConn 30 (return ()) $ do
-        bracket (return ()) (\_ -> do
-            runNestedMonad @p (config ctx) $ runSqlPoolOneConnectionNested (OAuth2.Client.Repository.closeConnection socketId) pool
-            socketConnections' <- nestedLog profile (config ctx) $ takeMVar socketConnections''
-            catch (nestedLog profile (config ctx) $ putMVar socketConnections'' $ Data.Map.delete
-                (fromIntegral $ fromSqlKeyFor socketId)
-                socketConnections'
-                ) $ \(e :: SomeException) -> do
-                    nestedLog profile (config ctx) $ putMVar socketConnections'' socketConnections'
-                    throw e
-            )
+        bracket (return ()) (\_ -> cleanUp profile socketId)
             (\_ -> nestedLog profile (config ctx) $ takeMVar closeShot)
 
     where
@@ -123,6 +119,16 @@ webSocketImpl ctx socketConnections'' socketConn' pool = do
             case msg of
                 ControlMessage (Close _ _) -> return ()
                 _ -> receiveLoop profile socketConn
+        cleanUp :: HasCallStack => Proxy p -> OAuth2ClientSocketConnectionId -> IO ()
+        cleanUp profile socketId = do
+            runNestedMonad @p (config ctx) $ runSqlPoolOneConnectionNested (OAuth2.Client.Repository.closeConnection socketId) pool
+            socketConnections' <- nestedLog profile (config ctx) $ takeMVar socketConnections''
+            catch (nestedLog profile (config ctx) $ putMVar socketConnections'' $ Data.Map.delete
+                (fromIntegral $ fromSqlKeyFor socketId)
+                socketConnections'
+                ) $ \(e :: SomeException) -> do
+                    nestedLog profile (config ctx) $ putMVar socketConnections'' socketConnections'
+                    throw e
 
 issueJWTImpl :: (HasCallStack, OAuth2ClientServiceI p, MonadUnliftIO m) => Config -> EncodeSigner -> AuthenticationType -> String -> String -> PaperAuthPool -> PaperMonad p m (Servant.Headers '[Header "Set-Cookie" SetCookie] Html)
 issueJWTImpl config encodeSigner authenticationType code state pool =
