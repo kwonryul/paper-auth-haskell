@@ -12,6 +12,7 @@ import JWT.ExService
 import JWT.Repository
 import JWT.Service
 import JWT.Util
+import Lock.Repository
 import Middleware.CORS
 import Middleware.Utf8
 import Monad.ErrorT
@@ -70,6 +71,7 @@ instance JWTExServiceI Dev
 instance JWTRepositoryI Dev
 instance JWTServiceI Dev
 instance JWTUtilI Dev
+instance LockRepositoryI Dev
 instance CORSI Dev
 instance Utf8I Dev
 instance ErrorTI Dev

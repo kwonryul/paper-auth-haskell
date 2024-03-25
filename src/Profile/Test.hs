@@ -10,6 +10,7 @@ import JWT.ExService
 import JWT.Repository
 import JWT.Service
 import JWT.Util
+import Lock.Repository
 import Middleware.CORS
 import Middleware.Utf8
 import Monad.ErrorT
@@ -72,6 +73,7 @@ instance JWTControllerI Test
 instance JWTRepositoryI Test
 instance JWTServiceI Test
 --instance JWTUtilI Test
+instance LockRepositoryI Test
 instance CORSI Test
 instance Utf8I Test
 instance OAuth2ClientGRpcControllerI Test

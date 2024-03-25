@@ -8,6 +8,8 @@ module Verification.ExService(
       )
 ) where
 
+import qualified Lock.Repository
+import Lock.Repository(LockRepositoryI)
 import qualified User.Repository
 import User.Repository(UserRepositoryI)
 import qualified Verification.Repository
@@ -28,7 +30,7 @@ import Control.Monad.IO.Unlift
 import Control.Monad.Reader
 import GHC.Stack
 
-class (DBI p, UserRepositoryI p, VerificationExDTOI p, VerificationRepositoryI p) => VerificationExServiceI p where
+class (DBI p, LockRepositoryI p, UserRepositoryI p, VerificationExDTOI p, VerificationRepositoryI p) => VerificationExServiceI p where
     verifyVerification :: (HasCallStack, MonadUnliftIO m) => PhoneNumber -> String -> PaperAuthPool -> PaperAuthConn -> PaperMonad p m ()
     verifyVerification = verifyVerificationImpl
     verifyPaperId :: (HasCallStack, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m ()
@@ -64,6 +66,7 @@ verifyVerificationImpl phoneNumber phoneNumberSecret pool conn = do
 verifyPaperIdImpl :: (HasCallStack, VerificationExServiceI p, MonadUnliftIO m) => String -> PaperAuthConn -> PaperMonad p m ()
 verifyPaperIdImpl paperId conn = do
     profile <- ask
+    Lock.Repository.lock ["paperId"] conn
     sameUserIdEntityList <- User.Repository.findByPaperId paperId conn
     case sameUserIdEntityList of
         [] -> return()
@@ -73,6 +76,7 @@ verifyPaperIdImpl paperId conn = do
 verifyPhoneNumberImpl :: (HasCallStack, VerificationExServiceI p, MonadUnliftIO m) => PhoneNumber -> PaperAuthConn -> PaperMonad p m ()
 verifyPhoneNumberImpl phoneNumber conn = do
     profile <- ask
+    Lock.Repository.lock ["phoneNumber"] conn
     samePhoneNumberList <- User.Repository.findByPhoneNumber phoneNumber conn
     case samePhoneNumberList of
         [] -> return ()

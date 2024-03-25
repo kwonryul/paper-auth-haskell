@@ -38,10 +38,6 @@ clean_examples:
 cpp_make:
 	cd c++ && make build
 
-.PHONY: cpp_make_with_hs
-cpp_make_with_hs:
-	cd c++ && make build_with_hs
-
 .PHONY: test
 test: clean_examples update_cabal cpp_make
 	echo "Running Tests..."

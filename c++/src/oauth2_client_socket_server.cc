@@ -9,8 +9,6 @@
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
 
-#include <HsFFI.h>
-
 #include "oauth2_client_socket.grpc.pb.h"
 #include "thread_safe_map.h"
 

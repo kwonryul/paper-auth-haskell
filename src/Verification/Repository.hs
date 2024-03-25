@@ -34,21 +34,21 @@ class PaperMonadI p => VerificationRepositoryI p where
 
 
 newVerificationImpl :: (HasCallStack, VerificationRepositoryI p, MonadUnliftIO m) => PhoneNumber -> String -> UTCTime -> UTCTime -> UTCTime -> PaperAuthConn -> PaperMonad p m VerificationId
-newVerificationImpl (PhoneNumber phoneNumber) phoneNumberSecret iat expire deleteAt conn = do
+newVerificationImpl (PhoneNumber phoneNumber) phoneNumberSecret iat expire deleteAt conn =
     paperLiftUnliftIO $ runReaderT (insert $ Verification phoneNumber phoneNumberSecret iat expire deleteAt 0) conn
 
 findByPhoneNumberImpl :: (HasCallStack, VerificationRepositoryI p, MonadUnliftIO m) => PhoneNumber -> PaperAuthConn -> PaperMonad p m (Maybe (Entity Verification))
-findByPhoneNumberImpl (PhoneNumber phoneNumber) conn = do
+findByPhoneNumberImpl (PhoneNumber phoneNumber) conn =
     paperLiftUnliftIO $ runReaderT (getBy $ UniquePhoneNumber phoneNumber) conn
 
 deleteByPhoneNumberImpl :: (HasCallStack, VerificationRepositoryI p, MonadUnliftIO m) => PhoneNumber -> PaperAuthConn -> PaperMonad p m ()
-deleteByPhoneNumberImpl (PhoneNumber phoneNumber) conn = do
+deleteByPhoneNumberImpl (PhoneNumber phoneNumber) conn =
     paperLiftUnliftIO $ runReaderT (deleteWhere [VerificationPhoneNumber ==. phoneNumber]) conn
 
 deleteByIdImpl :: (HasCallStack, VerificationRepositoryI p, MonadUnliftIO m) => VerificationId -> PaperAuthConn -> PaperMonad p m ()
-deleteByIdImpl verificationId conn = do
+deleteByIdImpl verificationId conn =
     paperLiftUnliftIO $ runReaderT (delete verificationId) conn
 
 increaseFailCountImpl :: (HasCallStack, VerificationRepositoryI p, MonadUnliftIO m) => VerificationId -> PaperAuthConn -> PaperMonad p m ()
-increaseFailCountImpl verificationId conn = do
+increaseFailCountImpl verificationId conn =
     paperLiftUnliftIO $ runReaderT (update verificationId [VerificationFailCount +=. 1]) conn

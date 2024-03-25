@@ -49,6 +49,8 @@ library
       , JWT.Repository
       , JWT.Service
       , JWT.Util
+      , Lock.Entity
+      , Lock.Repository
       , Middleware.CORS
       , Middleware.Utf8
       , Monad.ErrorT
@@ -151,6 +153,7 @@ library
       , persistent-template
       , persistent-typed-db
       , persistent-mysql
+      , esqueleto
     hs-source-dirs:   src
     default-language: GHC2021
     ghc-options: -threaded

@@ -25,6 +25,7 @@ module Lib(
 ) where
 
 import JWT.Entity
+import Lock.Entity
 import OAuth2.Client.GRpc.Controller
 import OAuth2.Client.Entity
 import Role.Entity
@@ -143,3 +144,4 @@ migratePaperAuth''Impl conn = do
     globalLiftUnliftIO $ runReaderT (runMigration migrateRole) (generalizeSqlBackend conn)
     globalLiftUnliftIO $ runReaderT (runMigration migrateUserRole) (generalizeSqlBackend conn)
     globalLiftUnliftIO $ runReaderT (runMigration migrateOAuth2ClientSocket) (generalizeSqlBackend conn)
+    globalLiftUnliftIO $ runReaderT (runMigration migrateLock) (generalizeSqlBackend conn)
